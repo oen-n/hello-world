@@ -1,5 +1,7 @@
-// Service worker : l'appli s'ouvre même sans réseau (dernières données connues).
-const CACHE = "plein-malin-v3";
+// Service worker : l'appli s'ouvre même sans réseau (dernières données connues)
+// et reçoit les notifications (OneSignal).
+try { importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js"); } catch (e) { /* hors ligne */ }
+const CACHE = "plein-malin-v4";
 const SHELL = ["./", "index.html", "style.css", "app.js", "analysis.js", "config.js", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {
@@ -10,7 +12,7 @@ self.addEventListener("activate", (e) => {
 });
 // Réseau d'abord (prix frais), cache en secours.
 self.addEventListener("fetch", (e) => {
-  if (e.request.method !== "GET") return;
+  if (e.request.method !== "GET" || e.request.url.includes("onesignal")) return;
   e.respondWith(
     fetch(e.request).then((r) => {
       if (r.ok && (new URL(e.request.url).origin === location.origin || e.request.url.includes("data.economie.gouv.fr"))) {
