@@ -15,8 +15,18 @@ export const CONFIG = {
   contactPartenaire: "",
 
   // Partenaires (sponsors) affichés sous la liste des stations.
-  // Si tu en mets plusieurs, un partenaire différent s'affiche à chaque ouverture.
+  // `departements` : n'afficher le partenaire qu'aux utilisateurs de ces départements
+  // (laisser vide [] pour toute la France). Plusieurs partenaires = un au hasard.
   partenaires: [
-    // { nom: "Garage Exemple", texte: "Vidange -10 % sur présentation de l'appli", lien: "https://…", ville: "Cholet" },
+    // { nom: "Garage Exemple", texte: "Vidange -10 % sur présentation de l'appli", lien: "https://…", ville: "Cholet", departements: ["49"] },
   ],
+
+  // Publicité Google AdSense (nécessite ton propre nom de domaine, voir README).
+  // ex. adsenseClient: "ca-pub-1234567890123456", adsenseSlot: "1234567890"
+  adsenseClient: "",
+  adsenseSlot: "",
+
+  // Statistiques privées (Cloudflare Web Analytics) : colle ici le "token" (32 caractères).
+  // Toi seul vois les chiffres, sur dash.cloudflare.com. Sans cookie, pas de bandeau à afficher.
+  cloudflareAnalyticsToken: "",
 };

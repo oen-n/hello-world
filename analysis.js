@@ -233,3 +233,20 @@ export function backtest(series, days = 365, every = 7) {
   }
   return count ? { perLitre: (naive - smart) / count, count } : null;
 }
+
+// Convertit un fichier département (data/dep/XX.json) au format attendu par buildSeries :
+// les prix des stations (qui ne couvrent que les dernières semaines) sont complétés par des vides.
+export function depToHist(dep) {
+  const offset = Math.round((Date.parse(dep.stStart) - Date.parse(dep.start)) / DAY);
+  const fuels = {};
+  for (const [f, v] of Object.entries(dep.fuels)) {
+    const stations = {};
+    for (const [sid, arr] of Object.entries(v.st || {})) {
+      const full = new Array(v.avg.length).fill(null);
+      for (let i = 0; i < arr.length && offset + i < full.length; i++) full[offset + i] = arr[i];
+      stations[sid] = full;
+    }
+    fuels[f] = { avg: v.avg, min: v.min, stations };
+  }
+  return { start: dep.start, generated: dep.generated, stations: dep.stations, fuels };
+}
