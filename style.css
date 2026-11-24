@@ -1,3 +1,4 @@
+[hidden] { display: none !important; }
 :root {
   color-scheme: light;
   --bg: #f3f3f1;
@@ -140,3 +141,10 @@ code { background: var(--neutral-bg); padding: 2px 6px; border-radius: 6px; font
 .sponsor .kicker { font-size: .75rem; color: var(--text-muted); }
 .sponsor .sp-name { font-weight: 700; font-size: 1.05rem; }
 .sponsor p, .don p { margin: 6px 0; color: var(--text-secondary); }
+
+.sheet {
+  border: 0; border-radius: 20px; padding: 18px; width: min(92vw, 460px);
+  background: var(--surface-1); color: var(--text-primary); box-shadow: 0 10px 40px rgb(0 0 0 / .3);
+}
+.sheet::backdrop { background: rgb(0 0 0 / .45); }
+.sheet .howto li { margin: 10px 0; }

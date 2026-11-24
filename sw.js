@@ -1,5 +1,5 @@
 // Service worker : l'appli s'ouvre même sans réseau (dernières données connues).
-const CACHE = "plein-malin-v2";
+const CACHE = "plein-malin-v3";
 const SHELL = ["./", "index.html", "style.css", "app.js", "analysis.js", "config.js", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {
