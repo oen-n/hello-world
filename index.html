@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Plein Malin – Carburant Cholet & Maulévrier</title>
+<meta name="description" content="Prix du carburant autour de Maulévrier et Cholet : la station la moins chère et le bon moment pour faire le plein.">
+<meta name="theme-color" content="#2a78d6">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Plein Malin">
+<meta property="og:title" content="Plein Malin – Carburant Cholet & Maulévrier">
+<meta property="og:description" content="La station la moins chère et le bon moment pour faire le plein.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><img src="icons/icon.svg" alt="" width="32" height="32"><span>Plein Malin</span></div>
+  <button id="shareBtn" class="ghost" type="button" aria-label="Partager l'application">📤 Partager</button>
+</header>
+
+<main>
+  <nav class="fuels" id="fuels" aria-label="Choix du carburant"></nav>
+
+  <section id="signal" class="card signal" aria-live="polite">
+    <div class="loading">Chargement des prix…</div>
+  </section>
+
+  <section class="card">
+    <div class="row-between">
+      <h2>Les moins chères maintenant</h2>
+      <button id="geoBtn" class="chip" type="button">📍 Autour de moi</button>
+    </div>
+    <p class="sub" id="fromLabel">Distances depuis Maulévrier</p>
+    <ol id="stations" class="stations"></ol>
+    <button id="moreBtn" class="ghost full" type="button" hidden>Voir toutes les stations</button>
+  </section>
+
+  <aside id="sponsor" class="card sponsor" hidden></aside>
+
+  <section class="card viz-root">
+    <div class="row-between">
+      <h2 id="chartTitle">Évolution du prix</h2>
+      <div class="seg" id="range" role="group" aria-label="Période">
+        <button type="button" data-d="30">1 mois</button>
+        <button type="button" data-d="90" class="on">3 mois</button>
+        <button type="button" data-d="365">1 an</button>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i class="sw s1"></i>Prix moyen du secteur</span>
+      <span><i class="sw s2"></i>Station la moins chère</span>
+    </div>
+    <div id="chart" class="chart"></div>
+    <details><summary>Voir les chiffres</summary><div id="table" class="table-wrap"></div></details>
+  </section>
+
+  <section class="card" id="tips"></section>
+
+  <section class="card">
+    <h2>📲 Installer et partager</h2>
+    <p id="installHelp">Pour l'avoir comme une vraie appli sur ton téléphone :</p>
+    <button id="installBtn" class="primary full" type="button" hidden>Installer l'application</button>
+    <ul class="howto">
+      <li><b>Android (Chrome)</b> : menu ⋮ → <i>Ajouter à l'écran d'accueil</i> / <i>Installer l'application</i>.</li>
+      <li><b>iPhone (Safari)</b> : bouton Partager <span aria-hidden="true">⬆️</span> → <i>Sur l'écran d'accueil</i>.</li>
+    </ul>
+    <button id="shareBtn2" class="primary full" type="button">📤 Envoyer à mes collègues, ma famille, mes amis</button>
+  </section>
+
+  <section class="card">
+    <h2>🔔 Être prévenu</h2>
+    <p>Reçois une notification quand c'est le moment de faire le plein (avant que ça remonte) :</p>
+    <ol class="howto">
+      <li>Installe l'appli gratuite <b>ntfy</b> (<a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a> / <a href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a>).</li>
+      <li>Abonne-toi au sujet <code id="topicName"></code> <button id="copyTopic" class="chip" type="button">Copier</button></li>
+    </ol>
+    <a id="ntfyLink" class="ghost full btnlink" target="_blank" rel="noopener">Ouvrir le sujet ntfy</a>
+  </section>
+
+  <section id="don" class="card don" hidden>
+    <h2>☕ Tu aimes l'appli ?</h2>
+    <p>Elle est gratuite. Si elle t'a fait économiser quelques euros, tu peux m'offrir un café pour l'aider à rester en ligne.</p>
+    <a id="donBtn" class="primary full btnlink" target="_blank" rel="noopener">☕ Offrir un café</a>
+  </section>
+
+  <footer class="foot">
+    <p>Prix officiels du Ministère de l'Économie (<a href="https://www.prix-carburants.gouv.fr" target="_blank" rel="noopener">prix-carburants.gouv.fr</a>), mis à jour en continu par les stations.</p>
+    <p>Les conseils sont basés sur l'historique et les tendances : personne ne peut prédire les prix à coup sûr. Le plus sûr pour économiser reste de choisir la station la moins chère.</p>
+    <p id="updated"></p>
+  </footer>
+</main>
+
+<div id="toast" class="toast" role="status" hidden></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
