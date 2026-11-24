@@ -48,8 +48,10 @@ async function send(title, body, filters) {
     const txt = await res.text();
     if (res.status === 401 || res.status === 403) { console.log(`OneSignal (${scheme}) refusé :`, txt.slice(0, 200)); continue; }
     authScheme = scheme;
-    console.log(`OneSignal ${res.status} : ${title} -> ${txt.slice(0, 200)}`);
-    return res.ok;
+    let id = "";
+    try { id = JSON.parse(txt).id || ""; } catch { /* ignore */ }
+    console.log(`OneSignal ${res.status} : ${title} -> ${id ? "envoyée" : "personne d'abonné"} ${txt.slice(0, 160)}`);
+    return res.ok && !!id;
   }
   return false;
 }
@@ -59,6 +61,10 @@ async function advice() {
   const stateUrl = new URL("signal.json", DATA);
   const prev = readJSON(stateUrl, {});
   const next = {};
+  // Pas plus d'une notification par département et carburant toutes les 20 h (évite les allers-retours).
+  const lastUrl = new URL("notified.json", DATA);
+  const last = readJSON(lastUrl, {});
+  const now = Date.now();
   const index = readJSON(new URL("dep/index.json", DATA), { deps: {} });
   let sent = 0;
   for (const dep of Object.keys(index.deps)) {
@@ -73,15 +79,18 @@ async function advice() {
       next[dep][fuel] = a.code;
       const before = prev[dep]?.[fuel];
       if (!before || before === a.code || !NOTIFY_ON.has(a.code)) continue; // 1er passage : on mémorise seulement
+      const k = `${dep}:${fuel}`;
+      if (last[k] && now - Date.parse(last[k]) < 20 * 3600e3) continue;
       const n = s.dates.length - 1;
       let best = null;
       for (const [sid, arr] of Object.entries(s.stations)) if (arr[n] != null && (!best || arr[n] < best.p)) best = { sid, p: arr[n] };
       const st = best && raw.stations[best.sid];
       const body = [a.why[0], st ? `Le moins cher du département : ${euro(best.p)} à ${cap(st.v)}.` : ""].filter(Boolean).join("\n");
-      if (await send(`⛽ ${fuel} : ${a.label}`, body, [{ field: "tag", key: "zone", relation: "=", value: `${dep}:${fuel}` }])) sent++;
+      if (await send(`⛽ ${fuel} : ${a.label}`, body, [{ field: "tag", key: "zone", relation: "=", value: k }])) { sent++; last[k] = new Date(now).toISOString(); }
     }
   }
   fs.writeFileSync(stateUrl, JSON.stringify(next) + "\n");
+  fs.writeFileSync(lastUrl, JSON.stringify(last) + "\n");
   console.log(`Conseils : ${sent} notification(s) envoyée(s).`);
 }
 
