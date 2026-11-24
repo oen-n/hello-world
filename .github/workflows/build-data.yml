@@ -1,0 +1,46 @@
+name: Mise à jour des prix (France)
+
+# Reconstruit l'historique de chaque département et prévient les abonnés
+# quand le conseil change. 3 fois par jour (heures UTC).
+on:
+  schedule:
+    - cron: "41 4,10,16 * * *"
+  workflow_dispatch:
+    inputs:
+      test:
+        description: "Envoyer une notification de test à tous les abonnés"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-data
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
+      SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Construire les données de chaque département
+        run: python3 scripts/build_france.py
+      - name: Notifications « bon moment pour faire le plein »
+        run: node scripts/notify.mjs advice
+      - name: Notification de test
+        if: ${{ inputs.test }}
+        run: node scripts/notify.mjs test
+      - name: Enregistrer
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --cached --quiet || (git commit -q -m "Prix du $(date -u +'%Y-%m-%d %H:%M') UTC" && git push)

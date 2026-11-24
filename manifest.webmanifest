@@ -1,7 +1,7 @@
 {
-  "name": "Plein Malin – Carburant Cholet & Maulévrier",
+  "name": "Plein Malin – Prix des carburants",
   "short_name": "Plein Malin",
-  "description": "La station la moins chère autour de Cholet et Maulévrier, et le bon moment pour faire le plein.",
+  "description": "La station la moins chère près de chez toi et le bon moment pour faire le plein, partout en France.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",

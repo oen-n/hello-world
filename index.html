@@ -3,16 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Plein Malin – Carburant Cholet & Maulévrier</title>
-<meta name="description" content="Prix du carburant autour de Maulévrier et Cholet : la station la moins chère et le bon moment pour faire le plein.">
+<title>Plein Malin – Prix des carburants près de chez toi</title>
+<meta name="description" content="Prix des carburants partout en France : la station la moins chère près de chez toi, le bon moment pour faire le plein et des alertes sur ta station préférée.">
 <meta name="theme-color" content="#2a78d6">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Plein Malin">
-<meta property="og:title" content="Plein Malin – Carburant Cholet & Maulévrier">
-<meta property="og:description" content="La station la moins chère et le bon moment pour faire le plein.">
+<meta property="og:title" content="Plein Malin – Prix des carburants près de chez toi">
+<meta property="og:description" content="La station la moins chère près de chez toi et le bon moment pour faire le plein, partout en France.">
+<meta property="og:image" content="icons/icon-512.png">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -22,18 +23,31 @@
 </header>
 
 <main>
+  <button id="placeBtn" class="place" type="button" aria-haspopup="dialog">
+    <span class="place-ico" aria-hidden="true">📍</span>
+    <span><span class="sub">Je fais le plein à</span><b id="placeLabel">Choisir un lieu</b></span>
+    <span class="place-edit">Modifier</span>
+  </button>
+
   <nav class="fuels" id="fuels" aria-label="Choix du carburant"></nav>
 
   <section id="signal" class="card signal" aria-live="polite">
     <div class="loading">Chargement des prix…</div>
   </section>
 
+  <section class="card" id="favCard" hidden></section>
+
   <section class="card">
     <div class="row-between">
-      <h2>Les moins chères maintenant</h2>
-      <button id="geoBtn" class="chip" type="button">📍 Autour de moi</button>
+      <h2>Les moins chères près de toi</h2>
+      <div class="seg" id="radius" role="group" aria-label="Rayon de recherche">
+        <button type="button" data-r="5">5 km</button>
+        <button type="button" data-r="10">10 km</button>
+        <button type="button" data-r="20">20 km</button>
+        <button type="button" data-r="30">30 km</button>
+      </div>
     </div>
-    <p class="sub" id="fromLabel">Distances depuis Maulévrier</p>
+    <p class="sub" id="fromLabel"></p>
     <ol id="stations" class="stations"></ol>
     <button id="moreBtn" class="ghost full" type="button" hidden>Voir toutes les stations</button>
   </section>
@@ -50,56 +64,62 @@
       </div>
     </div>
     <div class="legend">
-      <span><i class="sw s1"></i>Prix moyen du secteur</span>
-      <span><i class="sw s2"></i>Station la moins chère</span>
+      <span><i class="sw s1"></i>Prix moyen du département</span>
+      <span><i class="sw s2"></i>Station la moins chère du département</span>
     </div>
     <div id="chart" class="chart"></div>
     <details><summary>Voir les chiffres</summary><div id="table" class="table-wrap"></div></details>
   </section>
 
+  <aside id="adSlot" class="card ad" hidden></aside>
+
   <section class="card" id="tips"></section>
+
+  <section class="card" id="notif">
+    <h2>🔔 Être prévenu</h2>
+    <p>Reçois une notification sur ton téléphone, sans rien installer d'autre :</p>
+    <label class="opt"><input type="checkbox" id="optZone" checked>
+      <span><b>Le bon moment pour faire le plein</b><br><span class="sub" id="optZoneSub">dans ton département</span></span></label>
+    <label class="opt"><input type="checkbox" id="optStation">
+      <span><b>Les changements de prix de ma station préférée</b><br><span class="sub" id="optStationSub">Choisis d'abord ta station avec ☆ dans la liste</span></span></label>
+    <label class="opt-fuel">Carburant : <select id="notifFuel"></select></label>
+    <button id="notifBtn" class="primary full" type="button">🔔 Me prévenir</button>
+    <p id="notifStatus" class="sub" aria-live="polite"></p>
+    <button id="notifOff" class="ghost full" type="button" hidden>Ne plus être prévenu</button>
+    <p class="sub">Les notifications sont envoyées par le service OneSignal, qui enregistre ton téléphone (de façon anonyme) avec ton département et ta station préférée. Tu peux arrêter à tout moment.</p>
+  </section>
 
   <section class="card">
     <h2>📲 Installer et partager</h2>
     <p id="installHelp">Pour l'avoir comme une vraie appli sur ton téléphone :</p>
     <button id="installBtn" class="primary full" type="button">📲 Installer l'application</button>
-    <ul class="howto">
-      <li><b>iPhone (Safari)</b> : bouton <b>⋯</b> en bas à droite (ou <span aria-hidden="true">⬆️</span>) → <i>Partager</i> → <i>Sur l'écran d'accueil</i> → <i>Ajouter</i>.</li>
-      <li><b>Android (Chrome)</b> : menu ⋮ → <i>Installer l'application</i> / <i>Ajouter à l'écran d'accueil</i>.</li>
-    </ul>
-    <button id="shareBtn2" class="primary full" type="button">📤 Envoyer à mes collègues, ma famille, mes amis</button>
-  </section>
-
-  <section class="card" id="notif">
-    <h2>🔔 Être prévenu</h2>
-    <p>Reçois une notification sur ton téléphone quand c'est le moment de faire le plein (juste avant que ça remonte).</p>
-    <fieldset class="notif-fuels" id="notifFuels"><legend class="sub">Pour quels carburants ?</legend></fieldset>
-    <button id="notifBtn" class="primary full" type="button">🔔 Me prévenir</button>
-    <p id="notifStatus" class="sub" aria-live="polite"></p>
-    <button id="notifOff" class="ghost full" type="button" hidden>Ne plus être prévenu</button>
-    <p class="sub">Les notifications sont envoyées par le service OneSignal, qui enregistre ton téléphone (de façon anonyme) pour pouvoir le prévenir. Tu peux arrêter à tout moment.</p>
-    <details>
-      <summary>Autre option : l'appli ntfy</summary>
-      <ol class="howto">
-        <li>Installe l'appli gratuite <b>ntfy</b> (<a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a> / <a href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a>).</li>
-        <li>Abonne-toi au sujet <code id="topicName"></code> <button id="copyTopic" class="chip" type="button">Copier</button></li>
-      </ol>
-      <a id="ntfyLink" class="ghost full btnlink" target="_blank" rel="noopener">Ouvrir le sujet ntfy</a>
-    </details>
+    <button id="shareBtn2" class="primary full" type="button">📤 Envoyer à mes proches</button>
   </section>
 
   <section id="don" class="card don" hidden>
     <h2>☕ Tu aimes l'appli ?</h2>
-    <p>Elle est gratuite. Si elle t'a fait économiser quelques euros, tu peux m'offrir un café pour l'aider à rester en ligne.</p>
+    <p>Elle est gratuite. Si elle t'a fait économiser quelques euros, tu peux offrir un café pour l'aider à rester en ligne.</p>
     <a id="donBtn" class="primary full btnlink" target="_blank" rel="noopener">☕ Offrir un café</a>
   </section>
 
   <footer class="foot">
     <p>Prix officiels du Ministère de l'Économie (<a href="https://www.prix-carburants.gouv.fr" target="_blank" rel="noopener">prix-carburants.gouv.fr</a>), mis à jour en continu par les stations.</p>
-    <p>Les conseils sont basés sur l'historique et les tendances : personne ne peut prédire les prix à coup sûr. Le plus sûr pour économiser reste de choisir la station la moins chère.</p>
+    <p>Les conseils sont basés sur l'historique et les tendances de ton département : personne ne peut prédire les prix à coup sûr. Le plus sûr pour économiser reste de choisir la station la moins chère.</p>
+    <p id="partnerFoot"></p>
     <p id="updated"></p>
   </footer>
 </main>
+
+<dialog id="placeSheet" class="sheet" aria-labelledby="placeTitle">
+  <h2 id="placeTitle">Où fais-tu le plein ?</h2>
+  <button id="gpsBtn" class="primary full" type="button">📍 Utiliser ma position</button>
+  <p class="sub center">ou</p>
+  <label class="sr" for="placeInput">Ville ou code postal</label>
+  <input id="placeInput" class="input" type="search" inputmode="search" autocomplete="off" placeholder="Ville ou code postal (ex. Cholet, 49300)">
+  <ul id="placeResults" class="results" role="listbox"></ul>
+  <p id="placeMsg" class="sub" aria-live="polite"></p>
+  <button id="placeClose" class="ghost full" type="button">Fermer</button>
+</dialog>
 
 <dialog id="installSheet" class="sheet" aria-labelledby="sheetTitle">
   <h2 id="sheetTitle">Installer Plein Malin</h2>

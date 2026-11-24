@@ -1,0 +1,42 @@
+name: Alertes stations préférées
+
+# Toutes les 2 heures (5h-23h, heure de Paris) : prévient les personnes dont la
+# station préférée a changé son prix d'au moins 2 centimes.
+on:
+  schedule:
+    - cron: "23 3-21/2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: station-alerts
+  cancel-in-progress: false
+
+jobs:
+  alerts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
+      SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+      STATION_STATE: station-state.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Le dernier prix connu de chaque station est gardé d'un passage à l'autre dans le cache.
+      - uses: actions/cache/restore@v4
+        with:
+          path: station-state.json
+          key: station-state-${{ github.run_id }}
+          restore-keys: station-state-
+      - name: Notifications stations préférées
+        run: node scripts/notify.mjs stations
+      - uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: station-state.json
+          key: station-state-${{ github.run_id }}

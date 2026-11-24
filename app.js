@@ -1,27 +1,34 @@
-import { buildSeries, analyze, backtest } from "./analysis.js";
+import { buildSeries, analyze, backtest, depToHist } from "./analysis.js";
 import { CONFIG } from "./config.js";
 
 const API = "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/prix-des-carburants-en-france-flux-instantane-v2/records";
+const GEO = "https://geo.api.gouv.fr/communes";
 const FUELS = ["Gazole", "E10", "SP95", "SP98", "E85", "GPLc"];
-const MAULEVRIER = { lat: 47.0100, lon: -0.7560, label: "Maulévrier" };
-const NTFY_TOPIC = "plein-malin-cholet-maulevrier";
 const TANK = 50; // litres, pour estimer l'économie sur un plein
 
 const $ = (s) => document.querySelector(s);
+const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } };
+const save = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* stockage indisponible */ } };
+
 const state = {
-  fuel: localStorage.getItem("fuel") || "Gazole",
+  fuel: load("fuel2", null) || localStorage.getItem("fuel") || "Gazole",
   days: 90,
-  origin: MAULEVRIER,
+  radius: load("radius", 10),
+  place: load("place", null),   // { lat, lon, label, dep }
+  fav: load("fav", null),       // { sid, label, dep }
   showAll: false,
-  hist: null,
-  live: null,     // { fuel: { sid: { prix, maj } } }
-  meta: {},       // sid -> { adresse, ville, cp, lat, lon }
+  depData: null,                // fichier du département (format brut)
+  hist: null,                   // format buildSeries
+  live: null,                   // { fuel: { sid: { prix, maj } } }
+  meta: {},                     // sid -> { adresse, ville, cp, lat, lon }
+  pos: null,                    // position GPS (pour les distances), sinon le lieu choisi
 };
+if (state.fuel && state.fuel.startsWith('"')) state.fuel = JSON.parse(state.fuel);
 
 // ---------- utilitaires ----------
 const euro = (m) => (m / 1000).toFixed(3).replace(".", ",") + " €";
 const cts = (m) => (m >= 0 ? "+" : "−") + (Math.abs(m) / 10).toFixed(1).replace(".", ",") + " ct";
-const cap = (s) => s.toLowerCase().replace(/(^|[\s'-])(\p{L})/gu, (_, a, c) => a + c.toUpperCase());
+const cap = (s) => String(s || "").toLowerCase().replace(/(^|[\s'-])(\p{L})/gu, (_, a, c) => a + c.toUpperCase());
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 function km(a, b) {
   const R = 6371, r = Math.PI / 180;
@@ -39,102 +46,180 @@ function ago(iso) {
 function toast(msg) {
   const t = $("#toast");
   t.textContent = msg; t.hidden = false;
-  clearTimeout(toast._t); toast._t = setTimeout(() => (t.hidden = true), 2600);
+  clearTimeout(toast._t); toast._t = setTimeout(() => (t.hidden = true), 2800);
 }
 const shortDate = (iso) => new Date(iso + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 const longDate = (iso) => new Date(iso + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+function depOfCp(cp) {
+  cp = String(cp || "");
+  if (!/^\d{5}$/.test(cp)) return null;
+  if (cp.startsWith("97") || cp.startsWith("98")) return cp.slice(0, 3);
+  if (cp.startsWith("20")) return +cp < 20200 ? "2A" : "2B";
+  return cp.slice(0, 2);
+}
+const stationName = (m) => `${cap(m.ville || m.v || "")}${(m.adresse || m.a) ? " – " + (m.adresse || m.a) : ""}`;
+const openDialog = (d) => (d.showModal ? d.showModal() : d.setAttribute("open", ""));
+const closeDialog = (d) => (d.close ? d.close() : d.removeAttribute("open"));
 
 // ---------- données ----------
-async function loadHistory() {
-  const r = await fetch("data/history.json", { cache: "no-cache" });
-  if (!r.ok) throw new Error("historique indisponible");
+async function loadDep(dep) {
+  const r = await fetch(`data/dep/${dep}.json`, { cache: "no-cache" });
+  if (!r.ok) throw new Error("département " + dep + " indisponible");
   return r.json();
 }
 
-async function loadLive(h) {
-  const [lat, lon] = h.center;
-  const sel = ["id", "adresse", "ville", "cp", "geom", ...FUELS.flatMap((f) => [f.toLowerCase() + "_prix", f.toLowerCase() + "_maj"])].join(",");
-  const where = `within_distance(geom, geom'POINT(${lon} ${lat})', ${h.radius_km}km)`;
-  const url = `${API}?limit=100&select=${encodeURIComponent(sel)}&where=${encodeURIComponent(where)}`;
-  const r = await fetch(url);
-  if (!r.ok) throw new Error("API " + r.status);
-  const data = await r.json();
-  const live = Object.fromEntries(FUELS.map((f) => [f, {}]));
-  for (const s of data.results) {
+function parseLive(results, live) {
+  for (const s of results) {
     const sid = String(s.id);
     state.meta[sid] = { adresse: s.adresse, ville: s.ville, cp: s.cp, lat: s.geom?.lat, lon: s.geom?.lon };
     for (const f of FUELS) {
       const v = s[f.toLowerCase() + "_prix"], m = s[f.toLowerCase() + "_maj"];
-      if (v && m) live[f][sid] = { prix: Math.round(v * 1000), maj: m };
+      if (v && m && (Date.now() - Date.parse(m)) < 20 * 86400000) live[f][sid] = { prix: Math.round(v * 1000), maj: m };
     }
+  }
+}
+
+async function loadLive() {
+  const { lat, lon } = state.place;
+  const sel = ["id", "adresse", "ville", "cp", "geom", ...FUELS.flatMap((f) => [f.toLowerCase() + "_prix", f.toLowerCase() + "_maj"])].join(",");
+  const live = Object.fromEntries(FUELS.map((f) => [f, {}]));
+  const where = `within_distance(geom, geom'POINT(${lon} ${lat})', ${state.radius}km)`;
+  for (let offset = 0; offset < 300; offset += 100) {
+    const url = `${API}?limit=100&offset=${offset}&select=${encodeURIComponent(sel)}&where=${encodeURIComponent(where)}`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error("API " + r.status);
+    const data = await r.json();
+    parseLive(data.results, live);
+    if (offset + 100 >= data.total_count) break;
+  }
+  // La station préférée, même si elle est hors du rayon
+  if (state.fav && !state.meta[state.fav.sid]) {
+    try {
+      const r = await fetch(`${API}?limit=1&select=${encodeURIComponent(sel)}&where=${encodeURIComponent("id=" + Number(state.fav.sid))}`);
+      if (r.ok) parseLive((await r.json()).results, live);
+    } catch { /* ignore */ }
   }
   return live;
 }
 
+async function geoSearch(q) {
+  q = q.trim();
+  const fields = "nom,centre,codesPostaux,codeDepartement,population";
+  const url = /^\d{5}$/.test(q)
+    ? `${GEO}?codePostal=${q}&fields=${fields}`
+    : `${GEO}?nom=${encodeURIComponent(q)}&fields=${fields}&boost=population&limit=8`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error("recherche indisponible");
+  return (await r.json()).filter((c) => c.centre);
+}
+
+async function reverseGeo(lat, lon) {
+  try {
+    const r = await fetch(`${GEO}?lat=${lat}&lon=${lon}&fields=nom,codeDepartement`);
+    const c = (await r.json())[0];
+    if (c) return { label: c.nom, dep: c.codeDepartement };
+  } catch { /* ignore */ }
+  return { label: "ma position", dep: null };
+}
+
 // ---------- rendu ----------
 function renderFuels() {
-  const avail = FUELS.filter((f) => state.hist.fuels[f]);
+  const avail = FUELS.filter((f) => !state.hist || state.hist.fuels[f]);
   if (!avail.includes(state.fuel)) state.fuel = avail[0];
   $("#fuels").innerHTML = avail.map((f) => `<button type="button" class="chip${f === state.fuel ? " on" : ""}" data-f="${f}" aria-pressed="${f === state.fuel}">${f}</button>`).join("");
 }
 
 function currentSeries() {
-  return buildSeries(state.hist, state.fuel, state.live ? state.live[state.fuel] : null);
+  return state.hist ? buildSeries(state.hist, state.fuel, null) : null;
 }
 
 function renderSignal(series, a) {
   const el = $("#signal");
-  if (!a) { el.className = "card signal neutral"; el.innerHTML = `<div class="loading">Pas assez de données pour ce carburant.</div>`; return; }
+  if (!a) { el.className = "card signal neutral"; el.innerHTML = `<div class="loading">Pas assez de données pour le ${esc(state.fuel)} dans ce département.</div>`; return; }
   const minNow = series.min[series.min.length - 1];
   el.className = `card signal ${a.level}`;
   el.innerHTML = `
-    <div class="kicker">Conseil du ${longDate(a.date)} · ${state.fuel}</div>
+    <div class="kicker">Conseil du ${longDate(a.date)} · ${esc(state.fuel)} · département ${esc(state.place.dep)}</div>
     <div class="head"><span class="icon" aria-hidden="true">${a.icon}</span><span class="title">${a.label}</span></div>
     <ul>${a.why.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>
     <div class="kpis">
-      <div class="kpi"><b>${euro(minNow)}</b><span>le moins cher</span></div>
+      <div class="kpi"><b>${minNow != null ? euro(minNow) : "–"}</b><span>le moins cher du dép.</span></div>
       <div class="kpi"><b>${euro(a.cur)}</b><span>prix moyen</span></div>
       <div class="kpi"><b>${cts(a.d7)}</b><span>sur 7 jours</span></div>
     </div>`;
-  // Changement de conseil depuis la dernière visite
-  const key = "sig-" + state.fuel, prev = localStorage.getItem(key);
+  const key = `sig-${state.place.dep}-${state.fuel}`, prev = localStorage.getItem(key);
   if (prev && prev !== a.code) toast(`Nouveau conseil pour le ${state.fuel} : ${a.label}`);
-  localStorage.setItem(key, a.code);
+  try { localStorage.setItem(key, a.code); } catch { /* ignore */ }
 }
 
-function renderStations(series) {
-  const n = series.dates.length - 1;
-  const live = state.live ? state.live[state.fuel] : null;
-  let rows = [];
-  for (const [sid, arr] of Object.entries(series.stations)) {
-    const p = arr[n];
-    if (p == null) continue;
-    const m = state.meta[sid] || state.hist.stations[sid];
+function stationRows(series) {
+  const live = state.live ? state.live[state.fuel] : {};
+  const n = series ? series.dates.length - 1 : 0;
+  const origin = state.pos || state.place;
+  const rows = [];
+  for (const [sid, v] of Object.entries(live)) {
+    const m = state.meta[sid];
     if (!m) continue;
-    const week = arr[Math.max(0, n - 7)];
-    rows.push({ sid, p, m, d7: week != null ? p - week : null, maj: live?.[sid]?.maj, dist: m.lat ? km(state.origin, m) : null });
+    const dist = m.lat ? km(origin, m) : null;
+    const isFav = state.fav?.sid === sid;
+    if (dist != null && dist > state.radius + 0.5 && !isFav) continue;
+    const arr = series?.stations[sid];
+    const week = arr ? arr[Math.max(0, n - 7)] : null;
+    rows.push({ sid, p: v.prix, m, maj: v.maj, dist, isFav, d7: week != null ? v.prix - week : null, inRadius: dist == null || dist <= state.radius + 0.5 });
   }
-  rows.sort((x, y) => x.p - y.p || (x.dist ?? 99) - (y.dist ?? 99));
-  const total = rows.length;
-  const shown = state.showAll ? rows : rows.slice(0, 8);
-  const best = rows[0]?.p, worst = rows[rows.length - 1]?.p;
-  $("#stations").innerHTML = shown.map((r, i) => `
+  return rows;
+}
+
+function stationItem(r, i, best) {
+  return `
     <li class="st${r.p === best ? " best" : ""}">
       <span class="rk">${i + 1}</span>
-      <div><div class="nm">${esc(cap(r.m.ville || ""))}</div><div class="ad">${esc(r.m.adresse)}</div></div>
+      <div><div class="nm">${esc(cap(r.m.ville))}</div><div class="ad">${esc(r.m.adresse)}</div></div>
       <div class="pr">${euro(r.p)}<small>${r.dist != null ? r.dist.toFixed(1).replace(".", ",") + " km" : ""}</small></div>
       <div class="act">
+        <button type="button" class="star${r.isFav ? " on" : ""}" data-fav="${esc(r.sid)}" aria-pressed="${r.isFav}" aria-label="${r.isFav ? "Retirer de ma station préférée" : "Choisir comme station préférée"}">${r.isFav ? "★ Ma station" : "☆"}</button>
         ${r.d7 != null && Math.abs(r.d7) >= 3 ? `<span class="tag ${r.d7 > 0 ? "up" : "down"}">${r.d7 > 0 ? "▲" : "▼"} ${cts(r.d7)} en 7 j</span>` : ""}
         ${r.maj ? `<span>màj ${ago(r.maj)}</span>` : ""}
         ${r.m.lat ? `<a href="https://www.google.com/maps/dir/?api=1&destination=${r.m.lat},${r.m.lon}" target="_blank" rel="noopener">🗺️ Maps</a>
         <a href="https://waze.com/ul?ll=${r.m.lat},${r.m.lon}&navigate=yes" target="_blank" rel="noopener">🚗 Waze</a>` : ""}
       </div>
-    </li>`).join("") +
-    (total > 1 && worst > best ? `<li class="sub" style="padding-top:8px">💡 Écart entre la moins chère et la plus chère : <b>${cts(worst - best).slice(1)}/L</b>, soit <b>${((worst - best) * TANK / 1000).toFixed(2).replace(".", ",")} €</b> sur un plein de ${TANK} L.</li>` : "");
+    </li>`;
+}
+
+function renderStations(series) {
+  const all = stationRows(series);
+  const rows = all.filter((r) => r.inRadius).sort((x, y) => x.p - y.p || (x.dist ?? 99) - (y.dist ?? 99));
+  const total = rows.length;
+  const shown = state.showAll ? rows : rows.slice(0, 8);
+  const best = rows[0]?.p, worst = rows[rows.length - 1]?.p;
+  $("#stations").innerHTML = !state.live ? `<li class="sub">Chargement des prix en direct…</li>`
+    : !total ? `<li class="sub">Aucune station avec du ${esc(state.fuel)} dans un rayon de ${state.radius} km. Agrandis le rayon.</li>`
+    : shown.map((r, i) => stationItem(r, i, best)).join("") +
+      (total > 1 && worst > best ? `<li class="sub" style="padding-top:8px">💡 Écart entre la moins chère et la plus chère : <b>${cts(worst - best).slice(1)}/L</b>, soit <b>${((worst - best) * TANK / 1000).toFixed(2).replace(".", ",")} €</b> sur un plein de ${TANK} L.</li>` : "");
   const more = $("#moreBtn");
   more.hidden = total <= 8;
   more.textContent = state.showAll ? "Voir moins" : `Voir les ${total} stations`;
-  $("#fromLabel").textContent = `Distances depuis ${state.origin.label} · ${total} stations dans un rayon de ${state.hist.radius_km} km`;
+  $("#fromLabel").textContent = `Autour de ${state.pos ? "ta position" : state.place.label} · ${total} station${total > 1 ? "s" : ""} dans un rayon de ${state.radius} km`;
+  $("#radius").querySelectorAll("button").forEach((b) => b.classList.toggle("on", +b.dataset.r === state.radius));
+  renderFav(all, rows);
+}
+
+function renderFav(all, rows) {
+  const el = $("#favCard");
+  if (!state.fav) { el.hidden = true; return; }
+  const r = all.find((x) => x.sid === state.fav.sid);
+  const rank = rows.findIndex((x) => x.sid === state.fav.sid);
+  const cheaper = rows[0] && r && rows[0].p < r.p ? rows[0] : null;
+  el.hidden = false;
+  el.innerHTML = `<div class="row-between"><h2>⭐ Ma station</h2><button type="button" class="chip" data-fav="${esc(state.fav.sid)}">Retirer</button></div>
+    <p class="fav-name">${esc(state.fav.label)}</p>
+    ${!state.live ? `<p class="sub">Chargement…</p>`
+      : !r ? `<p class="sub">Pas de prix pour le ${esc(state.fuel)} dans cette station en ce moment.</p>`
+      : `<div class="fav-row"><b class="fav-price">${euro(r.p)}</b>
+          <span>${r.d7 != null && Math.abs(r.d7) >= 3 ? `<span class="tag ${r.d7 > 0 ? "up" : "down"}">${r.d7 > 0 ? "▲" : "▼"} ${cts(r.d7)} en 7 j</span>` : ""}
+          ${r.maj ? `<span class="sub">màj ${ago(r.maj)}</span>` : ""}</span></div>
+        <p class="sub">${rank >= 0 ? `${rank + 1}<sup>${rank ? "e" : "re"}</sup> moins chère sur ${rows.length} autour de toi.` : "Hors de ton rayon de recherche."}
+        ${cheaper ? ` La moins chère (${esc(cap(cheaper.m.ville))}) est à <b>${cts(r.p - cheaper.p).slice(1)}</b> de moins, soit ${((r.p - cheaper.p) * TANK / 1000).toFixed(2).replace(".", ",")} € sur un plein.` : r && rows[0] ? " C'est la moins chère du coin 👍" : ""}</p>`}`;
 }
 
 function renderChart(series) {
@@ -168,7 +253,7 @@ function renderChart(series) {
     endLabels[0].yy = mid - 8; endLabels[1].yy = mid + 8;
   }
   wrap.innerHTML = `
-  <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Évolution du prix du ${state.fuel} : moyenne du secteur et station la moins chère">
+  <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Évolution du prix du ${state.fuel} : moyenne du département et station la moins chère">
     <g class="grid">${yt.map((v) => `<line x1="${m.l}" x2="${W - m.r}" y1="${y(v)}" y2="${y(v)}"/>`).join("")}</g>
     <g class="axis">
       ${yt.map((v) => `<text x="${m.l - 6}" y="${y(v) + 4}" text-anchor="end">${(v / 1000).toFixed(2).replace(".", ",")}</text>`).join("")}
@@ -197,7 +282,7 @@ function renderChart(series) {
     $("#c1").setAttribute("cx", x(best)); $("#c1").setAttribute("cy", y(a));
     if (b != null) { $("#c2").setAttribute("cx", x(best)); $("#c2").setAttribute("cy", y(b)); }
     tip.hidden = false;
-    tip.innerHTML = `${longDate(series.dates[best])}<br><span class="sw s1"></span>Moyenne <b>${euro(a)}</b><br><span class="sw s2"></span>Moins chère <b>${b != null ? euro(b) : "–"}</b>`;
+    tip.innerHTML = `${longDate(series.dates[best])}<br><span class="sw s1"></span>Moyenne dép. <b>${euro(a)}</b><br><span class="sw s2"></span>Moins chère <b>${b != null ? euro(b) : "–"}</b>`;
     const left = (x(best) / W) * rect.width;
     tip.style.left = Math.min(rect.width - 90, Math.max(90, left)) + "px";
     tip.style.top = "-6px";
@@ -240,23 +325,84 @@ function renderTips(series, a) {
 
 function render() {
   renderFuels();
+  if (!state.place) return;
+  $("#placeLabel").textContent = `${state.place.label}${state.place.dep ? ` (${state.place.dep})` : ""}`;
   const series = currentSeries();
-  if (!series) return;
-  const a = analyze(series);
-  renderSignal(series, a);
+  const a = series ? analyze(series) : null;
+  if (state.hist) renderSignal(series, a);
   renderStations(series);
-  renderChart(series);
-  renderTips(series, a);
+  if (series) { renderChart(series); renderTips(series, a); }
   $("#range").querySelectorAll("button").forEach((b) => b.classList.toggle("on", +b.dataset.d === state.days));
-  const gen = new Date(state.hist.generated).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" });
-  $("#updated").textContent = `Historique mis à jour le ${gen}${state.live ? " · prix en direct ✔" : " · prix en direct indisponibles (hors ligne ?)"}`;
+  const gen = state.depData ? new Date(state.depData.generated).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "–";
+  $("#updated").textContent = `Historique du département mis à jour le ${gen}${state.live ? " · prix en direct ✔" : " · prix en direct indisponibles (hors ligne ?)"}`;
+  renderMoney();
+  renderNotifUI();
 }
 
-// ---------- partage, installation, notifications ----------
+// ---------- choix du lieu ----------
+function askPlace() {
+  $("#placeMsg").textContent = "";
+  openDialog($("#placeSheet"));
+  setTimeout(() => $("#placeInput").focus(), 50);
+}
+async function setPlace(p, fromGps = false) {
+  state.place = p; state.pos = fromGps ? { lat: p.lat, lon: p.lon } : null;
+  save("place", p);
+  closeDialog($("#placeSheet"));
+  await refreshAll();
+}
+let searchT, lastResults = [];
+$("#placeInput").addEventListener("input", (e) => {
+  clearTimeout(searchT);
+  const q = e.target.value;
+  if (q.trim().length < 2) { $("#placeResults").innerHTML = ""; return; }
+  searchT = setTimeout(async () => {
+    try {
+      lastResults = await geoSearch(q);
+      $("#placeResults").innerHTML = lastResults.length
+        ? lastResults.map((c, i) => `<li><button type="button" data-i="${i}"><b>${esc(c.nom)}</b> <span class="sub">${esc((c.codesPostaux || [])[0] || "")} · dép. ${esc(c.codeDepartement)}</span></button></li>`).join("")
+        : `<li class="sub">Aucune commune trouvée.</li>`;
+    } catch { $("#placeMsg").textContent = "Recherche indisponible, vérifie ta connexion."; }
+  }, 250);
+});
+$("#placeResults").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-i]"); if (!b) return;
+  const c = lastResults[+b.dataset.i];
+  setPlace({ lat: c.centre.coordinates[1], lon: c.centre.coordinates[0], label: c.nom, dep: c.codeDepartement });
+});
+$("#gpsBtn").addEventListener("click", () => {
+  if (!navigator.geolocation) { $("#placeMsg").textContent = "Localisation non disponible sur cet appareil."; return; }
+  $("#placeMsg").textContent = "Recherche de ta position…";
+  navigator.geolocation.getCurrentPosition(async (p) => {
+    const lat = p.coords.latitude, lon = p.coords.longitude;
+    const g = await reverseGeo(lat, lon);
+    setPlace({ lat, lon, label: g.label, dep: g.dep }, true);
+  }, () => { $("#placeMsg").textContent = "Impossible d'obtenir ta position. Autorise la localisation ou tape ta ville."; },
+  { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 });
+});
+$("#placeBtn").addEventListener("click", askPlace);
+$("#placeClose").addEventListener("click", () => closeDialog($("#placeSheet")));
+
+// ---------- station préférée ----------
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-fav]"); if (!b) return;
+  const sid = b.dataset.fav;
+  if (state.fav?.sid === sid) { state.fav = null; toast("Station préférée retirée"); }
+  else {
+    const m = state.meta[sid] || {};
+    state.fav = { sid, label: stationName(m), dep: depOfCp(m.cp) || state.place.dep };
+    toast("⭐ C'est ta station préférée. Active les alertes plus bas pour être prévenu de ses changements de prix.");
+  }
+  save("fav", state.fav);
+  render();
+  if (subscribed()) syncTags();
+});
+
+// ---------- partage ----------
 async function share() {
-  const data = { title: "Plein Malin", text: "⛽ Les prix du carburant autour de Cholet et Maulévrier, la station la moins chère et le bon moment pour faire le plein :", url: location.origin + location.pathname };
+  const data = { title: "Plein Malin", text: "⛽ Plein Malin : la station la moins chère près de chez toi et le bon moment pour faire le plein, partout en France. Gratuit :", url: location.origin + location.pathname };
   if (navigator.share) { try { await navigator.share(data); } catch { /* annulé */ } }
-  else { await navigator.clipboard?.writeText(`${data.text} ${data.url}`); toast("Lien copié ! Colle-le dans WhatsApp, SMS…"); }
+  else { try { await navigator.clipboard.writeText(`${data.text} ${data.url}`); toast("Lien copié ! Colle-le dans WhatsApp, SMS…"); } catch { toast(data.url); } }
 }
 
 // Installation : Android/Chrome propose une vraie fenêtre d'installation ;
@@ -307,36 +453,39 @@ $("#sheetClose").addEventListener("click", () => { const d = $("#installSheet");
 
 $("#shareBtn").addEventListener("click", share);
 $("#shareBtn2").addEventListener("click", share);
-$("#topicName").textContent = NTFY_TOPIC;
-$("#ntfyLink").href = `https://ntfy.sh/${NTFY_TOPIC}`;
-$("#copyTopic").addEventListener("click", async () => { await navigator.clipboard?.writeText(NTFY_TOPIC); toast("Sujet copié"); });
 
 $("#fuels").addEventListener("click", (e) => {
   const b = e.target.closest("button[data-f]"); if (!b) return;
-  state.fuel = b.dataset.f; localStorage.setItem("fuel", state.fuel); state.showAll = false; render();
+  state.fuel = b.dataset.f; save("fuel2", state.fuel); state.showAll = false; render();
 });
 $("#range").addEventListener("click", (e) => {
   const b = e.target.closest("button[data-d]"); if (!b) return;
   state.days = +b.dataset.d; render();
 });
-$("#moreBtn").addEventListener("click", () => { state.showAll = !state.showAll; render(); });
-$("#geoBtn").addEventListener("click", () => {
-  if (!navigator.geolocation) return toast("Localisation non disponible");
-  navigator.geolocation.getCurrentPosition(
-    (p) => { state.origin = { lat: p.coords.latitude, lon: p.coords.longitude, label: "ta position" }; render(); },
-    () => toast("Impossible d'obtenir ta position"), { enableHighAccuracy: false, timeout: 10000 });
+$("#radius").addEventListener("click", async (e) => {
+  const b = e.target.closest("button[data-r]"); if (!b) return;
+  state.radius = +b.dataset.r; save("radius", state.radius); state.showAll = false;
+  render();
+  try { state.live = await loadLive(); } catch { /* ignore */ }
+  render();
 });
-let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => state.hist && render(), 200); });
+$("#moreBtn").addEventListener("click", () => { state.showAll = !state.showAll; render(); });
+let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => state.place && render(), 200); });
 
-// ---------- partenaires et dons ----------
+// ---------- gagner de l'argent : partenaires, publicité, dons ----------
 function safeUrl(u) {
   try { const x = new URL(u, location.href); return /^(https?|mailto):$/.test(x.protocol) ? x.href : null; } catch { return null; }
 }
+let moneyDone = "";
 function renderMoney() {
+  const dep = state.place?.dep || "";
+  if (moneyDone === dep) return;
+  moneyDone = dep;
   const sp = $("#sponsor");
-  const list = (CONFIG.partenaires || []).filter((p) => p && p.nom);
+  const list = (CONFIG.partenaires || []).filter((p) => p && p.nom && (!p.departements?.length || p.departements.includes(dep)));
   const contact = CONFIG.contactPartenaire || "";
   const contactUrl = contact ? safeUrl(contact.includes("@") && !contact.startsWith("mailto:") ? "mailto:" + contact : contact) : null;
+  sp.hidden = true;
   if (list.length) {
     const p = list[Math.floor(Math.random() * list.length)];
     const link = p.lien ? safeUrl(p.lien) : null;
@@ -348,50 +497,94 @@ function renderMoney() {
   } else if (contactUrl) {
     sp.innerHTML = `<div class="kicker">Partenaire</div>
       <div class="sp-name">Ton commerce ici ?</div>
-      <p>Garage, lavage auto, commerce de Cholet et des environs : fais-toi connaître auprès des automobilistes du coin.</p>
+      <p>Garage, lavage auto, commerce du ${esc(dep)} : fais-toi connaître auprès des automobilistes du coin.</p>
       <a class="ghost full btnlink" href="${esc(contactUrl)}" target="_blank" rel="noopener">Devenir partenaire</a>`;
     sp.hidden = false;
   }
+  if (contactUrl) $("#partnerFoot").innerHTML = `Professionnel ? <a href="${esc(contactUrl)}" target="_blank" rel="noopener">Affiche ton commerce dans Plein Malin</a>.`;
   const don = CONFIG.donUrl ? safeUrl(CONFIG.donUrl) : null;
   if (don) { $("#donBtn").href = don; $("#don").hidden = false; }
 }
-renderMoney();
+
+// Publicité Google AdSense (seulement si configurée dans config.js)
+function setupAds() {
+  const client = CONFIG.adsenseClient, slot = CONFIG.adsenseSlot;
+  if (!client || !slot || !/^ca-pub-\d+$/.test(client)) return;
+  const box = $("#adSlot");
+  box.innerHTML = `<div class="kicker">Publicité</div><ins class="adsbygoogle" style="display:block" data-ad-client="${esc(client)}" data-ad-slot="${esc(slot)}" data-ad-format="auto" data-full-width-responsive="true"></ins>`;
+  box.hidden = false;
+  const sc = document.createElement("script");
+  sc.async = true; sc.crossOrigin = "anonymous";
+  sc.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(client)}`;
+  document.head.appendChild(sc);
+  (window.adsbygoogle = window.adsbygoogle || []).push({});
+}
+
+// Statistiques privées (Cloudflare Web Analytics : sans cookie, toi seul vois le tableau de bord)
+function setupStats() {
+  const token = CONFIG.cloudflareAnalyticsToken;
+  if (!token || !/^[a-f0-9]{32}$/i.test(token)) return;
+  const sc = document.createElement("script");
+  sc.defer = true;
+  sc.src = "https://static.cloudflareinsights.com/beacon.min.js";
+  sc.dataset.cfBeacon = JSON.stringify({ token });
+  document.head.appendChild(sc);
+}
 
 // ---------- notifications (OneSignal) ----------
-const NOTIF_FUELS = ["Gazole", "E10", "SP95", "SP98"];
-let OS = null; // SDK OneSignal une fois prêt
+// Étiquettes envoyées à OneSignal (2 maximum) :
+//   zone    = "<département>:<carburant>"  -> conseil du jour du département
+//   station = "<id station>:<carburant>"   -> changements de prix de la station préférée
+const NOTIF_FUELS = ["Gazole", "E10", "SP95", "SP98", "E85", "GPLc"];
+let OS = null;
+const notifPrefs = load("notifPrefs", { zone: true, station: true, fuel: null });
 
 function notifStatus(t) { $("#notifStatus").textContent = t; }
-function chosenFuels() { return [...document.querySelectorAll("#notifFuels input:checked")].map((i) => i.value); }
+function subscribed() { return !!(OS?.User?.PushSubscription?.optedIn && OS.Notifications.permission); }
 
 function renderNotifUI() {
-  const subscribed = !!OS?.User?.PushSubscription?.optedIn && OS.Notifications.permission;
-  $("#notifBtn").textContent = subscribed ? "✅ Enregistrer mes carburants" : "🔔 Me prévenir";
-  $("#notifOff").hidden = !subscribed;
-  if (subscribed) notifStatus("✅ Tu seras prévenu pour : " + (chosenFuels().join(", ") || "aucun carburant"));
+  const sel = $("#notifFuel");
+  if (!sel.options.length) sel.innerHTML = NOTIF_FUELS.map((f) => `<option>${f}</option>`).join("");
+  if (!sel.dataset.touched) sel.value = notifPrefs.fuel || state.fuel;
+  $("#optZoneSub").textContent = state.place?.dep ? `Conseil du jour dans ton département (${state.place.dep})` : "dans ton département";
+  const st = $("#optStation");
+  st.disabled = !state.fav;
+  if (!state.fav) st.checked = false; else if (!st.dataset.touched) st.checked = notifPrefs.station;
+  $("#optStationSub").textContent = state.fav ? `${state.fav.label} (dès que le prix bouge d'au moins 2 ct)` : "Choisis d'abord ta station avec ☆ dans la liste";
+  const sub = subscribed();
+  $("#notifBtn").textContent = sub ? "✅ Enregistrer mes choix" : "🔔 Me prévenir";
+  $("#notifOff").hidden = !sub;
+}
+$("#notifFuel").addEventListener("change", (e) => { e.target.dataset.touched = "1"; });
+$("#optStation").addEventListener("change", (e) => { e.target.dataset.touched = "1"; });
+
+async function syncTags() {
+  const fuel = $("#notifFuel").value;
+  const zone = $("#optZone").checked && state.place?.dep;
+  const station = $("#optStation").checked && state.fav;
+  Object.assign(notifPrefs, { zone: $("#optZone").checked, station: $("#optStation").checked, fuel });
+  save("notifPrefs", notifPrefs);
+  const add = {}, remove = ["fuel_Gazole", "fuel_E10", "fuel_SP95", "fuel_SP98"];
+  if (zone) add.zone = `${state.place.dep}:${fuel}`; else remove.push("zone");
+  if (station) add.station = `${state.fav.sid}:${fuel}`; else remove.push("station");
+  try { await OS.User.removeTags(remove); } catch { /* ignore */ }
+  if (Object.keys(add).length) await OS.User.addTags(add);
+  const what = [zone && `le bon moment dans le ${state.place.dep}`, station && "ta station préférée"].filter(Boolean).join(" et ");
+  notifStatus(what ? `✅ Tu seras prévenu pour le ${fuel} : ${what}.` : "Aucune alerte choisie.");
 }
 
 function setupNotifications() {
-  const box = $("#notifFuels");
-  let saved = [];
-  try { saved = JSON.parse(localStorage.getItem("notifFuels") || "[]"); } catch { /* ignore */ }
-  if (!saved.length) saved = [state.fuel];
-  box.insertAdjacentHTML("beforeend", NOTIF_FUELS.map((f) => `<label><input type="checkbox" value="${f}"${saved.includes(f) ? " checked" : ""}>${f}</label>`).join(""));
-
-  if (!CONFIG.oneSignalAppId) { $("#notif").querySelector("details").open = true; $("#notifBtn").hidden = true; return; }
-  const scope = location.pathname.replace(/[^/]*$/, ""); // ex. "/hello-world/"
+  renderNotifUI();
+  if (!CONFIG.oneSignalAppId) { $("#notif").hidden = true; return; }
+  const scope = location.pathname.replace(/[^/]*$/, "");
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   window.OneSignalDeferred.push(async (OneSignal) => {
     try {
-      await OneSignal.init({
-        appId: CONFIG.oneSignalAppId,
-        serviceWorkerPath: scope.slice(1) + "sw.js",
-        serviceWorkerParam: { scope },
-        allowLocalhostAsSecureOrigin: true,
-      });
+      await OneSignal.init({ appId: CONFIG.oneSignalAppId, serviceWorkerPath: scope.slice(1) + "sw.js", serviceWorkerParam: { scope }, allowLocalhostAsSecureOrigin: true });
       OS = OneSignal;
       OneSignal.User.PushSubscription.addEventListener("change", renderNotifUI);
       renderNotifUI();
+      if (subscribed()) syncTags().catch(() => {});
     } catch (e) { console.warn("OneSignal", e); }
   });
   const sc = document.createElement("script");
@@ -400,27 +593,19 @@ function setupNotifications() {
   document.head.appendChild(sc);
 
   $("#notifBtn").addEventListener("click", async () => {
-    const fuels = chosenFuels();
-    if (!fuels.length) return notifStatus("Coche au moins un carburant.");
-    localStorage.setItem("notifFuels", JSON.stringify(fuels));
-    if (isIOS && !isStandalone) {
-      notifStatus("Sur iPhone, ajoute d'abord Plein Malin à l'écran d'accueil (bouton « Installer l'application » ci-dessus), puis ouvre l'appli depuis son icône et appuie à nouveau ici.");
-      return;
-    }
+    if (!state.place) return askPlace();
+    if (!$("#optZone").checked && !$("#optStation").checked) return notifStatus("Coche au moins une alerte.");
+    if (isIOS && !isStandalone) return notifStatus("Sur iPhone, ajoute d'abord Plein Malin à l'écran d'accueil (bouton « Installer l'application » plus bas), puis ouvre l'appli depuis son icône et appuie à nouveau ici.");
     if (!OS) return notifStatus("Chargement en cours… réessaie dans quelques secondes (vérifie ta connexion).");
     if (!OS.Notifications.isPushSupported()) return notifStatus("Ton téléphone ou ton navigateur ne permet pas les notifications. Essaie avec Chrome (Android) ou depuis l'icône de l'appli (iPhone).");
     try {
       if (!OS.Notifications.permission) await OS.Notifications.requestPermission();
       if (!OS.Notifications.permission) return notifStatus("Notifications refusées. Pour les autoriser : Réglages du téléphone → Notifications → Plein Malin.");
       await OS.User.PushSubscription.optIn();
-      const tags = Object.fromEntries(NOTIF_FUELS.map((f) => ["fuel_" + f, fuels.includes(f) ? "1" : "0"]));
-      await OS.User.addTags(tags);
+      await syncTags();
       renderNotifUI();
       toast("🔔 C'est noté, tu seras prévenu !");
-    } catch (e) {
-      console.warn(e);
-      notifStatus("Oups, ça n'a pas marché. Réessaie dans un instant.");
-    }
+    } catch (e) { console.warn(e); notifStatus("Oups, ça n'a pas marché. Réessaie dans un instant."); }
   });
   $("#notifOff").addEventListener("click", async () => {
     try { await OS?.User?.PushSubscription?.optOut(); } catch { /* ignore */ }
@@ -430,18 +615,42 @@ function setupNotifications() {
 }
 
 // ---------- démarrage ----------
-async function start() {
-  try { state.hist = await loadHistory(); }
-  catch { $("#signal").innerHTML = `<div class="loading">Impossible de charger les données. Vérifie ta connexion.</div>`; return; }
+async function refreshAll() {
+  state.live = null; state.meta = {}; state.showAll = false;
   render();
-  try { state.live = await loadLive(state.hist); render(); }
-  catch (e) { console.warn("Prix en direct indisponibles", e); }
+  const dep = state.place.dep;
+  const tasks = [];
+  if (!state.depData || state.depData.dep !== dep) {
+    tasks.push(loadDep(dep).then((d) => { state.depData = d; state.hist = depToHist(d); render(); })
+      .catch(() => { state.depData = null; state.hist = null; $("#signal").className = "card signal neutral"; $("#signal").innerHTML = `<div class="loading">Pas d'historique disponible pour ce département.</div>`; }));
+  }
+  tasks.push(loadLive().then((l) => { state.live = l; render(); }).catch((e) => console.warn("Prix en direct indisponibles", e)));
+  await Promise.all(tasks);
+}
+
+async function start() {
+  // Ancienne version (Cholet / Maulévrier) : on garde ce lieu par défaut pour les premiers utilisateurs.
+  if (!state.place && localStorage.getItem("fuel")) {
+    state.place = { lat: 47.0159, lon: -0.7662, label: "Maulévrier", dep: "49" }; save("place", state.place);
+  }
+  renderFuels();
+  if (!state.place) {
+    $("#signal").className = "card signal neutral";
+    $("#signal").innerHTML = `<h2>Bienvenue 👋</h2><p>Dis-nous où tu fais le plein pour voir les stations les moins chères autour de toi, partout en France.</p><button type="button" class="primary full" id="startBtn">📍 Choisir mon lieu</button>`;
+    $("#startBtn").addEventListener("click", askPlace);
+    $("#stations").innerHTML = "";
+    askPlace();
+    return;
+  }
+  await refreshAll();
 }
 start();
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 setupNotifications();
+setupAds();
+setupStats();
 document.addEventListener("visibilitychange", async () => {
-  if (document.visibilityState === "visible" && state.hist) {
-    try { state.live = await loadLive(state.hist); render(); } catch { /* ignore */ }
+  if (document.visibilityState === "visible" && state.place) {
+    try { state.live = await loadLive(); render(); } catch { /* ignore */ }
   }
 });

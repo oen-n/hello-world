@@ -1,51 +1,50 @@
-# ⛽ Plein Malin – Carburant Cholet & Maulévrier
+# ⛽ Plein Malin – Prix des carburants partout en France
 
-Application pour téléphone (s'installe depuis le navigateur, Android et iPhone) qui montre :
+Application pour téléphone (s'installe depuis le navigateur, Android et iPhone) :
 
-- **les stations les moins chères** autour de Maulévrier et Cholet (rayon 22 km), avec itinéraire Maps / Waze ;
-- **le conseil du jour** : *Attends, ça baisse encore* / *Bientôt le prix le plus bas* / *Fais le plein maintenant* / *Ça remonte* ;
-- l'évolution des prix (1 mois, 3 mois, 1 an), la durée et l'ampleur habituelles des baisses et des hausses, le jour de la semaine le moins cher ;
-- des **notifications** sur le téléphone (via l'appli gratuite ntfy) quand le conseil change.
+- **Partout en France** : on choisit sa ville (ou sa position GPS) et un rayon de 5 à 30 km ;
+- **les stations les moins chères** autour de soi, avec itinéraire Maps / Waze ;
+- **⭐ sa station préférée** : son prix, son classement, l'économie possible ailleurs ;
+- **le conseil du jour** pour son département : *Attends, ça baisse encore* / *Bientôt le prix le plus bas* / *Fais le plein maintenant* / *Ça remonte* ;
+- l'évolution des prix (1 mois, 3 mois, 1 an), la durée habituelle des baisses et des hausses, le jour le moins cher ;
+- **des notifications** sans autre appli (OneSignal) : le bon moment dans son département et/ou les changements de prix de sa station préférée (≥ 2 ct).
 
-Données : prix officiels du Ministère de l'Économie (prix-carburants.gouv.fr / data.economie.gouv.fr).
+Données : prix officiels du Ministère de l'Économie (prix-carburants.gouv.fr / data.economie.gouv.fr, Licence Ouverte : réutilisation commerciale autorisée en citant la source).
 
 ## Comment ça marche
 
 | Fichier | Rôle |
 |---|---|
-| `index.html`, `style.css`, `app.js` | L'application (aucune installation, aucun serveur) |
+| `index.html`, `style.css`, `app.js` | L'application (aucun serveur) |
 | `analysis.js` | Détection des baisses / creux / hausses et conseil |
-| `data/history.json` | Historique quotidien des prix de chaque station (≈ 13 mois) |
-| `scripts/update_history.py` | Reconstruit l'historique depuis les archives officielles |
-| `scripts/notify.mjs` | Envoie une notification ntfy quand le conseil change |
-| `.github/workflows/update-prices.yml` | Lance les deux scripts toutes les 2 h et enregistre les données |
+| `config.js` | **Tes réglages** : notifications, dons, partenaires, publicité, statistiques |
+| `data/dep/<dép>.json` | Historique quotidien de chaque département (depuis le 1er janvier de l'année précédente) |
+| `scripts/build_france.py` | Reconstruit ces fichiers depuis les archives officielles |
+| `scripts/notify.mjs` | Envoie les notifications OneSignal |
+| `.github/workflows/build-data.yml` | 3 fois par jour : données + notification « bon moment » |
+| `.github/workflows/station-alerts.yml` | Toutes les 2 h : alertes « ma station préférée » |
 
-## Mise en ligne (une seule fois)
+Secret de dépôt nécessaire : `ONESIGNAL_API_KEY` (Settings → Secrets and variables → Actions).
+Notification de test : Actions → *Mise à jour des prix (France)* → *Run workflow* → cocher « test ».
 
-1. Fusionner cette branche dans `main`.
-2. Sur GitHub : **Settings → Pages → Build and deployment → Source : Deploy from a branch → `main` / `/ (root)`** → Save.
-3. Sur GitHub : **Actions** → autoriser les workflows si demandé → *Mise à jour des prix* → *Run workflow* (pour tester).
-4. L'appli est en ligne à l'adresse `https://<utilisateur>.github.io/<dépôt>/` : c'est ce lien qu'on partage.
+## Gagner de l'argent
 
-Le dépôt doit être **public** pour GitHub Pages gratuit.
+Tout se règle dans **`config.js`** (sur GitHub : ouvrir le fichier → crayon ✏️ → modifier → *Commit changes*). Un réglage vide = rien n'apparaît.
 
-## Notifications
+| Moyen | Réglage | Remarque |
+|---|---|---|
+| Dons | `donUrl` | Lien Buy Me a Coffee, Tipeee, PayPal.me… |
+| Partenaires locaux | `partenaires` (+ `departements` pour cibler) et `contactPartenaire` | Un garage, un lavage auto… paie pour être affiché aux automobilistes de son département. Marqué « Partenaire ». |
+| Publicité Google | `adsenseClient`, `adsenseSlot` | Nécessite **ton propre nom de domaine** (Google refuse `github.io`) et le message de consentement de Google activé dans AdSense (obligatoire en Europe). |
 
-Installer l'appli **ntfy** et s'abonner au sujet `plein-malin-cholet-maulevrier`
-(modifiable via la variable de dépôt `NTFY_TOPIC` et la constante `NTFY_TOPIC` de `app.js`).
+Pense à déclarer les revenus. Si l'appli devient une vraie activité, GitHub Pages n'est pas fait pour un usage commercial : la même appli peut être hébergée gratuitement sur Cloudflare Pages ou Netlify.
+
+## Statistiques (toi seul les vois)
+
+- **Visites** : Cloudflare Web Analytics (gratuit, sans cookie, donc sans bandeau). Mets le *token* dans `cloudflareAnalyticsToken`. Les chiffres sont sur ton tableau de bord Cloudflare, accessible à toi seul.
+- **Abonnés aux notifications** : tableau de bord OneSignal (Audience).
 
 ## Avertissement
 
-Les conseils viennent de l'historique et des tendances du moment : personne ne peut prédire
-les prix à coup sûr. Sur l'année passée, suivre les conseils aurait fait gagner environ
-1 à 1,5 ct/L par plein ; choisir la station la moins chère fait gagner jusqu'à 30 ct/L.
-
-## Gagner de l'argent (dons et partenaires)
-
-Tout se règle dans **`config.js`** (sur GitHub : ouvrir le fichier → crayon ✏️ → modifier → *Commit changes*) :
-
-- `donUrl` : ton lien Buy Me a Coffee / Tipeee / PayPal.me → affiche le bouton « ☕ Offrir un café ».
-- `contactPartenaire` : ton e-mail ou un lien de formulaire → affiche « Ton commerce ici ? » tant qu'il n'y a pas de partenaire.
-- `partenaires` : les commerces qui te paient pour être affichés (nom, texte, lien, ville). Ils sont marqués « Partenaire » (obligatoire pour une publicité).
-
-Un bloc laissé vide n'apparaît pas. Pense à déclarer les revenus perçus.
+Les conseils viennent de l'historique et des tendances du département : personne ne peut prédire
+les prix à coup sûr. Choisir la station la moins chère reste le plus gros gain.
