@@ -259,10 +259,51 @@ async function share() {
   else { await navigator.clipboard?.writeText(`${data.text} ${data.url}`); toast("Lien copié ! Colle-le dans WhatsApp, SMS…"); }
 }
 
+// Installation : Android/Chrome propose une vraie fenêtre d'installation ;
+// sur iPhone, Apple ne le permet pas : on montre les étapes à suivre dans Safari.
 let installEvt = null;
-window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; $("#installBtn").hidden = false; });
-$("#installBtn").addEventListener("click", async () => { if (!installEvt) return; installEvt.prompt(); await installEvt.userChoice; installEvt = null; $("#installBtn").hidden = true; });
-if (matchMedia("(display-mode: standalone)").matches) $("#installHelp").textContent = "✅ L'appli est installée. Partage-la à ton entourage :";
+const UA = navigator.userAgent;
+const isIOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const inAppBrowser = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|GSA\//i.test(UA);
+const isStandalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; });
+window.addEventListener("appinstalled", () => { $("#installBtn").hidden = true; toast("✅ Appli installée !"); });
+if (isStandalone) {
+  $("#installBtn").hidden = true;
+  $("#installHelp").textContent = "✅ L'appli est installée. Partage-la à ton entourage :";
+}
+function installSteps() {
+  const url = location.origin + location.pathname;
+  if (inAppBrowser) return `<p>Tu as ouvert le lien depuis une autre appli (WhatsApp, Facebook…). Pour installer, il faut l'ouvrir dans ${isIOS ? "<b>Safari</b>" : "<b>Chrome</b>"} :</p>
+    <ol class="howto"><li>Appuie sur <b>⋯</b> ou sur l'icône de partage, puis <b>« Ouvrir dans ${isIOS ? "Safari" : "le navigateur"} »</b>.</li>
+    <li>Ou copie cette adresse et colle-la dans ${isIOS ? "Safari" : "Chrome"} : <code>${esc(url)}</code></li></ol>`;
+  if (isIOS) return `<p>Sur iPhone, Apple ne permet pas l'installation en un clic. Ça prend 10 secondes :</p>
+    <ol class="howto">
+      <li>Appuie sur le bouton <b>⋯</b> en bas à droite de Safari<br><small>(sur un iPhone plus ancien : le bouton Partager <b>⬆️</b> en bas au milieu)</small></li>
+      <li>Appuie sur <b>Partager</b> <span aria-hidden="true">⬆️</span> (si tu ne l'as pas déjà fait)</li>
+      <li>Descends et appuie sur <b>« Sur l'écran d'accueil »</b> <span aria-hidden="true">➕</span></li>
+      <li>Appuie sur <b>Ajouter</b> en haut à droite. L'icône bleue apparaît sur ton écran 🎉</li>
+    </ol>
+    <p class="sub">Si tu n'es pas dans Safari (Chrome, Google…), ouvre d'abord <code>${esc(url)}</code> dans Safari.</p>`;
+  return `<ol class="howto">
+      <li>Appuie sur le menu <b>⋮</b> en haut à droite de Chrome</li>
+      <li>Appuie sur <b>« Installer l'application »</b> ou <b>« Ajouter à l'écran d'accueil »</b></li>
+      <li>Confirme : l'icône bleue apparaît sur ton écran 🎉</li>
+    </ol>
+    <p class="sub">Navigateur Samsung : menu ≡ → « Ajouter la page à » → « Écran d'accueil ».</p>`;
+}
+$("#installBtn").addEventListener("click", async () => {
+  if (installEvt) {
+    installEvt.prompt();
+    const r = await installEvt.userChoice.catch(() => null);
+    installEvt = null;
+    if (r?.outcome === "accepted") return;
+  }
+  $("#sheetBody").innerHTML = installSteps();
+  const d = $("#installSheet");
+  if (d.showModal) d.showModal(); else d.setAttribute("open", "");
+});
+$("#sheetClose").addEventListener("click", () => { const d = $("#installSheet"); d.close ? d.close() : d.removeAttribute("open"); });
 
 $("#shareBtn").addEventListener("click", share);
 $("#shareBtn2").addEventListener("click", share);

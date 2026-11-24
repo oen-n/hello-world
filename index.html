@@ -62,10 +62,10 @@
   <section class="card">
     <h2>📲 Installer et partager</h2>
     <p id="installHelp">Pour l'avoir comme une vraie appli sur ton téléphone :</p>
-    <button id="installBtn" class="primary full" type="button" hidden>Installer l'application</button>
+    <button id="installBtn" class="primary full" type="button">📲 Installer l'application</button>
     <ul class="howto">
-      <li><b>Android (Chrome)</b> : menu ⋮ → <i>Ajouter à l'écran d'accueil</i> / <i>Installer l'application</i>.</li>
-      <li><b>iPhone (Safari)</b> : bouton Partager <span aria-hidden="true">⬆️</span> → <i>Sur l'écran d'accueil</i>.</li>
+      <li><b>iPhone (Safari)</b> : bouton <b>⋯</b> en bas à droite (ou <span aria-hidden="true">⬆️</span>) → <i>Partager</i> → <i>Sur l'écran d'accueil</i> → <i>Ajouter</i>.</li>
+      <li><b>Android (Chrome)</b> : menu ⋮ → <i>Installer l'application</i> / <i>Ajouter à l'écran d'accueil</i>.</li>
     </ul>
     <button id="shareBtn2" class="primary full" type="button">📤 Envoyer à mes collègues, ma famille, mes amis</button>
   </section>
@@ -92,6 +92,12 @@
     <p id="updated"></p>
   </footer>
 </main>
+
+<dialog id="installSheet" class="sheet" aria-labelledby="sheetTitle">
+  <h2 id="sheetTitle">Installer Plein Malin</h2>
+  <div id="sheetBody"></div>
+  <button id="sheetClose" class="primary full" type="button">J'ai compris</button>
+</dialog>
 
 <div id="toast" class="toast" role="status" hidden></div>
 <script type="module" src="app.js"></script>
