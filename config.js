@@ -28,5 +28,5 @@ export const CONFIG = {
 
   // Statistiques privées (Cloudflare Web Analytics) : colle ici le "token" (32 caractères).
   // Toi seul vois les chiffres, sur dash.cloudflare.com. Sans cookie, pas de bandeau à afficher.
-  cloudflareAnalyticsToken: "",
+  cloudflareAnalyticsToken: "4175e485db294ef5b901034e57cb1927",
 };
