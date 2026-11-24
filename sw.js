@@ -1,7 +1,7 @@
 // Service worker : l'appli s'ouvre même sans réseau (dernières données connues)
 // et reçoit les notifications (OneSignal).
 try { importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js"); } catch (e) { /* hors ligne */ }
-const CACHE = "plein-malin-v5";
+const CACHE = "plein-malin-v6";
 const SHELL = ["./", "index.html", "style.css", "app.js", "analysis.js", "config.js", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {
@@ -12,14 +12,19 @@ self.addEventListener("activate", (e) => {
 });
 // Réseau d'abord (prix frais), cache en secours.
 self.addEventListener("fetch", (e) => {
-  if (e.request.method !== "GET" || e.request.url.includes("onesignal")) return;
+  const url = new URL(e.request.url);
+  const mine = url.origin === location.origin, prices = url.hostname === "data.economie.gouv.fr";
+  // On ne s'occupe que de nos fichiers et des prix ; le reste (OneSignal, statistiques…) passe tel quel.
+  if (e.request.method !== "GET" || !(mine || prices)) return;
   e.respondWith(
     fetch(e.request).then((r) => {
-      if (r.ok && (new URL(e.request.url).origin === location.origin || e.request.url.includes("data.economie.gouv.fr"))) {
-        const copy = r.clone();
-        caches.open(CACHE).then((c) => c.put(e.request, copy));
-      }
+      if (r.ok) { const copy = r.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); }
       return r;
-    }).catch(() => caches.match(e.request, { ignoreSearch: false }).then((r) => r || caches.match("index.html")))
+    }).catch(async () => {
+      const hit = await caches.match(e.request);
+      if (hit) return hit;
+      if (e.request.mode === "navigate") return (await caches.match("index.html")) || (await caches.match("./"));
+      return Response.error();
+    })
   );
 });
