@@ -30,11 +30,11 @@ const cap = (s) => String(s || "").toLowerCase().replace(/(^|[\s'-])(\p{L})/gu, 
 const readJSON = (u, d) => { try { return JSON.parse(fs.readFileSync(u)); } catch { return d; } };
 
 let authScheme = null;
-async function send(title, body, filters) {
+async function send(title, body, filters, segments = null) {
   const payload = {
     app_id: APP, target_channel: "push",
     headings: { en: title, fr: title }, contents: { en: body, fr: body },
-    filters, ...(SITE ? { url: SITE } : {}),
+    ...(segments ? { included_segments: segments } : { filters }), ...(SITE ? { url: SITE } : {}),
   };
   if (DRY) { console.log("[DRY]", title, "|", body.replace(/\n/g, " / "), JSON.stringify(filters)); return true; }
   if (!KEY) { console.log("Pas de clé ONESIGNAL_API_KEY : rien n'est envoyé."); return false; }
@@ -129,8 +129,14 @@ async function stations() {
 }
 
 async function test() {
-  await send("⛽ Plein Malin : test", "Les notifications fonctionnent ! Tu seras prévenu au bon moment.",
-    [{ field: "tag", key: "zone", relation: "exists" }, { operator: "OR" }, { field: "tag", key: "station", relation: "exists" }]);
+  const title = "⛽ Plein Malin : test", body = "Les notifications fonctionnent ! Tu seras prévenu au bon moment.";
+  // 1) abonnés qui ont choisi une alerte ; 2) sinon, tous les téléphones abonnés (pour vérifier l'abonnement lui-même).
+  if (await send(title, body, [{ field: "tag", key: "zone", relation: "exists" }, { operator: "OR" }, { field: "tag", key: "station", relation: "exists" }])) return;
+  console.log("Aucun abonné avec une alerte choisie : essai vers tous les téléphones abonnés…");
+  for (const seg of ["Total Subscriptions", "Subscribed Users"]) {
+    if (await send(title, body + " (sans alerte choisie)", null, [seg])) return;
+  }
+  console.log("Aucun téléphone abonné dans OneSignal pour l'instant.");
 }
 
 await ({ advice, stations, test }[MODE] || advice)();
