@@ -12,7 +12,7 @@ export const CONFIG = {
 
   // Comment un commerce peut te contacter pour devenir partenaire
   // (adresse e-mail ou lien vers un formulaire). Vide = pas de bloc "Ton commerce ici".
-  contactPartenaire: "",
+  contactPartenaire: "pleinmalin.contact@gmail.com",
 
   // Partenaires (sponsors) affichés sous la liste des stations.
   // `departements` : n'afficher le partenaire qu'aux utilisateurs de ces départements
