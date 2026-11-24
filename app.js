@@ -412,7 +412,7 @@ const UA = navigator.userAgent;
 const isIOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 const inAppBrowser = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|GSA\//i.test(UA);
 const isStandalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
-window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; });
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; if (typeof maybeShowInstallBanner === "function") maybeShowInstallBanner(); });
 window.addEventListener("appinstalled", () => { $("#installBtn").hidden = true; toast("✅ Appli installée !"); });
 if (isStandalone) {
   $("#installBtn").hidden = true;
@@ -438,7 +438,8 @@ function installSteps() {
     </ol>
     <p class="sub">Navigateur Samsung : menu ≡ → « Ajouter la page à » → « Écran d'accueil ».</p>`;
 }
-$("#installBtn").addEventListener("click", async () => {
+async function install() {
+  hideInstallBanner();
   if (installEvt) {
     installEvt.prompt();
     const r = await installEvt.userChoice.catch(() => null);
@@ -446,9 +447,29 @@ $("#installBtn").addEventListener("click", async () => {
     if (r?.outcome === "accepted") return;
   }
   $("#sheetBody").innerHTML = installSteps();
-  const d = $("#installSheet");
-  if (d.showModal) d.showModal(); else d.setAttribute("open", "");
-});
+  openDialog($("#installSheet"));
+}
+$("#installBtn").addEventListener("click", install);
+
+// Bandeau « Installer l'appli » proposé automatiquement à l'ouverture (sauf si déjà installée,
+// ou si la personne a dit « Plus tard » il y a moins de 3 jours).
+const isMobile = isIOS || /Android/i.test(UA);
+function hideInstallBanner() { $("#installBanner").hidden = true; document.body.classList.remove("has-ibanner"); }
+function maybeShowInstallBanner() {
+  if (isStandalone || !(isMobile || installEvt)) return;
+  const later = Number(localStorage.getItem("installLater") || 0);
+  if (Date.now() - later < 3 * 86400000) return;
+  if (document.querySelector("dialog[open]")) { setTimeout(maybeShowInstallBanner, 1500); return; }
+  $("#ibText").textContent = isIOS
+    ? "Ajoute Plein Malin à ton écran d'accueil : ouverture en 1 clic et alerte au meilleur moment pour faire le plein."
+    : "Installe Plein Malin sur ton téléphone : ouverture en 1 clic et alerte au meilleur moment pour faire le plein.";
+  $("#installBanner").hidden = false;
+  document.body.classList.add("has-ibanner");
+}
+$("#ibInstall").addEventListener("click", install);
+$("#ibLater").addEventListener("click", () => { try { localStorage.setItem("installLater", String(Date.now())); } catch { /* ignore */ } hideInstallBanner(); });
+window.addEventListener("appinstalled", hideInstallBanner);
+setTimeout(maybeShowInstallBanner, 2500);
 $("#sheetClose").addEventListener("click", () => { const d = $("#installSheet"); d.close ? d.close() : d.removeAttribute("open"); });
 
 $("#shareBtn").addEventListener("click", share);

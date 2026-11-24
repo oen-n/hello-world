@@ -127,6 +127,15 @@
   <button id="sheetClose" class="primary full" type="button">J'ai compris</button>
 </dialog>
 
+<div id="installBanner" class="ibanner" role="dialog" aria-labelledby="ibTitle" hidden>
+  <img src="icons/icon-192.png" alt="" width="52" height="52">
+  <div class="ib-txt"><b id="ibTitle">Installe l'appli 📲</b><span id="ibText"></span></div>
+  <div class="ib-btns">
+    <button id="ibInstall" class="primary" type="button">Installer</button>
+    <button id="ibLater" class="ib-later" type="button">Plus tard</button>
+  </div>
+</div>
+
 <div id="toast" class="toast" role="status" hidden></div>
 <script type="module" src="app.js"></script>
 </body>
