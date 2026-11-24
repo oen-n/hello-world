@@ -281,7 +281,7 @@ function installSteps() {
     <ol class="howto">
       <li>Appuie sur le bouton <b>⋯</b> en bas à droite de Safari<br><small>(sur un iPhone plus ancien : le bouton Partager <b>⬆️</b> en bas au milieu)</small></li>
       <li>Appuie sur <b>Partager</b> <span aria-hidden="true">⬆️</span> (si tu ne l'as pas déjà fait)</li>
-      <li>Descends et appuie sur <b>« Sur l'écran d'accueil »</b> <span aria-hidden="true">➕</span></li>
+      <li>Descends et appuie sur <b>« Sur l'écran d'accueil »</b> <span aria-hidden="true">➕</span><br><small>Pas dans la liste ? Tout en bas, appuie sur <b>« Modifier les actions »</b>, puis sur le <b>+</b> vert à côté de « Sur l'écran d'accueil », puis <b>OK</b>.</small></li>
       <li>Appuie sur <b>Ajouter</b> en haut à droite. L'icône bleue apparaît sur ton écran 🎉</li>
     </ol>
     <p class="sub">Si tu n'es pas dans Safari (Chrome, Google…), ouvre d'abord <code>${esc(url)}</code> dans Safari.</p>`;
