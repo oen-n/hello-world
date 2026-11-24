@@ -39,3 +39,13 @@ Installer l'appli **ntfy** et s'abonner au sujet `plein-malin-cholet-maulevrier`
 Les conseils viennent de l'historique et des tendances du moment : personne ne peut prédire
 les prix à coup sûr. Sur l'année passée, suivre les conseils aurait fait gagner environ
 1 à 1,5 ct/L par plein ; choisir la station la moins chère fait gagner jusqu'à 30 ct/L.
+
+## Gagner de l'argent (dons et partenaires)
+
+Tout se règle dans **`config.js`** (sur GitHub : ouvrir le fichier → crayon ✏️ → modifier → *Commit changes*) :
+
+- `donUrl` : ton lien Buy Me a Coffee / Tipeee / PayPal.me → affiche le bouton « ☕ Offrir un café ».
+- `contactPartenaire` : ton e-mail ou un lien de formulaire → affiche « Ton commerce ici ? » tant qu'il n'y a pas de partenaire.
+- `partenaires` : les commerces qui te paient pour être affichés (nom, texte, lien, ville). Ils sont marqués « Partenaire » (obligatoire pour une publicité).
+
+Un bloc laissé vide n'apparaît pas. Pense à déclarer les revenus perçus.

@@ -1,4 +1,5 @@
 import { buildSeries, analyze, backtest } from "./analysis.js";
+import { CONFIG } from "./config.js";
 
 const API = "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/prix-des-carburants-en-france-flux-instantane-v2/records";
 const FUELS = ["Gazole", "E10", "SP95", "SP98", "E85", "GPLc"];
@@ -285,6 +286,35 @@ $("#geoBtn").addEventListener("click", () => {
     () => toast("Impossible d'obtenir ta position"), { enableHighAccuracy: false, timeout: 10000 });
 });
 let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => state.hist && render(), 200); });
+
+// ---------- partenaires et dons ----------
+function safeUrl(u) {
+  try { const x = new URL(u, location.href); return /^(https?|mailto):$/.test(x.protocol) ? x.href : null; } catch { return null; }
+}
+function renderMoney() {
+  const sp = $("#sponsor");
+  const list = (CONFIG.partenaires || []).filter((p) => p && p.nom);
+  const contact = CONFIG.contactPartenaire || "";
+  const contactUrl = contact ? safeUrl(contact.includes("@") && !contact.startsWith("mailto:") ? "mailto:" + contact : contact) : null;
+  if (list.length) {
+    const p = list[Math.floor(Math.random() * list.length)];
+    const link = p.lien ? safeUrl(p.lien) : null;
+    sp.innerHTML = `<div class="kicker">Partenaire</div>
+      <div class="sp-name">${esc(p.nom)}${p.ville ? ` <span class="sub">· ${esc(p.ville)}</span>` : ""}</div>
+      ${p.texte ? `<p>${esc(p.texte)}</p>` : ""}
+      ${link ? `<a class="ghost full btnlink" href="${esc(link)}" target="_blank" rel="noopener sponsored">Découvrir</a>` : ""}`;
+    sp.hidden = false;
+  } else if (contactUrl) {
+    sp.innerHTML = `<div class="kicker">Partenaire</div>
+      <div class="sp-name">Ton commerce ici ?</div>
+      <p>Garage, lavage auto, commerce de Cholet et des environs : fais-toi connaître auprès des automobilistes du coin.</p>
+      <a class="ghost full btnlink" href="${esc(contactUrl)}" target="_blank" rel="noopener">Devenir partenaire</a>`;
+    sp.hidden = false;
+  }
+  const don = CONFIG.donUrl ? safeUrl(CONFIG.donUrl) : null;
+  if (don) { $("#donBtn").href = don; $("#don").hidden = false; }
+}
+renderMoney();
 
 // ---------- démarrage ----------
 async function start() {
