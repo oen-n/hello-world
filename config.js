@@ -3,6 +3,9 @@
 // Laisse vide ("") pour masquer un bloc.
 
 export const CONFIG = {
+  // Notifications directement dans l'appli (OneSignal). App ID public (pas secret).
+  oneSignalAppId: "2ef78266-b783-4baf-a83a-b5d53f9a85d6",
+
   // Bouton de dons : lien Buy Me a Coffee, Tipeee, PayPal.me, Lydia…
   // ex. "https://buymeacoffee.com/tonpseudo" ou "https://paypal.me/tonpseudo"
   donUrl: "",

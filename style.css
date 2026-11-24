@@ -148,3 +148,9 @@ code { background: var(--neutral-bg); padding: 2px 6px; border-radius: 6px; font
 }
 .sheet::backdrop { background: rgb(0 0 0 / .45); }
 .sheet .howto li { margin: 10px 0; }
+
+.notif-fuels { border: 0; padding: 0; margin: 8px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.notif-fuels legend { margin-bottom: 6px; }
+.notif-fuels label { display: inline-flex; align-items: center; gap: 6px; background: var(--neutral-bg); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; font-weight: 600; cursor: pointer; }
+.notif-fuels input { width: 18px; height: 18px; accent-color: var(--accent); margin: 0; }
+#notifStatus:empty { display: none; }

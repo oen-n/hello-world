@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "17 4-20/2 * * *"   # toutes les 2 heures de 5h à 21h (heure de Paris, hiver)
   workflow_dispatch:
+    inputs:
+      test:
+        description: "Envoyer une notification de test"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -22,10 +27,12 @@ jobs:
           node-version: 22
       - name: Construire l'historique des prix
         run: python3 scripts/update_history.py
-      - name: Notifications (ntfy)
+      - name: Notifications (OneSignal + ntfy)
         env:
           NTFY_TOPIC: ${{ vars.NTFY_TOPIC || 'plein-malin-cholet-maulevrier' }}
+          ONESIGNAL_API_KEY: ${{ secrets.ONESIGNAL_API_KEY }}
           SITE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          NOTIFY_TEST: ${{ inputs.test && '1' || '' }}
         run: node scripts/notify.mjs
       - name: Enregistrer
         run: |

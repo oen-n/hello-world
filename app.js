@@ -357,6 +357,78 @@ function renderMoney() {
 }
 renderMoney();
 
+// ---------- notifications (OneSignal) ----------
+const NOTIF_FUELS = ["Gazole", "E10", "SP95", "SP98"];
+let OS = null; // SDK OneSignal une fois prêt
+
+function notifStatus(t) { $("#notifStatus").textContent = t; }
+function chosenFuels() { return [...document.querySelectorAll("#notifFuels input:checked")].map((i) => i.value); }
+
+function renderNotifUI() {
+  const subscribed = !!OS?.User?.PushSubscription?.optedIn && OS.Notifications.permission;
+  $("#notifBtn").textContent = subscribed ? "✅ Enregistrer mes carburants" : "🔔 Me prévenir";
+  $("#notifOff").hidden = !subscribed;
+  if (subscribed) notifStatus("✅ Tu seras prévenu pour : " + (chosenFuels().join(", ") || "aucun carburant"));
+}
+
+function setupNotifications() {
+  const box = $("#notifFuels");
+  let saved = [];
+  try { saved = JSON.parse(localStorage.getItem("notifFuels") || "[]"); } catch { /* ignore */ }
+  if (!saved.length) saved = [state.fuel];
+  box.insertAdjacentHTML("beforeend", NOTIF_FUELS.map((f) => `<label><input type="checkbox" value="${f}"${saved.includes(f) ? " checked" : ""}>${f}</label>`).join(""));
+
+  if (!CONFIG.oneSignalAppId) { $("#notif").querySelector("details").open = true; $("#notifBtn").hidden = true; return; }
+  const scope = location.pathname.replace(/[^/]*$/, ""); // ex. "/hello-world/"
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  window.OneSignalDeferred.push(async (OneSignal) => {
+    try {
+      await OneSignal.init({
+        appId: CONFIG.oneSignalAppId,
+        serviceWorkerPath: scope.slice(1) + "sw.js",
+        serviceWorkerParam: { scope },
+        allowLocalhostAsSecureOrigin: true,
+      });
+      OS = OneSignal;
+      OneSignal.User.PushSubscription.addEventListener("change", renderNotifUI);
+      renderNotifUI();
+    } catch (e) { console.warn("OneSignal", e); }
+  });
+  const sc = document.createElement("script");
+  sc.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
+  sc.defer = true;
+  document.head.appendChild(sc);
+
+  $("#notifBtn").addEventListener("click", async () => {
+    const fuels = chosenFuels();
+    if (!fuels.length) return notifStatus("Coche au moins un carburant.");
+    localStorage.setItem("notifFuels", JSON.stringify(fuels));
+    if (isIOS && !isStandalone) {
+      notifStatus("Sur iPhone, ajoute d'abord Plein Malin à l'écran d'accueil (bouton « Installer l'application » ci-dessus), puis ouvre l'appli depuis son icône et appuie à nouveau ici.");
+      return;
+    }
+    if (!OS) return notifStatus("Chargement en cours… réessaie dans quelques secondes (vérifie ta connexion).");
+    if (!OS.Notifications.isPushSupported()) return notifStatus("Ton téléphone ou ton navigateur ne permet pas les notifications. Essaie avec Chrome (Android) ou depuis l'icône de l'appli (iPhone).");
+    try {
+      if (!OS.Notifications.permission) await OS.Notifications.requestPermission();
+      if (!OS.Notifications.permission) return notifStatus("Notifications refusées. Pour les autoriser : Réglages du téléphone → Notifications → Plein Malin.");
+      await OS.User.PushSubscription.optIn();
+      const tags = Object.fromEntries(NOTIF_FUELS.map((f) => ["fuel_" + f, fuels.includes(f) ? "1" : "0"]));
+      await OS.User.addTags(tags);
+      renderNotifUI();
+      toast("🔔 C'est noté, tu seras prévenu !");
+    } catch (e) {
+      console.warn(e);
+      notifStatus("Oups, ça n'a pas marché. Réessaie dans un instant.");
+    }
+  });
+  $("#notifOff").addEventListener("click", async () => {
+    try { await OS?.User?.PushSubscription?.optOut(); } catch { /* ignore */ }
+    notifStatus("Tu ne recevras plus de notifications.");
+    renderNotifUI();
+  });
+}
+
 // ---------- démarrage ----------
 async function start() {
   try { state.hist = await loadHistory(); }
@@ -367,6 +439,7 @@ async function start() {
 }
 start();
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+setupNotifications();
 document.addEventListener("visibilitychange", async () => {
   if (document.visibilityState === "visible" && state.hist) {
     try { state.live = await loadLive(state.hist); render(); } catch { /* ignore */ }

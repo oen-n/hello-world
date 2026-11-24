@@ -70,14 +70,22 @@
     <button id="shareBtn2" class="primary full" type="button">📤 Envoyer à mes collègues, ma famille, mes amis</button>
   </section>
 
-  <section class="card">
+  <section class="card" id="notif">
     <h2>🔔 Être prévenu</h2>
-    <p>Reçois une notification quand c'est le moment de faire le plein (avant que ça remonte) :</p>
-    <ol class="howto">
-      <li>Installe l'appli gratuite <b>ntfy</b> (<a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a> / <a href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a>).</li>
-      <li>Abonne-toi au sujet <code id="topicName"></code> <button id="copyTopic" class="chip" type="button">Copier</button></li>
-    </ol>
-    <a id="ntfyLink" class="ghost full btnlink" target="_blank" rel="noopener">Ouvrir le sujet ntfy</a>
+    <p>Reçois une notification sur ton téléphone quand c'est le moment de faire le plein (juste avant que ça remonte).</p>
+    <fieldset class="notif-fuels" id="notifFuels"><legend class="sub">Pour quels carburants ?</legend></fieldset>
+    <button id="notifBtn" class="primary full" type="button">🔔 Me prévenir</button>
+    <p id="notifStatus" class="sub" aria-live="polite"></p>
+    <button id="notifOff" class="ghost full" type="button" hidden>Ne plus être prévenu</button>
+    <p class="sub">Les notifications sont envoyées par le service OneSignal, qui enregistre ton téléphone (de façon anonyme) pour pouvoir le prévenir. Tu peux arrêter à tout moment.</p>
+    <details>
+      <summary>Autre option : l'appli ntfy</summary>
+      <ol class="howto">
+        <li>Installe l'appli gratuite <b>ntfy</b> (<a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a> / <a href="https://apps.apple.com/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a>).</li>
+        <li>Abonne-toi au sujet <code id="topicName"></code> <button id="copyTopic" class="chip" type="button">Copier</button></li>
+      </ol>
+      <a id="ntfyLink" class="ghost full btnlink" target="_blank" rel="noopener">Ouvrir le sujet ntfy</a>
+    </details>
   </section>
 
   <section id="don" class="card don" hidden>
