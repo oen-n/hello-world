@@ -128,3 +128,41 @@ dialog::backdrop { background: rgba(0,0,0,.45); }
 .foot { max-width: 640px; margin: 0 auto; padding: 0 16px 28px; color: var(--muted); font-size: .76rem; text-align: center; }
 .foot p { margin: 2px 0; }
 .foot a { color: inherit; }
+
+/* Onglets & menus */
+.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--neutral); border-radius: 14px; padding: 4px; margin-top: 12px; }
+.tabs button { background: none; border: 0; border-radius: 10px; padding: 10px 6px; font-weight: 600; color: var(--text2); }
+.tabs button.on { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.hint { width: 100%; text-align: left; background: var(--accent-bg); border-color: var(--accent); font-size: .92rem; }
+.hint.warn { background: var(--warn-bg); border-color: #e0a419; }
+.tagm { font-size: .8rem; }
+.setting { margin: 10px 0; }
+.meals { display: flex; gap: 6px; }
+.chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.day { padding: 10px 12px; margin: 8px 0; }
+.day h3 { margin: 0 0 4px; }
+.slot { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; background: none; border: 0; border-top: 1px solid var(--line); padding: 10px 0; }
+.day h3 + .slot { border-top: 0; }
+.slot .when { flex: none; width: 68px; color: var(--text2); font-size: .85rem; }
+.slot .what { flex: 1; font-weight: 600; }
+.slot .what small { display: block; font-weight: 400; color: var(--muted); font-size: .8rem; }
+.slot.empty .what { color: var(--accent); }
+.chev { color: var(--muted); font-size: 1.3rem; }
+.menusum { padding: 10px 14px; position: sticky; bottom: calc(8px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 18px rgba(0,0,0,.08); }
+.reclist { list-style: none; margin: 10px 0 0; padding: 0; max-height: 55vh; overflow: auto; }
+.reclist button { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; background: none; border: 0; border-top: 1px solid var(--line); padding: 10px 2px; }
+.reclist li:first-child button { border-top: 0; }
+.reclist .ri { font-size: 1.6rem; width: 34px; text-align: center; }
+.reclist .rn { flex: 1; font-weight: 600; }
+.reclist small { display: block; font-weight: 400; color: var(--muted); font-size: .8rem; }
+.reclist .tag { background: var(--neutral); color: var(--text2); font-weight: 400; }
+#recDlg .quick { margin-top: 8px; }
+.ing { list-style: none; padding: 0; margin: 4px 0 12px; }
+.ing li { padding: 5px 0; border-top: 1px solid var(--line); }
+.ing li:first-child { border-top: 0; }
+.ing li { display: grid; grid-template-columns: 100px 1fr; gap: 8px; }
+.etapes { padding-left: 20px; margin: 4px 0 10px; }
+.etapes li { margin-bottom: 6px; }
+#recInfoBody h3 { margin-top: 12px; }
+dialog { max-height: 90vh; }

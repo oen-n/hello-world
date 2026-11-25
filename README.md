@@ -58,6 +58,7 @@ Deuxième appli, dans `courses/` (en ligne : `https://oen-n.github.io/hello-worl
 1. **On indique où on habite** (ville, code postal ou GPS) ;
 2. **on entre sa liste** avec les quantités (recherche, ajout rapide, ou « coller une liste » : `2 lait`, `1,5 kg pommes`, `pâtes x3`…) ;
 3. **l'appli compare le panier entier** dans les supermarchés autour (5, 10 ou 20 km, trajet en voiture compté si on veut) et dit **lequel est le moins cher** ;
+   - ou **🍽️ Mes menus** : on choisit ses plats de la semaine (midi et/ou soir, nombre de personnes, modifiable plat par plat), ou « 🎲 Compléter la semaine » ; les ingrédients sont additionnés sur la semaine et arrondis au paquet, puis ajoutés à la liste en un geste (sans doublon si on change le menu) ; chaque plat a sa fiche recette et le menu peut s'envoyer par SMS / WhatsApp ;
 4. ensuite, au choix :
    - **🚗 Drive** : lien vers le site de l'enseigne + un bouton « Trouver » par article qui ouvre directement la recherche, à cocher au fur et à mesure (si le magasin n'a pas de drive, l'appli propose le drive le moins cher) ;
    - **📝 En magasin** : la liste **dans l'ordre des rayons** (le frais et le surgelé à la fin), à cocher, écran qui reste allumé, et à envoyer par SMS / WhatsApp.
@@ -65,6 +66,7 @@ Deuxième appli, dans `courses/` (en ligne : `https://oen-n.github.io/hello-worl
 | Fichier | Rôle |
 |---|---|
 | `courses/catalog.js` | Rayons, ~150 produits avec prix moyen estimé, enseignes avec leur niveau de prix et leur drive |
+| `courses/recettes.js` | 35 recettes (quantités pour 4, préparation, tags rapide / enfants / végé / poisson / four) |
 | `courses/app.js` | L'application |
 
 Données : magasins © contributeurs OpenStreetMap (ODbL), villes geo.api.gouv.fr.

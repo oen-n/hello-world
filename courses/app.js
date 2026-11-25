@@ -1,4 +1,5 @@
 import { RAYONS, PRODUITS, PRODUIT, POPULAIRES, ENSEIGNES } from "./catalog.js";
+import { RECETTES, RECETTE, FILTRES } from "./recettes.js";
 
 const GEO = "https://geo.api.gouv.fr/communes";
 const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
@@ -17,7 +18,9 @@ const state = Object.assign({
   prixPerso: {},      // "enseigne|produit" -> prix
   magasin: null,      // magasin choisi
   vue: "liste",
+  menu: null,
 }, JSON.parse(localStorage.getItem(KEY) || "{}"));
+state.menu = Object.assign({ pers: 4, midi: false, soir: true, placard: true, slots: {}, sig: null }, state.menu);
 const save = () => localStorage.setItem(KEY, JSON.stringify(state));
 let magasins = null;  // magasins trouvés autour (non sauvegardés : cache à part)
 let nbAffiches = 8;
@@ -105,14 +108,14 @@ function ajouter(id, q, nomLibre) {
 }
 const nomDe = (it) => (it.id ? PRODUIT[it.id].nom : it.nom);
 const rayonDe = (it) => (it.id ? PRODUIT[it.id].rayon : "autre");
-const pas = (it) => (it.id && PRODUIT[it.id].unite === "kg" ? 0.5 : 1);
+const pas = (it) => (it.id && PRODUIT[it.id].unite === "kg" ? (it.q < 1 ? 0.1 : 0.5) : 1);
 
 function renderListe() {
   const ul = $("#items");
   ul.innerHTML = state.liste.map((it) => `
     <li data-k="${it.key}">
       <span class="ico">${RAY[rayonDe(it)].ico}</span>
-      <span class="nm">${esc(nomDe(it))}${it.id ? "" : ' <small class="muted">(prix non comparé)</small>'}</span>
+      <span class="nm">${esc(nomDe(it))}${it.qa ? ' <small class="tagm" title="Pour tes menus">🍽️</small>' : ""}${it.id ? "" : ' <small class="muted">(prix non comparé)</small>'}</span>
       <span class="qty">
         <button type="button" class="qb" data-a="moins" aria-label="Moins">−</button>
         <b>${qtyTxt(it)}</b>
@@ -124,7 +127,7 @@ function renderListe() {
   $("#clearBtn").hidden = n === 0;
   $("#listCount").textContent = n ? `${n} article${n > 1 ? "s" : ""}` : "";
   $("#goCompare").disabled = !state.liste.some((it) => it.id);
-  renderQuick();
+  renderQuick(); renderMenuHint();
 }
 function renderQuick() {
   const dans = new Set(state.liste.map((it) => it.id));
@@ -389,12 +392,15 @@ function ouvrirPrix(prodId) {
 }
 
 // ---------- Navigation ----------
-const VUES = ["liste", "compare", "store", "drive", "shop"];
+const VUES = ["liste", "menus", "compare", "store", "drive", "shop"];
 function go(v) {
   state.vue = v; save();
   for (const x of VUES) $("#v-" + x).hidden = x !== v;
+  $("#tabs").hidden = !["liste", "menus"].includes(v);
+  document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.go === v));
   window.scrollTo(0, 0);
   if (v === "liste") renderListe();
+  if (v === "menus") renderMenus();
   if (v === "compare") renderCompare();
   if (v === "store") renderStore();
   if (v === "drive") renderDrive();
@@ -422,10 +428,11 @@ $("#items").addEventListener("click", (ev) => {
   const it = state.liste.find((x) => x.key === b.closest("li").dataset.k);
   const s = pas(it);
   it.q = Math.round((it.q + (b.dataset.a === "plus" ? s : -s)) * 100) / 100;
+  if (it.qa) it.qa = Math.min(it.qa, Math.max(it.q, 0));
   if (it.q <= 0) { state.liste = state.liste.filter((x) => x !== it); toast(`${nomDe(it)} retiré`); }
   save(); renderListe();
 });
-$("#clearBtn").addEventListener("click", () => { if (confirm("Effacer toute la liste ?")) { state.liste = []; save(); renderListe(); } });
+$("#clearBtn").addEventListener("click", () => { if (confirm("Effacer toute la liste ?")) { state.liste = []; state.menu.sig = null; save(); renderListe(); } });
 $("#pasteBtn").addEventListener("click", () => { $("#pasteTxt").value = ""; $("#pasteDlg").showModal(); });
 $("#pasteOk").addEventListener("click", () => {
   let n = 0;
@@ -488,7 +495,7 @@ $("#finish").addEventListener("click", () => {
   if (restants && !confirm(`Il reste ${restants} article${restants > 1 ? "s" : ""} non coché${restants > 1 ? "s" : ""}. Terminer quand même ?`)) return;
   const garder = confirm("Courses terminées 👍\n\nGarder ta liste pour la prochaine fois ?\n(OK = garder · Annuler = repartir d'une liste vide)");
   if (garder) state.liste.forEach((it) => { it.coche = false; it.drive = false; });
-  else state.liste = [];
+  else { state.liste = []; state.menu.sig = null; }
   save(); go("liste");
 });
 $("#shareApp").addEventListener("click", async () => {
@@ -496,9 +503,208 @@ $("#shareApp").addEventListener("click", async () => {
   if (navigator.share) { try { await navigator.share(d); } catch { /* annulé */ } } else copier(d.url);
 });
 
+// ---------- Menus de la semaine ----------
+const JOURS = [["lun", "Lundi"], ["mar", "Mardi"], ["mer", "Mercredi"], ["jeu", "Jeudi"], ["ven", "Vendredi"], ["sam", "Samedi"], ["dim", "Dimanche"]];
+const REPAS = [["midi", "☀️ Midi"], ["soir", "🌙 Soir"]];
+const RESTES = "restes";
+const M = () => state.menu;
+const slotsActifs = () => JOURS.flatMap(([j]) => REPAS.filter(([r]) => M()[r]).map(([r]) => `${j}-${r}`));
+const persDe = (slot) => (slot && slot.p) || M().pers;
+const nombre = (n) => String(Math.round(n * 10) / 10).replace(".", ",");
+
+// Coût estimé d'une recette (prix moyen, sans le placard)
+function coutRecette(r, pers) {
+  return r.ing.reduce((s, i) => s + (i.placard ? 0 : PRODUIT[i.id].prix * (i.qte / i.parArticle)), 0) * pers / 4;
+}
+// Quantité lisible d'un ingrédient pour N personnes
+function quantiteTxt(i, pers) {
+  let v = i.qte * pers / 4, u = i.unite;
+  if (u === "g" && v >= 1000) { v = Math.round(v / 100) / 10; u = "kg"; }
+  else if (u === "g" || u === "cl") v = v >= 50 ? Math.round(v / 10) * 10 : Math.max(5, Math.round(v / 5) * 5);
+  else v = Math.max(0.5, Math.round(v * 2) / 2);
+  return `${nombre(v)}${u ? " " + u : ""}`;
+}
+// Ce qu'il faut acheter pour toute la semaine : on additionne d'abord, on arrondit ensuite
+// (3 recettes avec un peu de beurre = 1 seule plaquette).
+function besoinsMenu() {
+  const brut = {}, pour = {};
+  for (const k of slotsActifs()) {
+    const s = M().slots[k]; if (!s || s.r === RESTES) continue;
+    const r = RECETTE[s.r]; if (!r) continue;
+    for (const i of r.ing) {
+      if (i.placard && M().placard) continue;
+      brut[i.id] = (brut[i.id] || 0) + (i.qte / i.parArticle) * persDe(s) / 4;
+      (pour[i.id] ||= new Set()).add(r.nom);
+    }
+  }
+  const besoins = {};
+  for (const [id, x] of Object.entries(brut)) {
+    besoins[id] = PRODUIT[id].unite === "kg" ? Math.max(0.1, Math.ceil(x * 10 - 0.01) / 10) : Math.max(1, Math.ceil(x - 0.05));
+  }
+  return { besoins, pour };
+}
+const signature = (b) => JSON.stringify(Object.entries(b).sort());
+
+function syncMenu() {
+  const { besoins } = besoinsMenu();
+  // retire d'abord ce que le menu avait ajouté la dernière fois…
+  for (const it of state.liste) if (it.qa) { it.q = Math.round((it.q - it.qa) * 100) / 100; it.qa = 0; }
+  state.liste = state.liste.filter((it) => it.q > 0);
+  // …puis ajoute les quantités du menu actuel (fusionnées avec ce qui est déjà dans la liste)
+  let n = 0;
+  for (const [id, q] of Object.entries(besoins)) {
+    const ex = state.liste.find((it) => it.id === id);
+    if (ex) { ex.q = Math.round((ex.q + q) * 100) / 100; ex.qa = q; }
+    else state.liste.push({ key: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), id, q, qa: q, coche: false });
+    n++;
+  }
+  M().sig = signature(besoins); save();
+  toast(n ? `${n} ingrédient${n > 1 ? "s" : ""} dans ta liste ✓` : "Liste mise à jour");
+  go("liste");
+}
+function renderMenuHint() {
+  const nb = slotsActifs().filter((k) => M().slots[k]).length;
+  const h = $("#menuHint");
+  const aJour = signature(besoinsMenu().besoins) === M().sig;
+  if (!nb) { h.innerHTML = "🍽️ <b>Pas d'idée ?</b> Choisis tes plats de la semaine : les ingrédients s'ajoutent tout seuls. →"; h.hidden = false; h.classList.remove("warn"); }
+  else if (!aJour) { h.innerHTML = "🍽️ <b>Ton menu a changé</b> : mets à jour ta liste →"; h.hidden = false; h.classList.add("warn"); }
+  else h.hidden = true;
+}
+
+function renderMenus() {
+  const m = M();
+  $("#persN").textContent = m.pers;
+  document.querySelectorAll("[data-meal]").forEach((b) => b.classList.toggle("on", !!m[b.dataset.meal]));
+  $("#placard").checked = m.placard;
+  $("#week").innerHTML = JOURS.map(([j, nom]) => `
+    <section class="card day"><h3>${nom}</h3>
+      ${REPAS.filter(([r]) => m[r]).map(([r, lab]) => {
+        const k = `${j}-${r}`, s = m.slots[k];
+        if (!s) return `<button type="button" class="slot empty" data-slot="${k}"><span class="when">${lab}</span><span class="what">+ Choisir un plat</span></button>`;
+        if (s.r === RESTES) return `<button type="button" class="slot" data-slot="${k}"><span class="when">${lab}</span><span class="what">🥡 Restes / déjà prévu</span></button>`;
+        const rc = RECETTE[s.r]; if (!rc) return "";
+        return `<button type="button" class="slot full" data-slot="${k}"><span class="when">${lab}</span>
+          <span class="what">${rc.ico} ${esc(rc.nom)}<small>${persDe(s)} pers. · ⏱ ${rc.min} min · ≈ ${eur(coutRecette(rc, persDe(s)))}</small></span><span class="chev">›</span></button>`;
+      }).join("")}
+    </section>`).join("") || "";
+  if (!m.midi && !m.soir) $("#week").innerHTML = '<p class="empty">Choisis au moins un repas (midi ou soir).</p>';
+  const plats = slotsActifs().map((k) => m.slots[k]).filter((s) => s && s.r !== RESTES && RECETTE[s.r]);
+  const cout = plats.reduce((t, s) => t + coutRecette(RECETTE[s.r], persDe(s)), 0);
+  const { besoins } = besoinsMenu(); const nb = Object.keys(besoins).length;
+  const aJour = signature(besoins) === m.sig;
+  $("#menuSum").innerHTML = plats.length ? `
+    <div class="row-between"><b>${plats.length} plat${plats.length > 1 ? "s" : ""} · ${nb} ingrédient${nb > 1 ? "s" : ""}</b><span class="sub">≈ ${eur(cout)} · ${eur(cout / Math.max(1, plats.reduce((t, s) => t + persDe(s), 0)))}/repas</span></div>
+    <button type="button" class="primary full" id="syncMenu" ${aJour ? "disabled" : ""}>${aJour ? "✓ Ta liste est à jour" : "🛒 Mettre les ingrédients dans ma liste"}</button>`
+    : '<p class="empty">Touche « + Choisir un plat » ou « 🎲 Compléter la semaine ».</p>';
+  $("#shareMenu").hidden = !plats.length;
+}
+
+// Choix d'une recette
+let slotEdite = null, filtre = "";
+function ouvrirChoix(k) {
+  slotEdite = k; filtre = ""; $("#recQ").value = "";
+  const [j, r] = k.split("-");
+  $("#recDlgTitle").textContent = `${JOURS.find((x) => x[0] === j)[1]} ${r === "midi" ? "midi" : "soir"}`;
+  renderChoix(); $("#recDlg").showModal();
+}
+function renderChoix() {
+  const q = norm($("#recQ").value);
+  $("#recFilters").innerHTML = FILTRES.map((f) => `<button type="button" class="chip ${f.id === filtre ? "on" : ""}" data-filtre="${f.id}">${f.nom}</button>`).join("");
+  const dejaPris = new Set(Object.values(M().slots).map((s) => s.r));
+  const liste = RECETTES.filter((r) => (!filtre || r.tags.includes(filtre)) && (!q || norm(r.nom).includes(q) || r.ing.some((i) => norm(PRODUIT[i.id].nom).includes(q))));
+  $("#recList").innerHTML = (q || filtre ? "" : `<li><button type="button" data-rec="${RESTES}"><span class="ri">🥡</span><span class="rn">Restes / déjà prévu<small>rien à acheter</small></span></button></li>`)
+    + liste.map((r) => `<li><button type="button" data-rec="${r.id}"><span class="ri">${r.ico}</span>
+      <span class="rn">${esc(r.nom)}${dejaPris.has(r.id) ? ' <span class="tag">déjà au menu</span>' : ""}<small>⏱ ${r.min} min · ≈ ${eur(coutRecette(r, 1))}/pers.</small></span></button></li>`).join("")
+    + (liste.length ? "" : '<li class="empty">Aucune recette trouvée.</li>');
+}
+function choisirRecette(id) {
+  const ancien = M().slots[slotEdite];
+  M().slots[slotEdite] = { r: id, p: ancien && ancien.p || null };
+  save(); $("#recDlg").close(); renderMenus();
+}
+
+// Fiche recette
+function ouvrirFiche(k) {
+  const s = M().slots[k]; if (!s) return ouvrirChoix(k);
+  slotEdite = k;
+  if (s.r === RESTES) return ouvrirChoix(k);
+  const r = RECETTE[s.r], p = persDe(s);
+  $("#recInfoBody").innerHTML = `
+    <h2>${r.ico} ${esc(r.nom)}</h2>
+    <p class="sub">⏱ ${r.min} min · ≈ ${eur(coutRecette(r, p))} pour ${p} pers.</p>
+    <div class="row-between setting"><span>👥 Pour ce repas</span>
+      <span class="qty"><button type="button" class="qb" data-sp="-1" aria-label="Moins">−</button><b>${p} pers.</b><button type="button" class="qb" data-sp="1" aria-label="Plus">+</button></span></div>
+    <h3>Ingrédients</h3>
+    <ul class="ing">${r.ing.map((i) => `<li><b>${quantiteTxt(i, p)}</b> ${esc(PRODUIT[i.id].nom.replace(/\s*\(.*?\)/g, ""))}${i.placard ? ' <small class="muted">(placard)</small>' : ""}</li>`).join("")}</ul>
+    <h3>Préparation</h3>
+    <ol class="etapes">${r.etapes.map((e) => `<li>${esc(e)}</li>`).join("")}</ol>
+    <div class="row2"><button type="button" class="ghost" data-fiche="changer">🔄 Changer</button><button type="button" class="ghost" data-fiche="retirer">🗑️ Retirer</button></div>
+    <button class="primary full" value="cancel">OK</button>`;
+  if (!$("#recInfo").open) $("#recInfo").showModal();
+}
+
+function completerSemaine() {
+  const m = M(), pris = new Set(Object.values(m.slots).map((s) => s.r));
+  const melange = (a) => a.map((x) => [Math.random(), x]).sort((x, y) => x[0] - y[0]).map((x) => x[1]);
+  let n = 0;
+  for (const k of slotsActifs()) {
+    if (m.slots[k]) continue;
+    const semaine = !k.startsWith("sam") && !k.startsWith("dim") && k.endsWith("midi");
+    let choix = melange(RECETTES.filter((r) => !pris.has(r.id)));
+    if (semaine) choix = [...choix.filter((r) => r.tags.includes("rapide")), ...choix.filter((r) => !r.tags.includes("rapide"))];
+    // un peu de variété : au moins un poisson et un plat végé dans la semaine
+    const a = (t) => [...pris].some((id) => RECETTE[id]?.tags.includes(t));
+    if (!a("poisson")) choix = [...choix.filter((r) => r.tags.includes("poisson")), ...choix.filter((r) => !r.tags.includes("poisson"))];
+    else if (!a("vege")) choix = [...choix.filter((r) => r.tags.includes("vege")), ...choix.filter((r) => !r.tags.includes("vege"))];
+    const r = choix[0] || melange(RECETTES)[0];
+    m.slots[k] = { r: r.id, p: null }; pris.add(r.id); n++;
+  }
+  save(); renderMenus();
+  toast(n ? `${n} plat${n > 1 ? "s" : ""} ajouté${n > 1 ? "s" : ""} : touche un plat pour le changer` : "Ta semaine est déjà complète");
+}
+function texteMenu() {
+  const m = M(), l = [`🍽️ Menus de la semaine (${m.pers} pers.)`, ""];
+  for (const [j, nom] of JOURS) {
+    const rs = REPAS.filter(([r]) => m[r]).map(([r, lab]) => {
+      const s = m.slots[`${j}-${r}`]; if (!s) return null;
+      return `${lab} : ${s.r === RESTES ? "restes" : RECETTE[s.r]?.nom}`;
+    }).filter(Boolean);
+    if (rs.length) l.push(`${nom}`, ...rs.map((x) => "  " + x), "");
+  }
+  return l.join("\n").trim();
+}
+
+document.addEventListener("click", (ev) => {
+  const t = ev.target.closest("[data-slot],[data-pers],[data-meal],[data-filtre],[data-rec],[data-sp],[data-fiche],#syncMenu,#shareMenu,#autoFill,#clearMenu");
+  if (!t) return;
+  const m = M();
+  if (t.dataset.slot) ouvrirFiche(t.dataset.slot);
+  else if (t.dataset.pers) { m.pers = Math.min(20, Math.max(1, m.pers + +t.dataset.pers)); save(); renderMenus(); }
+  else if (t.dataset.meal) {
+    const r = t.dataset.meal; m[r] = !m[r]; save(); renderMenus();
+  }
+  else if (t.dataset.filtre !== undefined) { filtre = t.dataset.filtre; renderChoix(); }
+  else if (t.dataset.rec) choisirRecette(t.dataset.rec);
+  else if (t.dataset.sp) {
+    const s = m.slots[slotEdite]; s.p = Math.min(30, Math.max(1, persDe(s) + +t.dataset.sp)); if (s.p === m.pers) s.p = null;
+    save(); ouvrirFiche(slotEdite); renderMenus();
+  }
+  else if (t.dataset.fiche === "changer") { ev.preventDefault(); $("#recInfo").close(); ouvrirChoix(slotEdite); }
+  else if (t.dataset.fiche === "retirer") { ev.preventDefault(); delete m.slots[slotEdite]; save(); $("#recInfo").close(); renderMenus(); }
+  else if (t.id === "syncMenu") syncMenu();
+  else if (t.id === "shareMenu") {
+    const txt = texteMenu();
+    if (navigator.share) navigator.share({ title: "Menus de la semaine", text: txt }).catch(() => {}); else copier(txt);
+  }
+  else if (t.id === "autoFill") completerSemaine();
+  else if (t.id === "clearMenu") { if (confirm("Vider tous les plats de la semaine ?")) { m.slots = {}; save(); renderMenus(); } }
+});
+$("#recQ").addEventListener("input", renderChoix);
+$("#placard").addEventListener("change", (ev) => { M().placard = ev.target.checked; save(); renderMenus(); });
+
 // ---------- Démarrage ----------
 renderPlace();
 history.replaceState({ v: state.vue }, "");
-go(VUES.includes(state.vue) && (state.vue === "liste" || state.vue === "compare" || state.magasin) ? state.vue : "liste");
+go(VUES.includes(state.vue) && (["liste", "menus", "compare"].includes(state.vue) || state.magasin) ? state.vue : "liste");
 if (!state.place) setTimeout(() => $("#placeDlg").showModal(), 400);
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});

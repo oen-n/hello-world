@@ -1,6 +1,6 @@
 // Service worker : l'appli (et ta liste) s'ouvre même sans réseau, pratique au fond du magasin.
-const CACHE = "panier-malin-v1";
-const SHELL = ["./", "index.html", "style.css", "app.js", "catalog.js", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png"];
+const CACHE = "panier-malin-v2";
+const SHELL = ["./", "index.html", "style.css", "app.js", "catalog.js", "recettes.js", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png"];
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
