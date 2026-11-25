@@ -189,3 +189,11 @@ body.has-ibanner .foot { padding-bottom: 190px; }
 .suivre-btns { display: flex; gap: 8px; }
 .suivre-btns a { flex: 1; text-align: center; }
 .suivre-btns:empty { display: none; }
+
+/* À propos (référencement) */
+.seo { max-width: 640px; margin: 14px auto; }
+.seo h2 { margin-bottom: 6px; }
+.seo p { font-size: .92rem; line-height: 1.5; }
+.seo details { border-top: 1px solid var(--line); padding: 8px 0; }
+.seo summary { font-weight: 600; cursor: pointer; }
+.seo details p { margin: 6px 0 0; color: var(--text2); }

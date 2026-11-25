@@ -34,6 +34,42 @@ h1{font-size:1.7rem;margin:14px 0 4px;letter-spacing:-.5px}
 .share{margin-top:22px;background:#ffc83d;color:#0c1533;border:0;border-radius:14px;padding:14px 18px;font:inherit;font-weight:800;width:100%;cursor:pointer}
 .foot{color:#8f92b8;font-size:.78rem;margin-top:26px}
 </style>
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@graph": [
+  {
+   "@type": "Organization",
+   "name": "Les Applis Malines",
+   "url": "https://oen-n.github.io/hello-world/applis/",
+   "logo": "https://oen-n.github.io/hello-world/promo/reseaux/logo-512.png",
+   "sameAs": [
+    "https://www.instagram.com/applis.malines/",
+    "https://www.tiktok.com/@applis.malines"
+   ],
+   "@id": "https://oen-n.github.io/hello-world/applis/#org"
+  },
+  {
+   "@type": "ItemList",
+   "name": "Les Applis Malines",
+   "itemListElement": [
+    {
+     "@type": "ListItem",
+     "position": 1,
+     "url": "https://oen-n.github.io/hello-world/",
+     "name": "Carbu Malin"
+    },
+    {
+     "@type": "ListItem",
+     "position": 2,
+     "url": "https://oen-n.github.io/hello-world/courses/",
+     "name": "Chariot Malin"
+    }
+   ]
+  }
+ ]
+}
+</script>
 </head>
 <body data-app="hub">
 <main>
@@ -41,7 +77,10 @@ h1{font-size:1.7rem;margin:14px 0 4px;letter-spacing:-.5px}
   <h1 id="marque">Les Applis Malines</h1>
   <p class="bio">Des applis <b>gratuites</b>, sans inscription, pour dépenser moins au quotidien.</p>
   <div class="social" id="social"></div>
-  <div id="apps"></div>
+  <div id="apps">
+    <a class="app" href="../" style="--c:#2a78d6"><img src="../icons/icon-192.png" alt=""><span><b>⛽ Carbu Malin</b><span>La station la moins chère près de chez toi et le bon moment pour faire le plein.</span></span><span class="go">›</span></a>
+    <a class="app" href="../courses/" style="--c:#0f8a4c"><img src="../courses/icons/icon-192.png" alt=""><span><b>🛒 Chariot Malin</b><span>Ta liste de courses ou tes menus de la semaine, et le magasin le moins cher près de chez toi.</span></span><span class="go">›</span></a>
+  </div>
   <div class="soon" id="soon">✨ D'autres applis arrivent bientôt. Abonne-toi pour être prévenu !</div>
   <button class="share" id="share" type="button">📤 Partager ces applis</button>
   <p class="foot">Toutes les applis s'installent depuis le navigateur, sur Android et iPhone. Tes données restent sur ton téléphone.</p>
