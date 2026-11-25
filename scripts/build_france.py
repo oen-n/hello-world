@@ -39,7 +39,7 @@ def dep_of(cp):
 
 
 def fetch(url, timeout=300):
-    req = urllib.request.Request(url, headers={"User-Agent": "plein-malin"})
+    req = urllib.request.Request(url, headers={"User-Agent": "carbu-malin"})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return r.read()
 
