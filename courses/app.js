@@ -321,7 +321,7 @@ function renderDrive() {
       <li>Pour chaque article, touche <b>🔎 Trouver</b> : la recherche s'ouvre directement, ajoute-le au panier puis coche-le ici.</li>
       <li>Valide ta commande sur le site et choisis ton créneau.</li>
     </ol>
-    <p class="sub">Les sites des enseignes ne permettent pas à une autre appli de remplir le panier à ta place : Caddie Malin te prépare tout pour que ça aille vite.</p>
+    <p class="sub">Les sites des enseignes ne permettent pas à une autre appli de remplir le panier à ta place : Chariot Malin te prépare tout pour que ça aille vite.</p>
     <div class="progress"><span style="width:${items.length ? (faits / items.length) * 100 : 0}%"></span></div>
     <p class="sub">${faits} / ${items.length} dans le panier</p>
     <button class="ghost full" type="button" data-copy="1">📋 Copier ma liste</button>`;
@@ -500,7 +500,7 @@ $("#finish").addEventListener("click", () => {
   save(); go("liste");
 });
 async function partagerAppli() {
-  const d = { title: "Caddie Malin", text: "🛒 Caddie Malin : tu mets ta liste de courses, l'appli te dit quel magasin près de chez toi est le moins cher. Avec les menus de la semaine. Gratuit :", url: location.origin + location.pathname };
+  const d = { title: "Chariot Malin", text: "🛒 Chariot Malin : tu mets ta liste de courses, l'appli te dit quel magasin près de chez toi est le moins cher. Avec les menus de la semaine. Gratuit :", url: location.origin + location.pathname };
   if (navigator.share) { try { await navigator.share(d); } catch { /* annulé */ } } else copier(`${d.text} ${d.url}`);
 }
 $("#shareApp").addEventListener("click", partagerAppli);
@@ -559,8 +559,8 @@ function maybeShowInstallBanner() {
   if (Date.now() - Number(localStorage.getItem("pm-installLater") || 0) < 3 * 864e5) return;
   if (document.querySelector("dialog[open]") || state.vue === "shop") { setTimeout(maybeShowInstallBanner, 2000); return; }
   $("#ibText").textContent = isIOS
-    ? "Ajoute Caddie Malin à ton écran d'accueil : ta liste en 1 clic, même sans réseau au fond du magasin."
-    : "Installe Caddie Malin sur ton téléphone : ta liste en 1 clic, même sans réseau au fond du magasin.";
+    ? "Ajoute Chariot Malin à ton écran d'accueil : ta liste en 1 clic, même sans réseau au fond du magasin."
+    : "Installe Chariot Malin sur ton téléphone : ta liste en 1 clic, même sans réseau au fond du magasin.";
   $("#installBanner").hidden = false;
   document.body.classList.add("has-ibanner");
 }
