@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Chariot Malin – Le magasin le moins cher pour tes courses</title>
-<meta name="description" content="Entre ta liste de courses : Chariot Malin te dit quel magasin près de chez toi est le moins cher, puis t'aide à remplir ton drive ou te donne ta liste dans l'ordre des rayons.">
+<title>Chariot Malin – Comparateur de prix des courses et liste de courses par rayon (gratuit)</title>
+<meta name="description" content="Compare le prix de ta liste de courses dans les supermarchés près de chez toi, prépare tes menus de la semaine et fais tes courses dans l'ordre des rayons ou en drive. Appli gratuite, sans inscription.">
 <meta name="theme-color" content="#0c1533">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
@@ -27,6 +27,43 @@
 <link rel="preload" href="../malin/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="../malin/malin.css">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "WebApplication",
+ "name": "Chariot Malin",
+ "url": "https://oen-n.github.io/hello-world/courses/",
+ "description": "Comparateur de prix de liste de courses : le supermarché le moins cher près de chez toi pour tout ton panier, menus de la semaine avec recettes, liste de courses rangée par rayons et aide au drive.",
+ "applicationCategory": "ShoppingApplication",
+ "operatingSystem": "Android, iOS, Windows, macOS (navigateur web)",
+ "inLanguage": "fr",
+ "isAccessibleForFree": true,
+ "offers": {
+  "@type": "Offer",
+  "price": "0",
+  "priceCurrency": "EUR"
+ },
+ "image": "https://oen-n.github.io/hello-world/courses/icons/icon-512.png",
+ "screenshot": "https://oen-n.github.io/hello-world/courses/promo/chariot-malin-affiche.png",
+ "featureList": [
+  "Comparaison du prix du panier entier entre supermarchés proches",
+  "Menus de la semaine avec recettes et nombre de personnes",
+  "Liste de courses dans l'ordre des rayons",
+  "Aide pour remplir son drive",
+  "Fonctionne hors ligne"
+ ],
+ "publisher": {
+  "@type": "Organization",
+  "name": "Les Applis Malines",
+  "url": "https://oen-n.github.io/hello-world/applis/",
+  "logo": "https://oen-n.github.io/hello-world/promo/reseaux/logo-512.png",
+  "sameAs": [
+   "https://www.instagram.com/applis.malines/",
+   "https://www.tiktok.com/@applis.malines"
+  ]
+ }
+}
+</script>
 </head>
 <body data-app="panier">
 <header class="top">
@@ -155,6 +192,16 @@
     <div class="suivre-btns" id="suivreBtns"></div>
     <a class="ghost full" href="../applis/">Voir toutes nos applis</a>
   </div>
+</section>
+
+<section class="card seo" id="apropos">
+  <h2>Chariot Malin, le comparateur de prix de courses gratuit</h2>
+  <p>Chariot Malin compare le prix de <b>toute ta liste de courses</b> dans les supermarchés autour de chez toi (E.Leclerc, Lidl, Aldi, Intermarché, Auchan, Carrefour, Super U…) et te dit lequel est le moins cher pour ton panier, trajet compris si tu veux.</p>
+  <p>Tu peux aussi préparer tes <b>menus de la semaine</b> : choisis tes plats et le nombre de personnes, les ingrédients s'ajoutent tout seuls à ta liste. Ensuite, fais ton <b>drive</b> ou va en magasin avec ta <b>liste de courses rangée par rayons</b>, pour ne rien oublier et aller plus vite.</p>
+  <details><summary>Les prix sont-ils exacts ?</summary><p>Ce sont des estimations, calculées à partir du niveau de prix moyen de chaque enseigne : elles ne tiennent pas compte des promotions du jour. Touche un prix pour mettre celui que tu as vu en magasin : l'appli s'en souvient et l'utilise ensuite.</p></details>
+  <details><summary>C'est vraiment gratuit ?</summary><p>Oui, sans inscription ni compte. Ta liste et tes prix restent sur ton téléphone.</p></details>
+  <details><summary>Comment l'installer sur mon téléphone ?</summary><p>Sur Android, touche « Installer ». Sur iPhone, dans Safari : bouton Partager, puis « Sur l'écran d'accueil ». L'appli s'ouvre ensuite en un clic, même sans réseau au fond du magasin.</p></details>
+  <details><summary>Ça marche partout en France ?</summary><p>Oui : choisis ta ville ou ta position, et l'appli cherche les supermarchés à 5, 10 ou 20 km.</p></details>
 </section>
 
 <footer class="foot">

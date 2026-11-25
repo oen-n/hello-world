@@ -398,6 +398,7 @@ function go(v) {
   state.vue = v; save();
   for (const x of VUES) $("#v-" + x).hidden = x !== v;
   $("#tabs").hidden = !["liste", "menus"].includes(v);
+  $("#apropos").hidden = !["liste", "menus"].includes(v);
   document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.go === v));
   window.scrollTo(0, 0);
   if (v === "liste") renderListe();

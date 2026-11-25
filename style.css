@@ -262,3 +262,9 @@ body.has-ibanner main { padding-bottom: 170px; }
 #conseil, #stationsCard, #chartCard, #notif { scroll-margin-top: 76px; }
 .st .act { gap: 6px; font-size: .78rem; }
 .st .act a { background: var(--m-chip); border-radius: 999px; padding: 4px 10px; font-weight: 700; color: var(--m-ink); }
+
+/* --- À propos (référencement) --- */
+.seo p { font-size: .92rem; line-height: 1.5; }
+.seo details { border-top: 1px solid var(--line); padding: 8px 0; }
+.seo details summary { font-weight: 600; font-size: .95rem; color: inherit; margin-top: 0; }
+.seo details p { margin: 6px 0 0; color: var(--text-secondary); }

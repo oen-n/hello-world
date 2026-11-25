@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Carbu Malin – Prix des carburants près de chez toi</title>
-<meta name="description" content="Prix des carburants partout en France : la station la moins chère près de chez toi, le bon moment pour faire le plein et des alertes sur ta station préférée.">
+<title>Carbu Malin – Prix de l'essence et du gazole les moins chers près de chez toi</title>
+<meta name="description" content="Prix des carburants en temps réel partout en France (gazole, SP95-E10, SP98, E85, GPL) : la station la moins chère près de chez toi, le bon moment pour faire le plein et des alertes gratuites.">
 <meta name="google-site-verification" content="V0oVi8hJXEmgCoAGrjO3g6hcye3VYATapAFiNaOrGi4" />
 <meta name="theme-color" content="#0c1533">
 <link rel="manifest" href="manifest.webmanifest">
@@ -28,6 +28,43 @@
 <link rel="preload" href="malin/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="malin/malin.css">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "WebApplication",
+ "name": "Carbu Malin",
+ "url": "https://oen-n.github.io/hello-world/",
+ "description": "Prix officiels des carburants partout en France : stations les moins chères autour de toi, conseil du jour pour savoir quand faire le plein, évolution des prix et alertes sur ta station préférée.",
+ "applicationCategory": "TravelApplication",
+ "operatingSystem": "Android, iOS, Windows, macOS (navigateur web)",
+ "inLanguage": "fr",
+ "isAccessibleForFree": true,
+ "offers": {
+  "@type": "Offer",
+  "price": "0",
+  "priceCurrency": "EUR"
+ },
+ "image": "https://oen-n.github.io/hello-world/icons/icon-512.png",
+ "screenshot": "https://oen-n.github.io/hello-world/promo/carbu-malin-affiche.png",
+ "featureList": [
+  "Stations les moins chères dans un rayon de 5 à 30 km",
+  "Conseil du jour : attendre ou faire le plein",
+  "Évolution des prix sur 1 mois, 3 mois, 1 an",
+  "Notifications de prix gratuites",
+  "Gazole, SP95-E10, SP95, SP98, E85, GPLc"
+ ],
+ "publisher": {
+  "@type": "Organization",
+  "name": "Les Applis Malines",
+  "url": "https://oen-n.github.io/hello-world/applis/",
+  "logo": "https://oen-n.github.io/hello-world/promo/reseaux/logo-512.png",
+  "sameAs": [
+   "https://www.instagram.com/applis.malines/",
+   "https://www.tiktok.com/@applis.malines"
+  ]
+ }
+}
+</script>
 </head>
 <body data-app="carbu" class="has-tabbar">
 <header class="top">
@@ -129,6 +166,15 @@
     <h2>☕ Tu aimes l'appli ?</h2>
     <p>Elle est gratuite. Si elle t'a fait économiser quelques euros, tu peux offrir un café pour l'aider à rester en ligne.</p>
     <a id="donBtn" class="primary full btnlink" target="_blank" rel="noopener">☕ Offrir un café</a>
+  </section>
+
+  <section class="card seo" id="apropos">
+    <h2>Carbu Malin : le prix de l'essence le moins cher près de chez toi</h2>
+    <p>Carbu Malin affiche les <b>prix officiels des carburants</b> de toutes les stations-service de France (gazole, SP95-E10, SP95, SP98, E85, GPLc) et te montre les moins chères autour de toi, avec l'itinéraire.</p>
+    <p>Chaque jour, l'appli analyse l'évolution des prix dans ton département et te conseille : <b>attendre</b> parce que ça baisse encore, ou <b>faire le plein maintenant</b> avant que ça remonte. Tu peux recevoir une notification au bon moment.</p>
+    <details><summary>D'où viennent les prix ?</summary><p>Des données publiques du Ministère de l'Économie (prix-carburants.gouv.fr), mises à jour en continu par les stations.</p></details>
+    <details><summary>C'est gratuit ?</summary><p>Oui, sans inscription et sans compte.</p></details>
+    <details><summary>Le conseil est-il fiable ?</summary><p>Il s'appuie sur l'historique et les tendances des prix de ton département : c'est une aide, personne ne peut prédire les prix à coup sûr. Choisir la station la moins chère reste le gain le plus sûr.</p></details>
   </section>
 
   <footer class="foot">
