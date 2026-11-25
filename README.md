@@ -1,4 +1,4 @@
-# ⛽ Plein Malin – Prix des carburants partout en France
+# ⛽ Carbu Malin – Prix des carburants partout en France
 
 Application pour téléphone (s'installe depuis le navigateur, Android et iPhone) :
 
@@ -69,7 +69,7 @@ Deuxième appli, dans `courses/` (en ligne : `https://oen-n.github.io/hello-worl
 | `courses/recettes.js` | 35 recettes (quantités pour 4, préparation, tags rapide / enfants / végé / poisson / four) |
 | `courses/app.js` | L'application |
 
-**Installation** : comme Plein Malin, un bandeau « Installe l'appli » s'affiche à l'ouverture sur téléphone (fenêtre d'installation sur Android, étapes Safari sur iPhone, « Plus tard » = masqué 3 jours), plus un bouton permanent en bas de page. Plein Malin affiche un encart « 🛒 Nouveau : Panier Malin » et Panier Malin renvoie vers Plein Malin.
+**Installation** : comme Carbu Malin, un bandeau « Installe l'appli » s'affiche à l'ouverture sur téléphone (fenêtre d'installation sur Android, étapes Safari sur iPhone, « Plus tard » = masqué 3 jours), plus un bouton permanent en bas de page. Carbu Malin affiche un encart « 🛒 Nouveau : Panier Malin » et Panier Malin renvoie vers Carbu Malin.
 
 **Pub** : `courses/promo/` contient l'affiche, la story et l'image d'aperçu des liens (PNG prêts à publier, avec QR code vers l'appli), leurs sources HTML, et `textes-a-publier.md` (WhatsApp, Facebook, TikTok, communiqué de presse…).
 

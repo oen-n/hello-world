@@ -55,13 +55,13 @@ Texte : *Ta liste de courses → le magasin le moins cher 🛒 #courses #budget 
 
 ## 4. Journaux et radios locales (communiqué)
 
-À envoyer par le formulaire « contact rédaction » ou à l'e-mail de l'agence locale des journaux et radios de ta région. Si Plein Malin a déjà intéressé un journaliste, recontacte-le : c'est une suite naturelle.
+À envoyer par le formulaire « contact rédaction » ou à l'e-mail de l'agence locale des journaux et radios de ta région. Si Carbu Malin a déjà intéressé un journaliste, recontacte-le : c'est une suite naturelle.
 
 **Objet : Après le carburant, un habitant de [ta ville] crée une appli gratuite pour payer ses courses moins cher**
 
 > Bonjour,
 >
-> Je m'appelle [prénom], j'habite à [ta ville]. Après Plein Malin, une application gratuite pour payer son carburant moins cher, j'ai créé **Panier Malin**, pour les courses du quotidien.
+> Je m'appelle [prénom], j'habite à [ta ville]. Après Carbu Malin, une application gratuite pour payer son carburant moins cher, j'ai créé **Panier Malin**, pour les courses du quotidien.
 >
 > Le principe : on entre sa liste de courses, ou on choisit ses repas de la semaine (l'application calcule les ingrédients selon le nombre de personnes), et Panier Malin compare le panier entier dans les supermarchés autour de chez soi pour indiquer le moins cher. Ensuite, elle aide à remplir son drive, ou donne la liste rangée dans l'ordre des rayons pour faire ses courses plus vite.
 >
@@ -79,7 +79,7 @@ Texte : *Ta liste de courses → le magasin le moins cher 🛒 #courses #budget 
 
 - Imprime `panier-malin-affiche.png` et demande à l'afficher : panneau du travail, salle de pause, mairie, médiathèque, crèche ou école (panneau des parents), résidence étudiante, laverie.
 - Les associations d'aide alimentaire ou d'accompagnement budgétaire peuvent aussi la recommander : propose-leur une affiche.
-- Les gens qui utilisent déjà Plein Malin voient maintenant un encart « 🛒 Nouveau : Panier Malin » dans l'appli.
+- Les gens qui utilisent déjà Carbu Malin voient maintenant un encart « 🛒 Nouveau : Panier Malin » dans l'appli.
 
 ---
 

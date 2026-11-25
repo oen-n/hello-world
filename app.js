@@ -401,7 +401,7 @@ document.addEventListener("click", (e) => {
 
 // ---------- partage ----------
 async function share() {
-  const data = { title: "Plein Malin", text: "⛽ Plein Malin : la station la moins chère près de chez toi et le bon moment pour faire le plein, partout en France. Gratuit :", url: location.origin + location.pathname };
+  const data = { title: "Carbu Malin", text: "⛽ Carbu Malin : la station la moins chère près de chez toi et le bon moment pour faire le plein, partout en France. Gratuit :", url: location.origin + location.pathname };
   if (navigator.share) { try { await navigator.share(data); } catch { /* annulé */ } }
   else { try { await navigator.clipboard.writeText(`${data.text} ${data.url}`); toast("Lien copié ! Colle-le dans WhatsApp, SMS…"); } catch { toast(data.url); } }
 }
@@ -462,8 +462,8 @@ function maybeShowInstallBanner() {
   if (Date.now() - later < 3 * 86400000) return;
   if (document.querySelector("dialog[open]")) { setTimeout(maybeShowInstallBanner, 1500); return; }
   $("#ibText").textContent = isIOS
-    ? "Ajoute Plein Malin à ton écran d'accueil : ouverture en 1 clic et alerte au meilleur moment pour faire le plein."
-    : "Installe Plein Malin sur ton téléphone : ouverture en 1 clic et alerte au meilleur moment pour faire le plein.";
+    ? "Ajoute Carbu Malin à ton écran d'accueil : ouverture en 1 clic et alerte au meilleur moment pour faire le plein."
+    : "Installe Carbu Malin sur ton téléphone : ouverture en 1 clic et alerte au meilleur moment pour faire le plein.";
   $("#installBanner").hidden = false;
   document.body.classList.add("has-ibanner");
 }
@@ -523,7 +523,7 @@ function renderMoney() {
       <a class="ghost full btnlink" href="${esc(contactUrl)}" target="_blank" rel="noopener">Devenir partenaire</a>`;
     sp.hidden = false;
   }
-  if (contactUrl) $("#partnerFoot").innerHTML = `Professionnel ? <a href="${esc(contactUrl)}" target="_blank" rel="noopener">Affiche ton commerce dans Plein Malin</a>.`;
+  if (contactUrl) $("#partnerFoot").innerHTML = `Professionnel ? <a href="${esc(contactUrl)}" target="_blank" rel="noopener">Affiche ton commerce dans Carbu Malin</a>.`;
   const don = CONFIG.donUrl ? safeUrl(CONFIG.donUrl) : null;
   if (don) { $("#donBtn").href = don; $("#don").hidden = false; }
 }
@@ -617,12 +617,12 @@ function setupNotifications() {
   $("#notifBtn").addEventListener("click", async () => {
     if (!state.place) return askPlace();
     if (!$("#optZone").checked && !$("#optStation").checked) return notifStatus("Coche au moins une alerte.");
-    if (isIOS && !isStandalone) return notifStatus("Sur iPhone, ajoute d'abord Plein Malin à l'écran d'accueil (bouton « Installer l'application » plus bas), puis ouvre l'appli depuis son icône et appuie à nouveau ici.");
+    if (isIOS && !isStandalone) return notifStatus("Sur iPhone, ajoute d'abord Carbu Malin à l'écran d'accueil (bouton « Installer l'application » plus bas), puis ouvre l'appli depuis son icône et appuie à nouveau ici.");
     if (!OS) return notifStatus("Chargement en cours… réessaie dans quelques secondes (vérifie ta connexion).");
     if (!OS.Notifications.isPushSupported()) return notifStatus("Ton téléphone ou ton navigateur ne permet pas les notifications. Essaie avec Chrome (Android) ou depuis l'icône de l'appli (iPhone).");
     try {
       if (!OS.Notifications.permission) await OS.Notifications.requestPermission();
-      if (!OS.Notifications.permission) return notifStatus("Notifications refusées. Pour les autoriser : Réglages du téléphone → Notifications → Plein Malin.");
+      if (!OS.Notifications.permission) return notifStatus("Notifications refusées. Pour les autoriser : Réglages du téléphone → Notifications → Carbu Malin.");
       await OS.User.PushSubscription.optIn();
       await syncTags();
       renderNotifUI();

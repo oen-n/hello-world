@@ -1,7 +1,7 @@
-# Plein Malin : textes prêts à publier
+# Carbu Malin : textes prêts à publier
 
 Lien à partager : **https://oen-n.github.io/hello-world/**
-Images : `plein-malin-affiche.png` (publication), `plein-malin-story.png` (story), `kit-partenaire.pdf` (commerçants).
+Images : `carbu-malin-affiche.png` (publication), `carbu-malin-story.png` (story), `kit-partenaire.pdf` (commerçants).
 
 ---
 
@@ -12,7 +12,7 @@ Images : `plein-malin-affiche.png` (publication), `plein-malin-story.png` (story
 > Ça marche partout en France, sans inscription 👉 https://oen-n.github.io/hello-world/
 > Si elle te plaît, fais tourner 🙏
 
-**Statut WhatsApp** : mets l'image `plein-malin-story.png` + « Mon appli pour payer l'essence moins cher, lien dans mes messages 😉 ».
+**Statut WhatsApp** : mets l'image `carbu-malin-story.png` + « Mon appli pour payer l'essence moins cher, lien dans mes messages 😉 ».
 
 ---
 
@@ -30,13 +30,13 @@ Images : `plein-malin-affiche.png` (publication), `plein-malin-story.png` (story
 > Pas d'inscription, pas de compte, ça s'installe en 10 secondes sur le téléphone : https://oen-n.github.io/hello-world/
 > Les prix viennent du site officiel du gouvernement. Je suis preneur de vos avis pour l'améliorer !
 
-Joindre l'image `plein-malin-affiche.png`.
+Joindre l'image `carbu-malin-affiche.png`.
 
 ---
 
 ## 3. Instagram / Snapchat / TikTok
 
-**Story** : `plein-malin-story.png` + sticker lien vers https://oen-n.github.io/hello-world/
+**Story** : `carbu-malin-story.png` + sticker lien vers https://oen-n.github.io/hello-world/
 
 **Idée de vidéo TikTok / Reels (20 s)**, filmée à la station :
 1. (0-3 s) Toi devant la pompe : « J'en avais marre de faire le plein la veille d'une baisse… »
@@ -55,9 +55,9 @@ Texte : *L'appli qui te dit QUAND faire le plein ⛽ #essence #carburant #bonpla
 
 > Bonjour,
 >
-> Je m'appelle [prénom], j'habite à Maulévrier et j'ai créé **Plein Malin**, une application gratuite qui aide les automobilistes à payer leur carburant moins cher.
+> Je m'appelle [prénom], j'habite à Maulévrier et j'ai créé **Carbu Malin**, une application gratuite qui aide les automobilistes à payer leur carburant moins cher.
 >
-> L'idée est partie d'un constat : on fait souvent le plein au mauvais moment, sans savoir si les prix vont encore baisser ou remonter. Plein Malin analyse chaque jour les prix officiels publiés par le gouvernement et :
+> L'idée est partie d'un constat : on fait souvent le plein au mauvais moment, sans savoir si les prix vont encore baisser ou remonter. Carbu Malin analyse chaque jour les prix officiels publiés par le gouvernement et :
 > - affiche la station la moins chère autour de chez soi (dans le Choletais, l'écart entre deux stations proches dépasse parfois 30 centimes par litre, soit plus de 15 € sur un plein) ;
 > - donne un conseil quotidien : attendre ou faire le plein ;
 > - envoie une notification quand les prix arrêtent de baisser, juste avant qu'ils remontent.
