@@ -66,7 +66,7 @@ Texte : *L'appli qui te dit QUAND faire le plein ⛽ #essence #carburant #bonpla
 >
 > Je serais ravi de vous la présenter.
 >
-> Contact : pleinmalin.contact@gmail.com
+> Contact : applis.malines.contact@gmail.com
 >
 > [prénom]
 
