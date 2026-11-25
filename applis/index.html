@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Les Applis Malines – des applis gratuites pour dépenser moins</title>
+<meta name="description" content="Des applis gratuites, sans inscription, pour payer moins cher le carburant, les courses et bientôt plus encore.">
+<meta name="theme-color" content="#1b1f3b">
+<link rel="icon" href="../promo/reseaux/logo-192.png" type="image/png">
+<meta property="og:title" content="Les Applis Malines">
+<meta property="og:description" content="Des applis gratuites pour dépenser moins : carburant, courses… et d'autres à venir.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:url" content="https://oen-n.github.io/hello-world/applis/">
+<meta property="og:image" content="https://oen-n.github.io/hello-world/promo/reseaux/post-1-presentation.png">
+<link rel="canonical" href="https://oen-n.github.io/hello-world/applis/">
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#fff;
+  background:radial-gradient(700px 500px at 90% -10%,#3b3f9e 0%,transparent 70%),linear-gradient(180deg,#1b1f3b 0%,#11132a 100%)}
+main{max-width:520px;margin:0 auto;padding:calc(28px + env(safe-area-inset-top)) 18px 40px;text-align:center}
+.logo{width:96px;height:96px;border-radius:26px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+h1{font-size:1.7rem;margin:14px 0 4px;letter-spacing:-.5px}
+.bio{color:#c9cbe8;margin:0 0 18px}
+.social{display:flex;gap:10px;justify-content:center;margin-bottom:22px}
+.social a{display:inline-flex;align-items:center;gap:8px;color:#fff;text-decoration:none;font-weight:700;border-radius:999px;padding:10px 18px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08)}
+.app{display:flex;align-items:center;gap:14px;text-align:left;text-decoration:none;color:#111;background:#fff;border-radius:20px;padding:14px;margin:12px 0;box-shadow:0 8px 24px rgba(0,0,0,.25);border-left:6px solid var(--c)}
+.app img{width:58px;height:58px;border-radius:14px;flex:none}
+.app b{display:block;font-size:1.12rem}
+.app span{display:block;color:#555;font-size:.9rem;line-height:1.35;margin-top:2px}
+.app .go{margin-left:auto;font-size:1.6rem;color:var(--c);flex:none}
+.soon{border:2px dashed rgba(255,255,255,.3);border-radius:20px;padding:16px;margin-top:12px;color:#c9cbe8}
+.share{margin-top:22px;background:#ffd23f;color:#1b1f3b;border:0;border-radius:14px;padding:14px 18px;font:inherit;font-weight:800;width:100%;cursor:pointer}
+.foot{color:#8f92b8;font-size:.78rem;margin-top:26px}
+</style>
+</head>
+<body>
+<main>
+  <img class="logo" src="../promo/reseaux/logo-512.png" alt="">
+  <h1 id="marque">Les Applis Malines</h1>
+  <p class="bio">Des applis <b>gratuites</b>, sans inscription, pour dépenser moins au quotidien.</p>
+  <div class="social" id="social"></div>
+  <div id="apps"></div>
+  <div class="soon" id="soon">✨ D'autres applis arrivent bientôt. Abonne-toi pour être prévenu !</div>
+  <button class="share" id="share" type="button">📤 Partager ces applis</button>
+  <p class="foot">Toutes les applis s'installent depuis le navigateur, sur Android et iPhone. Tes données restent sur ton téléphone.</p>
+</main>
+<script type="module">
+import { RESEAUX, APPLIS, lienInstagram, lienTiktok } from "../reseaux.js";
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+document.getElementById("marque").textContent = RESEAUX.marque;
+document.title = `${RESEAUX.marque} – des applis gratuites pour dépenser moins`;
+const ig = lienInstagram(RESEAUX.instagram), tt = lienTiktok(RESEAUX.tiktok);
+document.getElementById("social").innerHTML =
+  (ig ? `<a href="${ig}" target="_blank" rel="noopener">📸 Instagram</a>` : "") +
+  (tt ? `<a href="${tt}" target="_blank" rel="noopener">🎵 TikTok</a>` : "");
+if (!ig && !tt) document.getElementById("soon").textContent = "✨ D'autres applis arrivent bientôt !";
+document.getElementById("apps").innerHTML = APPLIS.map((a) => `
+  <a class="app" href="${esc(a.url)}" style="--c:${esc(a.couleur)}">
+    <img src="../${esc(a.image)}" alt="">
+    <span><b>${esc(a.ico)} ${esc(a.nom)}</b><span>${esc(a.texte)}</span></span>
+    <span class="go">›</span>
+  </a>`).join("");
+document.getElementById("share").addEventListener("click", async () => {
+  const d = { title: RESEAUX.marque, text: "Des applis gratuites pour payer moins cher l'essence et les courses 👇", url: location.origin + location.pathname };
+  if (navigator.share) { try { await navigator.share(d); } catch { /* annulé */ } }
+  else { try { await navigator.clipboard.writeText(`${d.text} ${d.url}`); alert("Lien copié !"); } catch { prompt("Copie le lien :", d.url); } }
+});
+</script>
+</body>
+</html>

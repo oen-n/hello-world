@@ -78,3 +78,18 @@ Données : magasins © contributeurs OpenStreetMap (ODbL), villes geo.api.gouv.f
 **Limites à connaître**
 - Les prix sont **estimés** (prix moyen × niveau de prix de l'enseigne) : aucune enseigne ne publie ses prix en données ouvertes. Quand l'utilisateur touche un prix pour mettre celui qu'il a vu, c'est son prix qui compte ensuite. Pour des prix réels, il faudra une source de données (partenariat, relevés, ou la base collaborative Open Prices d'Open Food Facts).
 - Les sites de drive ne permettent pas à une autre appli de remplir le panier : l'appli prépare tout (recherche article par article) mais l'ajout se fait sur le site de l'enseigne.
+
+---
+
+# ✨ Les Applis Malines (Instagram, TikTok et toutes les applis)
+
+Une marque commune pour toutes les applis, présente sur Instagram et TikTok.
+
+| Fichier | Rôle |
+|---|---|
+| `reseaux.js` | **Tes comptes** (`instagram`, `tiktok`, sans @) et **la liste de tes applis** (`APPLIS`). Rempli = boutons « Suis-nous » dans toutes les applis. |
+| `applis/` | Page « Toutes nos applis » = **le lien à mettre en bio** : `https://oen-n.github.io/hello-world/applis/` |
+| `promo/reseaux/guide-reseaux.md` | Créer les comptes pas à pas, bios prêtes, programme du premier mois, scripts vidéo |
+| `promo/reseaux/*.png` | Photo de profil, post de présentation, couvertures de vidéos, modèle « nouvelle appli » (sources HTML à côté) |
+
+Nouvelle appli : ajouter une ligne dans `APPLIS` (`reseaux.js`).

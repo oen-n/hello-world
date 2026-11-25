@@ -1,5 +1,6 @@
 import { buildSeries, analyze, backtest, depToHist } from "./analysis.js";
 import { CONFIG } from "./config.js";
+import { RESEAUX, lienInstagram, lienTiktok } from "./reseaux.js";
 
 const API = "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/prix-des-carburants-en-france-flux-instantane-v2/records";
 const GEO = "https://geo.api.gouv.fr/communes";
@@ -675,3 +676,11 @@ document.addEventListener("visibilitychange", async () => {
     try { state.live = await loadLive(); render(); } catch { /* ignore */ }
   }
 });
+
+// Réseaux sociaux (réglés dans reseaux.js) : boutons affichés seulement si les comptes sont renseignés.
+{
+  const ig = lienInstagram(RESEAUX.instagram), tt = lienTiktok(RESEAUX.tiktok);
+  $("#suivreBtns").innerHTML = (ig ? `<a class="primary btnlink" href="${ig}" target="_blank" rel="noopener">📸 Instagram</a>` : "")
+    + (tt ? `<a class="primary btnlink" href="${tt}" target="_blank" rel="noopener">🎵 TikTok</a>` : "");
+  if (!ig && !tt) $("#suivre .sub").textContent = "D'autres applis gratuites arrivent bientôt.";
+}

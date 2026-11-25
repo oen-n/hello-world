@@ -184,3 +184,8 @@ code { font-size: .85em; background: var(--neutral); padding: 1px 4px; border-ra
 body.has-ibanner .foot { padding-bottom: 190px; }
 @keyframes ib-in { from { transform: translateY(120%); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .ibanner { animation: none; } }
+
+.suivre { margin-top: 14px; text-align: center; }
+.suivre-btns { display: flex; gap: 8px; }
+.suivre-btns a { flex: 1; text-align: center; }
+.suivre-btns:empty { display: none; }
