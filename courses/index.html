@@ -30,6 +30,11 @@
     <span class="place-edit">Modifier</span>
   </button>
 
+  <nav class="tabs" id="tabs" aria-label="Sections">
+    <button type="button" data-go="liste">🛒 Ma liste</button>
+    <button type="button" data-go="menus">🍽️ Mes menus</button>
+  </nav>
+
   <!-- ÉTAPE 1 : LA LISTE -->
   <section id="v-liste" class="view">
     <section class="card">
@@ -46,6 +51,8 @@
       </div>
     </section>
 
+    <button type="button" class="card hint" id="menuHint" data-go="menus" hidden></button>
+
     <section class="card" id="listCard">
       <div class="row-between"><h2 id="listTitle">Mes articles</h2><span class="sub" id="listCount"></span></div>
       <ul id="items" class="items"></ul>
@@ -53,6 +60,26 @@
     </section>
 
     <button id="goCompare" class="primary full big" type="button" disabled>💶 Trouver le magasin le moins cher</button>
+  </section>
+
+  <!-- MENUS DE LA SEMAINE -->
+  <section id="v-menus" class="view" hidden>
+    <section class="card">
+      <h2>🍽️ Mes menus de la semaine</h2>
+      <p class="sub">Choisis tes plats jour par jour : les ingrédients, aux bonnes quantités, vont directement dans ta liste.</p>
+      <div class="row-between setting"><span>👥 Nombre de personnes</span>
+        <span class="qty"><button type="button" class="qb" data-pers="-1" aria-label="Moins">−</button><b id="persN"></b><button type="button" class="qb" data-pers="1" aria-label="Plus">+</button></span></div>
+      <div class="row-between setting"><span>Repas à prévoir</span>
+        <span class="meals"><button type="button" class="chip" data-meal="midi">☀️ Midi</button><button type="button" class="chip" data-meal="soir">🌙 Soir</button></span></div>
+      <label class="toggle"><input type="checkbox" id="placard"> J'ai déjà le sel, le poivre, l'huile, la farine… (pas dans la liste)</label>
+      <div class="row2">
+        <button type="button" class="ghost" id="autoFill">🎲 Compléter la semaine</button>
+        <button type="button" class="ghost" id="clearMenu">🗑️ Vider</button>
+      </div>
+    </section>
+    <div id="week"></div>
+    <section class="card menusum" id="menuSum"></section>
+    <button type="button" class="ghost full" id="shareMenu" hidden>📤 Envoyer le menu de la semaine</button>
   </section>
 
   <!-- ÉTAPE 2 : LA COMPARAISON -->
@@ -143,6 +170,20 @@
     <button id="priceReset" class="ghost full" type="button">Revenir au prix estimé</button>
     <button class="ghost full" value="cancel">Annuler</button>
   </form>
+</dialog>
+
+<dialog id="recDlg">
+  <form method="dialog" class="dlg">
+    <h2 id="recDlgTitle">Choisir un plat</h2>
+    <input id="recQ" type="search" placeholder="Chercher une recette…" autocomplete="off" aria-label="Chercher une recette">
+    <div class="quick" id="recFilters"></div>
+    <ul id="recList" class="reclist"></ul>
+    <button class="ghost full" value="cancel">Fermer</button>
+  </form>
+</dialog>
+
+<dialog id="recInfo">
+  <form method="dialog" class="dlg" id="recInfoBody"></form>
 </dialog>
 
 <div id="toast" class="toast" role="status" hidden></div>
