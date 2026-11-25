@@ -180,7 +180,7 @@ body.has-ibanner main { padding-bottom: 170px; }
 @keyframes ib-in { from { transform: translateY(120%); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .ibanner { animation: none; } }
 
-/* --- lien vers Panier Malin --- */
+/* --- lien vers Caddie Malin --- */
 .crosspromo { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text-primary); border: 2px solid #0f8a4c; }
 .crosspromo img { border-radius: 12px; flex: none; }
 .crosspromo b { display: block; }

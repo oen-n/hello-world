@@ -1,7 +1,7 @@
 // Service worker : l'appli s'ouvre même sans réseau (dernières données connues)
 // et reçoit les notifications (OneSignal).
 try { importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js"); } catch (e) { /* hors ligne */ }
-const CACHE = "carbu-malin-v10";
+const CACHE = "carbu-malin-v12";
 const SHELL = ["./", "index.html", "style.css", "app.js", "analysis.js", "config.js", "malin/malin.css", "malin/fonts/plus-jakarta-sans.woff2", "reseaux.js", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {

@@ -1,10 +1,10 @@
-# Panier Malin : textes prêts à publier
+# Caddie Malin : textes prêts à publier
 
 Lien à partager : **https://oen-n.github.io/hello-world/courses/**
 Images (dans ce dossier) :
-- `panier-malin-affiche.png` : publication Facebook / Instagram, affiche à imprimer ;
-- `panier-malin-story.png` : story Instagram, Snapchat, statut WhatsApp ;
-- `panier-malin-partage.png` : l'aperçu qui s'affiche tout seul quand on colle le lien dans WhatsApp, Facebook, SMS…
+- `caddie-malin-affiche.png` : publication Facebook / Instagram, affiche à imprimer ;
+- `caddie-malin-story.png` : story Instagram, Snapchat, statut WhatsApp ;
+- `caddie-malin-partage.png` : l'aperçu qui s'affiche tout seul quand on colle le lien dans WhatsApp, Facebook, SMS…
 
 Le QR code des images ouvre directement l'appli.
 
@@ -18,7 +18,7 @@ Le QR code des images ouvre directement l'appli.
 > Sans inscription 👉 https://oen-n.github.io/hello-world/courses/
 > Dis-moi ce que t'en penses 🙏
 
-**Statut WhatsApp** : l'image `panier-malin-story.png` + « Mon appli pour payer ses courses moins cher, lien dans mes messages 😉 ».
+**Statut WhatsApp** : l'image `caddie-malin-story.png` + « Mon appli pour payer ses courses moins cher, lien dans mes messages 😉 ».
 
 ---
 
@@ -36,13 +36,13 @@ Le QR code des images ouvre directement l'appli.
 > Pas d'inscription, pas de compte, tes données restent sur ton téléphone : https://oen-n.github.io/hello-world/courses/
 > Les prix sont des estimations selon les enseignes : vous pouvez mettre le prix que vous voyez en magasin, l'appli s'en souvient. Je suis preneur de vos avis pour l'améliorer !
 
-Joindre l'image `panier-malin-affiche.png`.
+Joindre l'image `caddie-malin-affiche.png`.
 
 ---
 
 ## 3. Instagram / Snapchat / TikTok
 
-**Story** : `panier-malin-story.png` + sticker lien vers https://oen-n.github.io/hello-world/courses/
+**Story** : `caddie-malin-story.png` + sticker lien vers https://oen-n.github.io/hello-world/courses/
 
 **Idée de vidéo TikTok / Reels (20 s)**, filmée chez toi puis au supermarché :
 1. (0-3 s) Toi avec un papier froissé : « Chaque semaine je fais ma liste de courses… et j'oublie la moitié. »
@@ -61,9 +61,9 @@ Texte : *Ta liste de courses → le magasin le moins cher 🛒 #courses #budget 
 
 > Bonjour,
 >
-> Je m'appelle [prénom], j'habite à [ta ville]. Après Carbu Malin, une application gratuite pour payer son carburant moins cher, j'ai créé **Panier Malin**, pour les courses du quotidien.
+> Je m'appelle [prénom], j'habite à [ta ville]. Après Carbu Malin, une application gratuite pour payer son carburant moins cher, j'ai créé **Caddie Malin**, pour les courses du quotidien.
 >
-> Le principe : on entre sa liste de courses, ou on choisit ses repas de la semaine (l'application calcule les ingrédients selon le nombre de personnes), et Panier Malin compare le panier entier dans les supermarchés autour de chez soi pour indiquer le moins cher. Ensuite, elle aide à remplir son drive, ou donne la liste rangée dans l'ordre des rayons pour faire ses courses plus vite.
+> Le principe : on entre sa liste de courses, ou on choisit ses repas de la semaine (l'application calcule les ingrédients selon le nombre de personnes), et Caddie Malin compare le panier entier dans les supermarchés autour de chez soi pour indiquer le moins cher. Ensuite, elle aide à remplir son drive, ou donne la liste rangée dans l'ordre des rayons pour faire ses courses plus vite.
 >
 > L'application est gratuite, sans inscription, et les données restent sur le téléphone : https://oen-n.github.io/hello-world/courses/
 >
@@ -77,9 +77,9 @@ Texte : *Ta liste de courses → le magasin le moins cher 🛒 #courses #budget 
 
 ## 5. Dans la vraie vie (gratuit)
 
-- Imprime `panier-malin-affiche.png` et demande à l'afficher : panneau du travail, salle de pause, mairie, médiathèque, crèche ou école (panneau des parents), résidence étudiante, laverie.
+- Imprime `caddie-malin-affiche.png` et demande à l'afficher : panneau du travail, salle de pause, mairie, médiathèque, crèche ou école (panneau des parents), résidence étudiante, laverie.
 - Les associations d'aide alimentaire ou d'accompagnement budgétaire peuvent aussi la recommander : propose-leur une affiche.
-- Les gens qui utilisent déjà Carbu Malin voient maintenant un encart « 🛒 Nouveau : Panier Malin » dans l'appli.
+- Les gens qui utilisent déjà Carbu Malin voient maintenant un encart « 🛒 Nouveau : Caddie Malin » dans l'appli.
 
 ---
 

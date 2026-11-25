@@ -1,6 +1,6 @@
 {
-  "name": "Panier Malin – Courses au meilleur prix",
-  "short_name": "Panier Malin",
+  "name": "Caddie Malin – Courses au meilleur prix",
+  "short_name": "Caddie Malin",
   "description": "Ta liste de courses, le magasin le moins cher près de chez toi, puis le drive ou la liste dans l'ordre des rayons.",
   "lang": "fr",
   "start_url": "./",
@@ -11,7 +11,6 @@
   "icons": [
     { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
