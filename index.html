@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Carbu Malin – Prix des carburants près de chez toi</title>
 <meta name="description" content="Prix des carburants partout en France : la station la moins chère près de chez toi, le bon moment pour faire le plein et des alertes sur ta station préférée.">
-<meta name="theme-color" content="#2a78d6">
+<meta name="theme-color" content="#0c1533">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
@@ -24,30 +24,35 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://oen-n.github.io/hello-world/promo/carbu-malin-partage.png">
 <link rel="canonical" href="https://oen-n.github.io/hello-world/">
+<link rel="preload" href="malin/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="malin/malin.css">
 </head>
-<body>
+<body data-app="carbu" class="has-tabbar">
 <header class="top">
-  <div class="brand"><img src="icons/icon.svg" alt="" width="32" height="32"><span>Carbu Malin</span></div>
+  <div class="brand"><img src="icons/icon.svg" alt="" width="34" height="34"><span>Carbu Malin</span></div>
   <button id="shareBtn" class="ghost" type="button" aria-label="Partager l'application">📤 Partager</button>
 </header>
 
+<section class="m-hero hero" id="conseil">
+  <div class="hero-in">
+    <a class="m-sign" href="applis/">Les Applis Malines</a>
+    <button id="placeBtn" class="place" type="button" aria-haspopup="dialog">
+      <span class="place-ico" aria-hidden="true">📍</span>
+      <span><span class="sub">Je fais le plein à</span><b id="placeLabel">Choisir un lieu</b></span>
+      <span class="place-edit">Modifier</span>
+    </button>
+    <nav class="fuels" id="fuels" aria-label="Choix du carburant"></nav>
+    <section id="signal" class="signal" aria-live="polite">
+      <div class="loading">Chargement des prix…</div>
+    </section>
+  </div>
+</section>
+
 <main>
-  <button id="placeBtn" class="place" type="button" aria-haspopup="dialog">
-    <span class="place-ico" aria-hidden="true">📍</span>
-    <span><span class="sub">Je fais le plein à</span><b id="placeLabel">Choisir un lieu</b></span>
-    <span class="place-edit">Modifier</span>
-  </button>
-
-  <nav class="fuels" id="fuels" aria-label="Choix du carburant"></nav>
-
-  <section id="signal" class="card signal" aria-live="polite">
-    <div class="loading">Chargement des prix…</div>
-  </section>
-
   <section class="card" id="favCard" hidden></section>
 
-  <section class="card">
+  <section class="card" id="stationsCard">
     <div class="row-between">
       <h2>Les moins chères près de toi</h2>
       <div class="seg" id="radius" role="group" aria-label="Rayon de recherche">
@@ -64,7 +69,7 @@
 
   <aside id="sponsor" class="card sponsor" hidden></aside>
 
-  <section class="card viz-root">
+  <section class="card viz-root" id="chartCard">
     <div class="row-between">
       <h2 id="chartTitle">Évolution du prix</h2>
       <div class="seg" id="range" role="group" aria-label="Période">
@@ -158,6 +163,13 @@
     <button id="ibLater" class="ib-later" type="button">Plus tard</button>
   </div>
 </div>
+
+<nav class="m-tabbar" id="tabbar" aria-label="Aller à">
+  <a href="#conseil" class="on"><span class="ico" aria-hidden="true">✦</span>Conseil</a>
+  <a href="#stationsCard"><span class="ico" aria-hidden="true">⛽</span>Stations</a>
+  <a href="#chartCard"><span class="ico" aria-hidden="true">📈</span>Prix</a>
+  <a href="#notif"><span class="ico" aria-hidden="true">🔔</span>Alertes</a>
+</nav>
 
 <div id="toast" class="toast" role="status" hidden></div>
 <script type="module" src="app.js"></script>

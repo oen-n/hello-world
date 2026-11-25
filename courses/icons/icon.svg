@@ -1,7 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#0f8a4c"/>
-  <path d="M96 140h52l40 196h196l36-140H170" fill="none" stroke="#fff" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="212" cy="392" r="30" fill="#fff"/>
-  <circle cx="360" cy="392" r="30" fill="#fff"/>
-  <text x="300" y="300" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="120" fill="#ffd23f">€</text>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0e9a4c"/><stop offset=".6" stop-color="#19b45a"/><stop offset="1" stop-color="#7ccf3a"/></linearGradient>
+    <radialGradient id="glow" cx=".2" cy=".15" r=".7"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset="1" stop-color="#ffb020"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="116" fill="url(#glow)"/>
+  <path d="M40 410 C150 360 260 450 470 360" fill="none" stroke="#fff" stroke-opacity=".1" stroke-width="10"/>
+  <path d="M90 150h54l42 190h196l38-142H168" fill="none" stroke="#fff" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="214" cy="400" r="32" fill="#fff"/>
+  <circle cx="360" cy="400" r="32" fill="#fff"/>
+  <text x="290" y="300" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="104" fill="#ffc83d">€</text>
+  <g transform="translate(410 112)"><path d="M0,-46 C6,-12 12,-6 46,0 C12,6 6,12 0,46 C-6,12 -12,6 -46,0 C-12,-6 -6,-12 0,-46Z" fill="#ffc83d"/><path d="M0,-46 C6,-12 12,-6 46,0 C12,6 6,12 0,46 C-6,12 -12,6 -46,0 C-12,-6 -6,-12 0,-46Z" fill="url(#gold)" opacity=".9"/></g>
 </svg>
