@@ -136,15 +136,15 @@ function currentSeries() {
 
 function renderSignal(series, a) {
   const el = $("#signal");
-  if (!a) { el.className = "card signal neutral"; el.innerHTML = `<div class="loading">Pas assez de données pour le ${esc(state.fuel)} dans ce département.</div>`; return; }
+  if (!a) { el.className = "signal neutral"; el.innerHTML = `<div class="loading">Pas assez de données pour le ${esc(state.fuel)} dans ce département.</div>`; return; }
   const minNow = series.min[series.min.length - 1];
-  el.className = `card signal ${a.level}`;
+  el.className = `signal ${a.level}`;
   el.innerHTML = `
-    <div class="kicker">Conseil du ${longDate(a.date)} · ${esc(state.fuel)} · département ${esc(state.place.dep)}</div>
+    <div class="kicker">Conseil du jour · ${esc(state.fuel)} · dép. ${esc(state.place.dep)}</div>
     <div class="head"><span class="icon" aria-hidden="true">${a.icon}</span><span class="title">${a.label}</span></div>
     <ul>${a.why.map((w) => `<li>${esc(w)}</li>`).join("")}</ul>
     <div class="kpis">
-      <div class="kpi"><b>${minNow != null ? euro(minNow) : "–"}</b><span>le moins cher du dép.</span></div>
+      <div class="kpi"><b>${minNow != null ? euro(minNow) : "–"}</b><span>le moins cher</span></div>
       <div class="kpi"><b>${euro(a.cur)}</b><span>prix moyen</span></div>
       <div class="kpi"><b>${cts(a.d7)}</b><span>sur 7 jours</span></div>
     </div>`;
@@ -644,7 +644,7 @@ async function refreshAll() {
   const tasks = [];
   if (!state.depData || state.depData.dep !== dep) {
     tasks.push(loadDep(dep).then((d) => { state.depData = d; state.hist = depToHist(d); render(); })
-      .catch(() => { state.depData = null; state.hist = null; $("#signal").className = "card signal neutral"; $("#signal").innerHTML = `<div class="loading">Pas d'historique disponible pour ce département.</div>`; }));
+      .catch(() => { state.depData = null; state.hist = null; $("#signal").className = "signal neutral"; $("#signal").innerHTML = `<div class="loading">Pas d'historique disponible pour ce département.</div>`; }));
   }
   tasks.push(loadLive().then((l) => { state.live = l; render(); }).catch((e) => console.warn("Prix en direct indisponibles", e)));
   await Promise.all(tasks);
@@ -657,7 +657,7 @@ async function start() {
   }
   renderFuels();
   if (!state.place) {
-    $("#signal").className = "card signal neutral";
+    $("#signal").className = "signal neutral";
     $("#signal").innerHTML = `<h2>Bienvenue 👋</h2><p>Dis-nous où tu fais le plein pour voir les stations les moins chères autour de toi, partout en France.</p><button type="button" class="primary full" id="startBtn">📍 Choisir mon lieu</button>`;
     $("#startBtn").addEventListener("click", askPlace);
     $("#stations").innerHTML = "";
@@ -683,4 +683,26 @@ document.addEventListener("visibilitychange", async () => {
   $("#suivreBtns").innerHTML = (ig ? `<a class="primary btnlink" href="${ig}" target="_blank" rel="noopener">📸 Instagram</a>` : "")
     + (tt ? `<a class="primary btnlink" href="${tt}" target="_blank" rel="noopener">🎵 TikTok</a>` : "");
   if (!ig && !tt) $("#suivre .sub").textContent = "D'autres applis gratuites arrivent bientôt.";
+}
+
+// ---------- barre d'onglets du bas : suit la partie de la page affichée ----------
+{
+  const links = [...document.querySelectorAll("#tabbar a")];
+  const targets = links.map((a) => document.querySelector(a.getAttribute("href"))).filter(Boolean);
+  const setOn = (id) => links.forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + id));
+  links.forEach((a) => a.addEventListener("click", (e) => {
+    const t = document.querySelector(a.getAttribute("href")); if (!t) return;
+    e.preventDefault();
+    t.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    setOn(t.id);
+  }));
+  if ("IntersectionObserver" in window) {
+    const seen = new Map();
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => seen.set(en.target.id, en.isIntersecting ? en.intersectionRatio : 0));
+      const best = [...seen.entries()].sort((a, b) => b[1] - a[1])[0];
+      if (best && best[1] > 0) setOn(best[0]);
+    }, { threshold: [0, .25, .5, .75], rootMargin: "-70px 0px -35% 0px" });
+    targets.forEach((t) => io.observe(t));
+  }
 }

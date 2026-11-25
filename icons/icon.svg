@@ -1,10 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#2a78d6"/>
-  <g fill="#fff">
-    <rect x="132" y="112" width="180" height="300" rx="28"/>
-    <rect x="112" y="388" width="220" height="40" rx="14"/>
-    <path d="M312 190h28a26 26 0 0 1 26 26v120a18 18 0 0 0 36 0V196l-40-44 22-20 46 50a30 30 0 0 1 8 20v134a54 54 0 0 1-108 0V226h-18z"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2557f0"/><stop offset=".6" stop-color="#2f7bff"/><stop offset="1" stop-color="#18b4d6"/></linearGradient>
+    <radialGradient id="glow" cx=".2" cy=".15" r=".7"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3b0"/><stop offset="1" stop-color="#ffb020"/></linearGradient>
+    <linearGradient id="win" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2f7bff"/><stop offset="1" stop-color="#18b4d6"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <rect width="512" height="512" rx="116" fill="url(#glow)"/>
+  <path d="M40 380 C150 330 260 420 470 330" fill="none" stroke="#fff" stroke-opacity=".12" stroke-width="10"/>
+  <path d="M40 410 C170 360 280 450 470 365" fill="none" stroke="#fff" stroke-opacity=".08" stroke-width="8"/>
+  <g transform="translate(0 6)">
+    <rect x="128" y="112" width="190" height="300" rx="42" fill="#fff"/>
+    <rect x="160" y="148" width="126" height="92" rx="20" fill="url(#win)"/>
+    <rect x="108" y="388" width="230" height="44" rx="22" fill="#fff"/>
+    <path d="M318 196 h22 a30 30 0 0 1 30 30 v104 a16 16 0 0 0 32 0 V214 l-34 -40" fill="none" stroke="#fff" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
   </g>
-  <rect x="160" y="142" width="124" height="86" rx="12" fill="#2a78d6"/>
-  <path d="M186 300l36 40 64-84" fill="none" stroke="#0ca30c" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(392 118)"><path d="M0,-46 C6,-12 12,-6 46,0 C12,6 6,12 0,46 C-6,12 -12,6 -46,0 C-12,-6 -6,-12 0,-46Z" fill="#ffc83d"/><path d="M0,-46 C6,-12 12,-6 46,0 C12,6 6,12 0,46 C-6,12 -12,6 -46,0 C-12,-6 -6,-12 0,-46Z" fill="url(#gold)" opacity=".9"/></g>
 </svg>
