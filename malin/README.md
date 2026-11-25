@@ -28,6 +28,14 @@ et une ligne dans `reseaux.js` (`APPLIS`).
 | Formes | Très arrondies : cartes 22 px, fenêtres 28 px, boutons et pastilles en pilule |
 | Ombres | Douces, jamais de bordure dure sur les cartes |
 | Boutons | Principal = pilule dégradée de la couleur de l'appli ; secondaire = pilule blanche bordée |
-| Icône d'appli | Carré arrondi en **dégradé de la couleur de l'appli**, pictogramme **blanc épais et arrondi**, **petite étoile dorée ✦ en haut à droite** |
+| Icône d'appli | Style « 3D brillant » comme le logo des Applis Malines et celui de Carbu Malin : fond en **dégradé de la couleur de l'appli** avec des **vagues lumineuses et petites étincelles**, pictogramme **blanc en relief, arrondi**, et un détail coloré brillant (coche verte, étoile dorée…) |
 | Signature | « ✦ Les Applis Malines » en haut de l'écran, et la page `applis/` |
 | Mode sombre | Automatique, mêmes couleurs sur fond nuit |
+
+## Logos
+
+| Appli | Fichier source |
+|---|---|
+| Les Applis Malines | `promo/reseaux/logo-512.png` |
+| Carbu Malin | `icons/logo-carbu-malin.png` (1024 px) → `icons/icon-512.png`, `icon-192.png`, `icon-180.png`, `favicon-64.png` |
+| Panier Malin | `courses/icons/icon.svg` (provisoire, à refaire dans le style 3D brillant) |
