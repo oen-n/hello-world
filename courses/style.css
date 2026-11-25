@@ -166,3 +166,21 @@ dialog::backdrop { background: rgba(0,0,0,.45); }
 .etapes li { margin-bottom: 6px; }
 #recInfoBody h3 { margin-top: 12px; }
 dialog { max-height: 90vh; }
+
+/* Installation */
+.installcard { max-width: 640px; margin: 0 auto; padding: 4px 12px 10px; }
+.installcard .sub { margin-top: 6px; }
+code { font-size: .85em; background: var(--neutral); padding: 1px 4px; border-radius: 4px; word-break: break-all; }
+.ibanner { position: fixed; left: 10px; right: 10px; bottom: calc(10px + env(safe-area-inset-bottom)); z-index: 20;
+  max-width: 620px; margin: 0 auto; display: grid; grid-template-columns: 52px 1fr; gap: 6px 12px; align-items: center;
+  background: var(--surface); color: var(--text); border: 2px solid var(--accent); border-radius: 18px;
+  padding: 12px 14px; box-shadow: 0 12px 36px rgb(0 0 0 / .28); animation: ib-in .35s ease-out; }
+.ibanner img { border-radius: 12px; }
+.ib-txt b { display: block; font-size: 1.05rem; }
+.ib-txt span { display: block; font-size: .88rem; color: var(--text2); line-height: 1.35; }
+.ib-btns { grid-column: 1 / 3; display: flex; gap: 8px; }
+.ib-btns .primary { flex: 1; margin: 0; padding: 12px; }
+.ib-later { background: none; border: 1px solid var(--line); color: var(--text2); border-radius: 12px; padding: 0 16px; }
+body.has-ibanner .foot { padding-bottom: 190px; }
+@keyframes ib-in { from { transform: translateY(120%); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .ibanner { animation: none; } }

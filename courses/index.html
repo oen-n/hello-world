@@ -15,6 +15,15 @@
 <meta property="og:description" content="Ta liste de courses, le magasin le moins cher près de chez toi, puis le drive ou la liste dans l'ordre des rayons.">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fr_FR">
+<meta property="og:site_name" content="Panier Malin">
+<meta property="og:url" content="https://oen-n.github.io/hello-world/courses/">
+<meta property="og:image" content="https://oen-n.github.io/hello-world/courses/promo/panier-malin-partage.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Panier Malin : tes courses au meilleur prix">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://oen-n.github.io/hello-world/courses/promo/panier-malin-partage.png">
+<link rel="canonical" href="https://oen-n.github.io/hello-world/courses/">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -134,9 +143,16 @@
   </section>
 </main>
 
+<section class="installcard" id="installCard">
+  <button id="installBtn" class="primary full" type="button">📲 Installer Panier Malin sur mon téléphone</button>
+  <p class="sub center" id="installHelp">Gratuit, sans inscription : ouverture en 1 clic et ta liste même sans réseau au magasin.</p>
+  <button id="shareApp2" class="ghost full" type="button">📤 Partager l'appli à mes proches</button>
+</section>
+
 <footer class="foot">
   <p>Panier Malin · Magasins : © contributeurs <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · Villes : geo.api.gouv.fr</p>
   <p>Tes données restent sur ton téléphone.</p>
+  <p>⛽ Et pour l'essence : <a href="../">Plein Malin</a>, la station la moins chère et le bon moment pour faire le plein.</p>
 </footer>
 
 <dialog id="placeDlg">
@@ -185,6 +201,23 @@
 <dialog id="recInfo">
   <form method="dialog" class="dlg" id="recInfoBody"></form>
 </dialog>
+
+<dialog id="installSheet" aria-labelledby="sheetTitle">
+  <div class="dlg">
+    <h2 id="sheetTitle">📲 Installer Panier Malin</h2>
+    <div id="sheetBody"></div>
+    <button id="sheetClose" class="primary full" type="button">J'ai compris</button>
+  </div>
+</dialog>
+
+<div id="installBanner" class="ibanner" role="dialog" aria-labelledby="ibTitle" hidden>
+  <img src="icons/icon-192.png" alt="" width="52" height="52">
+  <div class="ib-txt"><b id="ibTitle">Installe l'appli 📲</b><span id="ibText"></span></div>
+  <div class="ib-btns">
+    <button id="ibInstall" class="primary" type="button">Installer</button>
+    <button id="ibLater" class="ib-later" type="button">Plus tard</button>
+  </div>
+</div>
 
 <div id="toast" class="toast" role="status" hidden></div>
 

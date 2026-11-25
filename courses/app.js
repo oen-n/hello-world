@@ -498,10 +498,76 @@ $("#finish").addEventListener("click", () => {
   else { state.liste = []; state.menu.sig = null; }
   save(); go("liste");
 });
-$("#shareApp").addEventListener("click", async () => {
-  const d = { title: "Panier Malin", text: "Trouve le magasin le moins cher pour tes courses 🛒", url: location.href.split("#")[0] };
-  if (navigator.share) { try { await navigator.share(d); } catch { /* annulé */ } } else copier(d.url);
-});
+async function partagerAppli() {
+  const d = { title: "Panier Malin", text: "🛒 Panier Malin : tu mets ta liste de courses, l'appli te dit quel magasin près de chez toi est le moins cher. Avec les menus de la semaine. Gratuit :", url: location.origin + location.pathname };
+  if (navigator.share) { try { await navigator.share(d); } catch { /* annulé */ } } else copier(`${d.text} ${d.url}`);
+}
+$("#shareApp").addEventListener("click", partagerAppli);
+$("#shareApp2").addEventListener("click", partagerAppli);
+
+// ---------- Installation ----------
+// Android/Chrome : vraie fenêtre d'installation. iPhone : Apple ne le permet pas, on montre les étapes Safari.
+let installEvt = null;
+const UA = navigator.userAgent;
+const isIOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const inAppBrowser = /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|GSA\//i.test(UA);
+const isStandalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const isMobile = isIOS || /Android/i.test(UA);
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; maybeShowInstallBanner(); });
+window.addEventListener("appinstalled", () => { hideInstallBanner(); installe(); toast("✅ Appli installée !"); });
+function installe() {
+  $("#installBtn").hidden = true;
+  $("#installHelp").textContent = "✅ L'appli est installée. Fais-en profiter tes proches :";
+}
+if (isStandalone) installe();
+function installSteps() {
+  const url = location.origin + location.pathname;
+  if (inAppBrowser) return `<p>Tu as ouvert le lien depuis une autre appli (WhatsApp, Facebook…). Pour installer, il faut l'ouvrir dans ${isIOS ? "<b>Safari</b>" : "<b>Chrome</b>"} :</p>
+    <ol class="steps"><li>Appuie sur <b>⋯</b> ou sur l'icône de partage, puis <b>« Ouvrir dans ${isIOS ? "Safari" : "le navigateur"} »</b>.</li>
+    <li>Ou copie cette adresse et colle-la dans ${isIOS ? "Safari" : "Chrome"} : <code>${esc(url)}</code></li></ol>`;
+  if (isIOS) return `<p>Sur iPhone, Apple ne permet pas l'installation en un clic. Ça prend 10 secondes :</p>
+    <ol class="steps">
+      <li>Appuie sur le bouton <b>⋯</b> en bas à droite de Safari<br><small>(sur un iPhone plus ancien : le bouton Partager <b>⬆️</b> en bas au milieu)</small></li>
+      <li>Appuie sur <b>Partager</b> ⬆️ (si tu ne l'as pas déjà fait)</li>
+      <li>Descends et appuie sur <b>« Sur l'écran d'accueil »</b> ➕<br><small>Pas dans la liste ? Tout en bas, « Modifier les actions », puis le <b>+</b> vert à côté de « Sur l'écran d'accueil ».</small></li>
+      <li>Appuie sur <b>Ajouter</b> en haut à droite. L'icône verte apparaît sur ton écran 🎉</li>
+    </ol>
+    <p class="sub">Si tu n'es pas dans Safari, ouvre d'abord <code>${esc(url)}</code> dans Safari.</p>`;
+  return `<ol class="steps">
+      <li>Appuie sur le menu <b>⋮</b> en haut à droite de Chrome</li>
+      <li>Appuie sur <b>« Installer l'application »</b> ou <b>« Ajouter à l'écran d'accueil »</b></li>
+      <li>Confirme : l'icône verte apparaît sur ton écran 🎉</li>
+    </ol>
+    <p class="sub">Navigateur Samsung : menu ≡ → « Ajouter la page à » → « Écran d'accueil ».</p>`;
+}
+async function installer() {
+  hideInstallBanner();
+  if (installEvt) {
+    installEvt.prompt();
+    const r = await installEvt.userChoice.catch(() => null);
+    installEvt = null;
+    if (r?.outcome === "accepted") return;
+  }
+  $("#sheetBody").innerHTML = installSteps();
+  $("#installSheet").showModal();
+}
+function hideInstallBanner() { $("#installBanner").hidden = true; document.body.classList.remove("has-ibanner"); }
+// Proposé automatiquement à l'ouverture (sauf si déjà installée ou « Plus tard » il y a moins de 3 jours).
+function maybeShowInstallBanner() {
+  if (isStandalone || !(isMobile || installEvt)) return;
+  if (Date.now() - Number(localStorage.getItem("pm-installLater") || 0) < 3 * 864e5) return;
+  if (document.querySelector("dialog[open]") || state.vue === "shop") { setTimeout(maybeShowInstallBanner, 2000); return; }
+  $("#ibText").textContent = isIOS
+    ? "Ajoute Panier Malin à ton écran d'accueil : ta liste en 1 clic, même sans réseau au fond du magasin."
+    : "Installe Panier Malin sur ton téléphone : ta liste en 1 clic, même sans réseau au fond du magasin.";
+  $("#installBanner").hidden = false;
+  document.body.classList.add("has-ibanner");
+}
+$("#installBtn").addEventListener("click", installer);
+$("#ibInstall").addEventListener("click", installer);
+$("#ibLater").addEventListener("click", () => { try { localStorage.setItem("pm-installLater", String(Date.now())); } catch { /* ignore */ } hideInstallBanner(); });
+$("#sheetClose").addEventListener("click", () => $("#installSheet").close());
+setTimeout(maybeShowInstallBanner, 2500);
 
 // ---------- Menus de la semaine ----------
 const JOURS = [["lun", "Lundi"], ["mar", "Mardi"], ["mer", "Mercredi"], ["jeu", "Jeudi"], ["ven", "Vendredi"], ["sam", "Samedi"], ["dim", "Dimanche"]];
