@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Panier Malin – Le magasin le moins cher pour tes courses</title>
+<meta name="description" content="Entre ta liste de courses : Panier Malin te dit quel magasin près de chez toi est le moins cher, puis t'aide à remplir ton drive ou te donne ta liste dans l'ordre des rayons.">
+<meta name="theme-color" content="#0f9d58">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Panier Malin">
+<meta property="og:title" content="Panier Malin – Tes courses au meilleur prix">
+<meta property="og:description" content="Ta liste de courses, le magasin le moins cher près de chez toi, puis le drive ou la liste dans l'ordre des rayons.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_FR">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><img src="icons/icon.svg" alt="" width="32" height="32"><span>Panier Malin</span></div>
+  <button id="shareApp" class="ghost" type="button">📤 Partager</button>
+</header>
+
+<main>
+  <button id="placeBtn" class="place" type="button" aria-haspopup="dialog">
+    <span class="place-ico" aria-hidden="true">📍</span>
+    <span><span class="sub">J'habite à</span><b id="placeLabel">Choisir ma ville</b></span>
+    <span class="place-edit">Modifier</span>
+  </button>
+
+  <!-- ÉTAPE 1 : LA LISTE -->
+  <section id="v-liste" class="view">
+    <section class="card">
+      <h2>🛒 Ma liste de courses</h2>
+      <p class="sub">Tape un article (ex. « lait », « 2 kg pommes ») puis choisis-le.</p>
+      <div class="search">
+        <input id="q" type="search" placeholder="Ajouter un article…" autocomplete="off" enterkeyhint="done" aria-label="Ajouter un article">
+        <ul id="sugg" class="sugg" role="listbox" hidden></ul>
+      </div>
+      <div class="quick" id="quick" aria-label="Ajout rapide"></div>
+      <div class="row-between tools">
+        <button id="pasteBtn" class="link" type="button">📋 Coller une liste</button>
+        <button id="clearBtn" class="link danger" type="button" hidden>🗑️ Tout effacer</button>
+      </div>
+    </section>
+
+    <section class="card" id="listCard">
+      <div class="row-between"><h2 id="listTitle">Mes articles</h2><span class="sub" id="listCount"></span></div>
+      <ul id="items" class="items"></ul>
+      <p id="emptyList" class="empty">Ta liste est vide. Ajoute tes articles avec les quantités.</p>
+    </section>
+
+    <button id="goCompare" class="primary full big" type="button" disabled>💶 Trouver le magasin le moins cher</button>
+  </section>
+
+  <!-- ÉTAPE 2 : LA COMPARAISON -->
+  <section id="v-compare" class="view" hidden>
+    <button class="back link" type="button" data-go="liste">← Modifier ma liste</button>
+    <section class="card" id="winner"></section>
+    <section class="card">
+      <div class="row-between">
+        <h2>Tous les magasins</h2>
+        <div class="seg" id="radius" role="group" aria-label="Distance maximum">
+          <button type="button" data-r="5">5 km</button>
+          <button type="button" data-r="10">10 km</button>
+          <button type="button" data-r="20">20 km</button>
+        </div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="trajet"> Compter le trajet en voiture (aller-retour, ≈ 0,15 €/km)</label>
+      <p class="sub" id="storesMsg"></p>
+      <ol id="stores" class="stores"></ol>
+      <button id="moreStores" class="ghost full" type="button" hidden>Voir plus de magasins</button>
+    </section>
+    <p class="note">⚠️ Prix <b>estimés</b> à partir du niveau de prix moyen de chaque enseigne : ils peuvent varier selon le magasin et les promos.
+      Quand tu corriges un prix (touche le prix d'un article), c'est ton prix qui compte ensuite.</p>
+  </section>
+
+  <!-- ÉTAPE 3 : LE MAGASIN CHOISI -->
+  <section id="v-store" class="view" hidden>
+    <button class="back link" type="button" data-go="compare">← Autres magasins</button>
+    <section class="card" id="storeHead"></section>
+    <div class="choices" id="choices"></div>
+    <section class="card" id="detailCard">
+      <h2>Détail de ton panier</h2>
+      <p class="sub">Touche un prix pour mettre celui que tu as vu.</p>
+      <ul id="detail" class="detail"></ul>
+    </section>
+  </section>
+
+  <!-- MODE DRIVE -->
+  <section id="v-drive" class="view" hidden>
+    <button class="back link" type="button" data-go="store">← Retour</button>
+    <section class="card" id="driveHead"></section>
+    <section class="card">
+      <ul id="driveItems" class="checklist"></ul>
+    </section>
+  </section>
+
+  <!-- MODE MAGASIN -->
+  <section id="v-shop" class="view" hidden>
+    <button class="back link" type="button" data-go="store">← Retour</button>
+    <section class="card shophead" id="shopHead"></section>
+    <div id="shopList"></div>
+    <button id="finish" class="primary full big" type="button">✅ J'ai fini mes courses</button>
+  </section>
+</main>
+
+<footer class="foot">
+  <p>Panier Malin · Magasins : © contributeurs <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · Villes : geo.api.gouv.fr</p>
+  <p>Tes données restent sur ton téléphone.</p>
+</footer>
+
+<dialog id="placeDlg">
+  <form method="dialog" class="dlg">
+    <h2>Où habites-tu ?</h2>
+    <button id="gps" class="primary full" type="button">📍 Utiliser ma position</button>
+    <p class="or">ou</p>
+    <input id="cityQ" type="search" placeholder="Ville ou code postal" autocomplete="off" aria-label="Ville ou code postal">
+    <ul id="cities" class="sugg static"></ul>
+    <p id="placeMsg" class="sub"></p>
+    <button class="ghost full" value="cancel">Fermer</button>
+  </form>
+</dialog>
+
+<dialog id="pasteDlg">
+  <form method="dialog" class="dlg">
+    <h2>Coller une liste</h2>
+    <p class="sub">Un article par ligne, avec la quantité si tu veux :<br>« 2 lait », « 1,5 kg pommes », « pâtes x3 »…</p>
+    <textarea id="pasteTxt" rows="8" placeholder="2 lait&#10;1 kg pommes&#10;pain de mie&#10;6 yaourts"></textarea>
+    <button id="pasteOk" class="primary full" type="button">Ajouter à ma liste</button>
+    <button class="ghost full" value="cancel">Annuler</button>
+  </form>
+</dialog>
+
+<dialog id="priceDlg">
+  <form method="dialog" class="dlg">
+    <h2 id="priceTitle">Prix vu en magasin</h2>
+    <p class="sub" id="priceSub"></p>
+    <input id="priceIn" type="text" inputmode="decimal" placeholder="ex. 1,25" aria-label="Prix en euros">
+    <button id="priceOk" class="primary full" type="button">Enregistrer ce prix</button>
+    <button id="priceReset" class="ghost full" type="button">Revenir au prix estimé</button>
+    <button class="ghost full" value="cancel">Annuler</button>
+  </form>
+</dialog>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
