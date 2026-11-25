@@ -204,3 +204,8 @@ body.has-ibanner main { padding-bottom: 170px; }
 .crosspromo b { display: block; }
 .crosspromo span span { display: block; font-size: .86rem; color: var(--text-secondary); line-height: 1.35; margin-top: 2px; }
 .cp-go { margin-left: auto; font-size: 1.6rem; color: #0f8a4c; }
+
+/* --- réseaux sociaux --- */
+.suivre-btns { display: flex; gap: 8px; }
+.suivre-btns a { flex: 1; text-align: center; }
+.suivre-btns:empty { display: none; }

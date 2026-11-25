@@ -1,5 +1,6 @@
 import { RAYONS, PRODUITS, PRODUIT, POPULAIRES, ENSEIGNES } from "./catalog.js";
 import { RECETTES, RECETTE, FILTRES } from "./recettes.js";
+import { RESEAUX, lienInstagram, lienTiktok } from "../reseaux.js";
 
 const GEO = "https://geo.api.gouv.fr/communes";
 const OVERPASS = ["https://overpass-api.de/api/interpreter", "https://overpass.kumi.systems/api/interpreter"];
@@ -767,6 +768,14 @@ document.addEventListener("click", (ev) => {
 });
 $("#recQ").addEventListener("input", renderChoix);
 $("#placard").addEventListener("change", (ev) => { M().placard = ev.target.checked; save(); renderMenus(); });
+
+// ---------- Réseaux sociaux (réglés dans ../reseaux.js) ----------
+{
+  const ig = lienInstagram(RESEAUX.instagram), tt = lienTiktok(RESEAUX.tiktok);
+  $("#suivreBtns").innerHTML = (ig ? `<a class="primary" href="${ig}" target="_blank" rel="noopener">📸 Instagram</a>` : "")
+    + (tt ? `<a class="primary" href="${tt}" target="_blank" rel="noopener">🎵 TikTok</a>` : "");
+  if (ig || tt) $("#suivreTxt").textContent = "D'autres applis gratuites arrivent. Suis-nous pour être prévenu :";
+}
 
 // ---------- Démarrage ----------
 renderPlace();
