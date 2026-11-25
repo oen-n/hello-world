@@ -335,7 +335,7 @@ function render() {
   if (series) { renderChart(series); renderTips(series, a); }
   $("#range").querySelectorAll("button").forEach((b) => b.classList.toggle("on", +b.dataset.d === state.days));
   const gen = state.depData ? new Date(state.depData.generated).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "–";
-  $("#updated").textContent = `Historique du département mis à jour le ${gen}${state.live ? " · prix en direct ✔" : " · prix en direct indisponibles (hors ligne ?)"}`;
+  $("#updated").textContent = `Carbu Malin ${APP_VERSION} · Historique du département mis à jour le ${gen}${state.live ? " · prix en direct ✔" : " · prix en direct indisponibles (hors ligne ?)"}`;
   renderMoney();
   renderNotifUI();
 }
@@ -560,8 +560,14 @@ function setupStats() {
 const NOTIF_FUELS = ["Gazole", "E10", "SP95", "SP98", "E85", "GPLc"];
 let OS = null;
 let osError = "";
+let osSdk = "pas chargé", osInit = "pas commencé";
+const APP_VERSION = "v15";
 const notifPrefs = load("notifPrefs", { zone: true, station: true, fuel: null });
 
+function diag() {
+  const perm = "Notification" in window ? Notification.permission : "absent";
+  return `${APP_VERSION} · service ${osSdk} · démarrage ${osInit} · autorisation ${perm} · ${isStandalone ? "icône" : "navigateur"}`;
+}
 function notifStatus(t) { $("#notifStatus").textContent = t; }
 function subscribed() { return !!(OS?.User?.PushSubscription?.optedIn && OS.Notifications.permission); }
 
@@ -602,17 +608,19 @@ function setupNotifications() {
   const scope = location.pathname.replace(/[^/]*$/, "");
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   window.OneSignalDeferred.push(async (OneSignal) => {
+    osSdk = "chargé"; osInit = "en cours";
     try {
       await OneSignal.init({ appId: CONFIG.oneSignalAppId, serviceWorkerPath: scope.slice(1) + "sw.js", serviceWorkerParam: { scope }, allowLocalhostAsSecureOrigin: true });
-      OS = OneSignal;
+      OS = OneSignal; osInit = "terminé";
       OneSignal.User.PushSubscription.addEventListener("change", renderNotifUI);
       renderNotifUI();
       if (subscribed()) syncTags().catch(() => {});
-    } catch (e) { osError = (e && (e.message || String(e))) || "erreur inconnue"; console.warn("OneSignal", e); }
+    } catch (e) { osInit = "échoué"; osError = (e && (e.message || String(e))) || "erreur inconnue"; console.warn("OneSignal", e); }
   });
   const sc = document.createElement("script");
   sc.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
   sc.defer = true;
+  sc.onload = () => { if (osSdk === "pas chargé") osSdk = "script reçu"; };
   sc.onerror = () => { osError = "le service de notifications n'a pas pu être chargé (connexion, ou bloqueur de publicité ?)"; };
   document.head.appendChild(sc);
 
@@ -633,7 +641,7 @@ function setupNotifications() {
       const t0 = Date.now();
       while (!OS && !osError && Date.now() - t0 < 15000) await new Promise((r) => setTimeout(r, 300));
     }
-    if (!OS) return notifStatus(`Le service de notifications ne répond pas${osError ? " (" + osError + ")" : ""}. Ferme complètement l'appli, rouvre-la depuis son icône et réessaie. Si ça recommence, envoie une capture de ce message.`);
+    if (!OS) return notifStatus(`Le service de notifications ne répond pas${osError ? " (" + osError + ")" : ""}. Ferme complètement l'appli, rouvre-la depuis son icône et réessaie. Si ça recommence, envoie une capture de ce message. [${diag()}]`);
     if (!OS.Notifications.isPushSupported()) return notifStatus("Ton téléphone ou ton navigateur ne permet pas les notifications. Essaie avec Chrome (Android) ou depuis l'icône de l'appli (iPhone, iOS 16.4 ou plus récent).");
     try {
       if (!OS.Notifications.permission) await OS.Notifications.requestPermission();
@@ -642,7 +650,7 @@ function setupNotifications() {
       await syncTags();
       renderNotifUI();
       toast("🔔 C'est noté, tu seras prévenu !");
-    } catch (e) { console.warn(e); notifStatus(`Oups, ça n'a pas marché (${(e && e.message) || e}). Réessaie dans un instant.`); }
+    } catch (e) { console.warn(e); notifStatus(`Oups, ça n'a pas marché (${(e && e.message) || e}). Réessaie dans un instant. [${diag()}]`); }
   });
   $("#notifOff").addEventListener("click", async () => {
     try { await OS?.User?.PushSubscription?.optOut(); } catch { /* ignore */ }
