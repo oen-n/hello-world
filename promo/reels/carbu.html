@@ -1,0 +1,58 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body{background:radial-gradient(900px 800px at 85% 0%,#2f6bff55,transparent 70%),linear-gradient(170deg,#0f2a6b,#0a1838 70%)}
+.chart{left:60px;right:60px;top:760px;height:620px;border-radius:40px;background:rgba(255,255,255,.07)}
+.lbl{font-size:44px;font-weight:800}
+.notif{left:60px;right:60px;top:820px;padding:40px;display:flex;gap:30px;align-items:flex-start}
+.notif img{width:110px;height:110px;border-radius:24%}
+.notif small{display:block;font-size:30px;color:#667;letter-spacing:1px}
+.notif b{display:block;font-size:50px;margin:8px 0}
+.notif p{font-size:36px;line-height:1.3;color:#334}
+.st{left:60px;right:60px;padding:34px 40px;display:flex;align-items:center;gap:30px;font-size:46px}
+.st .n{width:84px;height:84px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800}
+.st .p{margin-left:auto;font-weight:800;font-size:56px}
+.st small{display:block;font-size:32px;color:#667}
+.best{outline:8px solid #1fbf75}
+.gain{left:60px;right:60px;top:1330px;text-align:center;font-size:62px;font-weight:800;background:#1fbf75;border-radius:999px;padding:26px}
+</style></head><body>
+<div class="brand" data-a="0,13" data-fx="fade"><img src="../../icons/icon-512.png">Carbu Malin</div>
+
+<div class="hook" data-a="0.15,2.6" data-fx="pop">Tu fais le plein au <em>mauvais moment</em> ? 😩</div>
+
+<div class="cap" data-a="2.8,6.6">Les prix montent et descendent <em>chaque semaine</em>…</div>
+<div class="chart" data-a="2.9,6.6" data-fx="fade">
+  <svg width="960" height="620" viewBox="0 0 960 620" style="position:absolute;inset:0">
+    <path id="down" d="M60 120 C 260 120, 380 260, 500 380 S 600 470, 640 470" fill="none" stroke="#ffd23f" stroke-width="14" stroke-linecap="round"/>
+    <path id="upp" d="M640 470 C 720 470, 800 330, 900 200" fill="none" stroke="#ff7a59" stroke-width="12" stroke-dasharray="4 26" stroke-linecap="round"/>
+    <circle id="dot" cx="640" cy="470" r="34" fill="#1fbf75" stroke="#fff" stroke-width="10"/>
+  </svg>
+  <div class="lbl" data-a="3.4" style="left:40px;top:480px">📉 Ça baisse…</div>
+  <div class="lbl" data-a="4.9" data-fx="pop" style="left:430px;top:520px;background:#1fbf75;padding:10px 28px;border-radius:999px">✅ Le bon moment</div>
+  <div class="lbl" data-a="5.6" style="right:40px;top:80px;color:#ff9b80">📈 Ça remonte</div>
+</div>
+
+<div class="cap" data-a="6.8,9.8">Carbu Malin te prévient <em>au bon moment</em> 🔔</div>
+<div class="card notif" data-a="7.2,9.8" data-fx="down"><img src="../../icons/icon-512.png"><div><small>CARBU MALIN · maintenant</small><b>⛽ Gazole : fais le plein !</b><p>La baisse s'arrête, les prix commencent à remonter. Le moins cher près de chez toi : 1,899 €</p></div></div>
+
+<div class="cap" data-a="10,13">Et te montre la station <em>la moins chère</em> près de chez toi 📍</div>
+<div class="card st best" data-a="10.3,13" data-fx="right" style="top:700px"><div class="n" style="background:#1fbf75">A</div><div>Station A<small>1,8 km</small></div><div class="p">1,899 €</div></div>
+<div class="card st" data-a="10.5,13" data-fx="right" style="top:900px"><div class="n" style="background:#2f6bff">B</div><div>Station B<small>3,1 km</small></div><div class="p">1,979 €</div></div>
+<div class="card st" data-a="10.7,13" data-fx="right" style="top:1100px"><div class="n" style="background:#e5533d">C</div><div>Station C<small>0,9 km</small></div><div class="p">2,149 €</div></div>
+<div class="gain" data-a="11.4,13" data-fx="pop">💶 −25 ct/L = 12 € d'économie sur un plein</div>
+<div class="foot" data-a="10,13" data-fx="fade">Exemple illustratif · prix officiels prix-carburants.gouv.fr</div>
+
+<div class="cta" data-a="13.2" data-fx="pop"><img src="../../icons/icon-512.png"><h2>Carbu Malin</h2>
+<div class="pills"><span class="pill y">100 % gratuit</span><span class="pill">Sans inscription</span><span class="pill">Android & iPhone</span></div>
+<div class="bio">👉 Lien en bio</div></div>
+<div class="foot" data-a="13.2" data-fx="fade">Conseils basés sur l'historique des prix : personne ne peut prédire les prix à coup sûr.</div>
+<script src="engine.js"></script>
+<script>
+const down=document.getElementById('down'), upp=document.getElementById('upp'), dot=document.getElementById('dot');
+const L=down.getTotalLength(); down.style.strokeDasharray=L;
+window.custom=t=>{ const p=Math.max(0,Math.min(1,(t-3.2)/1.7)); down.style.strokeDashoffset=L*(1-p);
+ dot.style.opacity=t>4.8?1:0; dot.setAttribute('r', t>4.8? 34+6*Math.sin((t-4.8)*8)*Math.exp(-(t-4.8)*2):34);
+ upp.style.opacity=t>5.5?Math.min(1,(t-5.5)*3):0;
+ const c=document.querySelector('.cta img'); if(t>13.8) c.style.transform=`scale(${1+.04*Math.sin((t-13.8)*5)})`;
+ const b=document.querySelector('.bio'); if(t>13.6) b.style.transform=`translateY(${-10*Math.abs(Math.sin((t-13.6)*4))}px)`; };
+render(0);
+</script></body></html>
