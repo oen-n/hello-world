@@ -4,8 +4,8 @@
 
 export const RESEAUX = {
   marque: "Les Applis Malines",
-  instagram: "", // ex. "lesapplismalines"
-  tiktok: "",    // ex. "lesapplismalines"
+  instagram: "applis.malines",
+  tiktok: "applis.malines",
 };
 
 // Une nouvelle appli ? Ajoute une ligne ici : elle apparaît sur la page « Toutes nos applis »

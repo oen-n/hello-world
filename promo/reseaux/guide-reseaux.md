@@ -11,11 +11,7 @@ Cette page présente toutes tes applis, avec les boutons Instagram et TikTok. Un
 ## 1. Avant de commencer (5 min)
 
 1. **Une adresse e-mail dédiée**, par exemple une nouvelle adresse Gmail au nom des Applis Malines. Elle sert aux deux comptes et sépare tout ça de ta vie perso.
-2. **Choisis ton nom d'utilisateur.** Il doit être le même sur Instagram et TikTok. Par ordre de préférence :
-   - `lesapplismalines`
-   - `applis.malines` (TikTok accepte aussi le point)
-   - `lesapplismalines.fr`
-   Prends le premier qui est libre sur les **deux** réseaux.
+2. **Nom d'utilisateur** (le même sur Instagram et TikTok) : `applis.malines`
 3. Sur ton téléphone, enregistre `photo-profil.png` (dans ce dossier).
 
 ---
@@ -53,8 +49,8 @@ Cette page présente toutes tes applis, avec les boutons Instagram et TikTok. Un
 
 ## 4. Relier les comptes à tes applis
 
-Envoie-moi tes deux noms d'utilisateur : je les mets dans `reseaux.js`.
-Tu peux aussi le faire toi-même sur GitHub : ouvre `reseaux.js` → crayon ✏️ → remplis `instagram: "…"` et `tiktok: "…"` (sans le @) → *Commit changes*.
+C'est fait : `applis.malines` est renseigné dans `reseaux.js` pour Instagram et TikTok.
+Si un jour le nom change, ouvre `reseaux.js` sur GitHub → crayon ✏️ → modifie `instagram: "…"` et `tiktok: "…"` (sans le @) → *Commit changes*.
 
 Les boutons **📸 Instagram** et **🎵 TikTok** apparaissent alors tout seuls dans Plein Malin, dans Panier Malin et sur la page « Toutes nos applis ».
 
