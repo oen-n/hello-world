@@ -1,14 +1,14 @@
 // Service worker : l'appli s'ouvre même sans réseau (dernières données connues)
 // et reçoit les notifications (OneSignal).
 try { importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js"); } catch (e) { /* hors ligne */ }
-const CACHE = "plein-malin-v9";
+const CACHE = "carbu-malin-v10";
 const SHELL = ["./", "index.html", "style.css", "app.js", "analysis.js", "config.js", "reseaux.js", "manifest.webmanifest", "icons/icon.svg", "icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", (e) => {
-  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith("plein-malin") && k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => (k.startsWith("carbu-malin") || k.startsWith("plein-malin")) && k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()));
 });
 // Réseau d'abord (prix frais), cache en secours.
 self.addEventListener("fetch", (e) => {

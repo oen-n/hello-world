@@ -129,7 +129,7 @@ async function stations() {
 }
 
 async function test() {
-  const title = "⛽ Plein Malin : test", body = "Les notifications fonctionnent ! Tu seras prévenu au bon moment.";
+  const title = "⛽ Carbu Malin : test", body = "Les notifications fonctionnent ! Tu seras prévenu au bon moment.";
   // 1) abonnés qui ont choisi une alerte ; 2) sinon, tous les téléphones abonnés (pour vérifier l'abonnement lui-même).
   if (await send(title, body, [{ field: "tag", key: "zone", relation: "exists" }, { operator: "OR" }, { field: "tag", key: "station", relation: "exists" }])) return;
   console.log("Aucun abonné avec une alerte choisie : essai vers tous les téléphones abonnés…");

@@ -11,7 +11,7 @@ export const RESEAUX = {
 // Une nouvelle appli ? Ajoute une ligne ici : elle apparaît sur la page « Toutes nos applis »
 // (le lien en bio Instagram / TikTok) et dans les autres applis.
 export const APPLIS = [
-  { id: "plein-malin", nom: "Plein Malin", ico: "⛽", url: "../", image: "icons/icon-192.png", couleur: "#2a78d6",
+  { id: "carbu-malin", nom: "Carbu Malin", ico: "⛽", url: "../", image: "icons/icon-192.png", couleur: "#2a78d6",
     texte: "La station la moins chère près de chez toi et le bon moment pour faire le plein." },
   { id: "caddie-malin", nom: "Caddie Malin", ico: "🛒", url: "../courses/", image: "courses/icons/icon-192.png", couleur: "#0f8a4c",
     texte: "Ta liste de courses ou tes menus de la semaine, et le magasin le moins cher près de chez toi." },
