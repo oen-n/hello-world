@@ -48,3 +48,27 @@ Pense à déclarer les revenus. Si l'appli devient une vraie activité, GitHub P
 
 Les conseils viennent de l'historique et des tendances du département : personne ne peut prédire
 les prix à coup sûr. Choisir la station la moins chère reste le plus gros gain.
+
+---
+
+# 🛒 Panier Malin – Tes courses au meilleur prix (dossier `courses/`)
+
+Deuxième appli, dans `courses/` (en ligne : `https://oen-n.github.io/hello-world/courses/`) :
+
+1. **On indique où on habite** (ville, code postal ou GPS) ;
+2. **on entre sa liste** avec les quantités (recherche, ajout rapide, ou « coller une liste » : `2 lait`, `1,5 kg pommes`, `pâtes x3`…) ;
+3. **l'appli compare le panier entier** dans les supermarchés autour (5, 10 ou 20 km, trajet en voiture compté si on veut) et dit **lequel est le moins cher** ;
+4. ensuite, au choix :
+   - **🚗 Drive** : lien vers le site de l'enseigne + un bouton « Trouver » par article qui ouvre directement la recherche, à cocher au fur et à mesure (si le magasin n'a pas de drive, l'appli propose le drive le moins cher) ;
+   - **📝 En magasin** : la liste **dans l'ordre des rayons** (le frais et le surgelé à la fin), à cocher, écran qui reste allumé, et à envoyer par SMS / WhatsApp.
+
+| Fichier | Rôle |
+|---|---|
+| `courses/catalog.js` | Rayons, ~150 produits avec prix moyen estimé, enseignes avec leur niveau de prix et leur drive |
+| `courses/app.js` | L'application |
+
+Données : magasins © contributeurs OpenStreetMap (ODbL), villes geo.api.gouv.fr.
+
+**Limites à connaître**
+- Les prix sont **estimés** (prix moyen × niveau de prix de l'enseigne) : aucune enseigne ne publie ses prix en données ouvertes. Quand l'utilisateur touche un prix pour mettre celui qu'il a vu, c'est son prix qui compte ensuite. Pour des prix réels, il faudra une source de données (partenariat, relevés, ou la base collaborative Open Prices d'Open Food Facts).
+- Les sites de drive ne permettent pas à une autre appli de remplir le panier : l'appli prépare tout (recherche article par article) mais l'ajout se fait sur le site de l'enseigne.
