@@ -559,6 +559,7 @@ function setupStats() {
 //   station = "<id station>:<carburant>"   -> changements de prix de la station préférée
 const NOTIF_FUELS = ["Gazole", "E10", "SP95", "SP98", "E85", "GPLc"];
 let OS = null;
+let osError = "";
 const notifPrefs = load("notifPrefs", { zone: true, station: true, fuel: null });
 
 function notifStatus(t) { $("#notifStatus").textContent = t; }
@@ -607,19 +608,33 @@ function setupNotifications() {
       OneSignal.User.PushSubscription.addEventListener("change", renderNotifUI);
       renderNotifUI();
       if (subscribed()) syncTags().catch(() => {});
-    } catch (e) { console.warn("OneSignal", e); }
+    } catch (e) { osError = (e && (e.message || String(e))) || "erreur inconnue"; console.warn("OneSignal", e); }
   });
   const sc = document.createElement("script");
   sc.src = "https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js";
   sc.defer = true;
+  sc.onerror = () => { osError = "le service de notifications n'a pas pu être chargé (connexion, ou bloqueur de publicité ?)"; };
   document.head.appendChild(sc);
 
   $("#notifBtn").addEventListener("click", async () => {
     if (!state.place) return askPlace();
     if (!$("#optZone").checked && !$("#optStation").checked) return notifStatus("Coche au moins une alerte.");
     if (isIOS && !isStandalone) return notifStatus("Sur iPhone, ajoute d'abord Carbu Malin à l'écran d'accueil (bouton « Installer l'application » plus bas), puis ouvre l'appli depuis son icône et appuie à nouveau ici.");
-    if (!OS) return notifStatus("Chargement en cours… réessaie dans quelques secondes (vérifie ta connexion).");
-    if (!OS.Notifications.isPushSupported()) return notifStatus("Ton téléphone ou ton navigateur ne permet pas les notifications. Essaie avec Chrome (Android) ou depuis l'icône de l'appli (iPhone).");
+    // 1) L'autorisation est demandée tout de suite : l'iPhone ne l'accepte que juste après un appui sur un bouton.
+    if ("Notification" in window && Notification.permission === "default") {
+      try { await Notification.requestPermission(); } catch { /* ignore */ }
+    }
+    if ("Notification" in window && Notification.permission === "denied") {
+      return notifStatus("Notifications refusées. Pour les autoriser : Réglages du téléphone → Notifications → Carbu Malin, puis réessaie.");
+    }
+    // 2) On attend que le service de notifications soit prêt (15 s au plus).
+    if (!OS) {
+      notifStatus("Connexion au service de notifications…");
+      const t0 = Date.now();
+      while (!OS && !osError && Date.now() - t0 < 15000) await new Promise((r) => setTimeout(r, 300));
+    }
+    if (!OS) return notifStatus(`Le service de notifications ne répond pas${osError ? " (" + osError + ")" : ""}. Ferme complètement l'appli, rouvre-la depuis son icône et réessaie. Si ça recommence, envoie une capture de ce message.`);
+    if (!OS.Notifications.isPushSupported()) return notifStatus("Ton téléphone ou ton navigateur ne permet pas les notifications. Essaie avec Chrome (Android) ou depuis l'icône de l'appli (iPhone, iOS 16.4 ou plus récent).");
     try {
       if (!OS.Notifications.permission) await OS.Notifications.requestPermission();
       if (!OS.Notifications.permission) return notifStatus("Notifications refusées. Pour les autoriser : Réglages du téléphone → Notifications → Carbu Malin.");
@@ -627,7 +642,7 @@ function setupNotifications() {
       await syncTags();
       renderNotifUI();
       toast("🔔 C'est noté, tu seras prévenu !");
-    } catch (e) { console.warn(e); notifStatus("Oups, ça n'a pas marché. Réessaie dans un instant."); }
+    } catch (e) { console.warn(e); notifStatus(`Oups, ça n'a pas marché (${(e && e.message) || e}). Réessaie dans un instant.`); }
   });
   $("#notifOff").addEventListener("click", async () => {
     try { await OS?.User?.PushSubscription?.optOut(); } catch { /* ignore */ }
