@@ -13,7 +13,7 @@ export const RESEAUX = {
 export const APPLIS = [
   { id: "carbu-malin", nom: "Carbu Malin", ico: "⛽", url: "../", image: "icons/icon-192.png", couleur: "#2a78d6",
     texte: "La station la moins chère près de chez toi et le bon moment pour faire le plein." },
-  { id: "caddie-malin", nom: "Caddie Malin", ico: "🛒", url: "../courses/", image: "courses/icons/icon-192.png", couleur: "#0f8a4c",
+  { id: "chariot-malin", nom: "Chariot Malin", ico: "🛒", url: "../courses/", image: "courses/icons/icon-192.png", couleur: "#0f8a4c",
     texte: "Ta liste de courses ou tes menus de la semaine, et le magasin le moins cher près de chez toi." },
 ];
 
