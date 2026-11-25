@@ -1,0 +1,24 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><link rel="stylesheet" href="../reels/base.css">
+<style>
+.brand,.foot{position:absolute}
+body{background:radial-gradient(900px 800px at 85% 0%,#2f6bff55,transparent 70%),linear-gradient(170deg,#0f2a6b,#0a1838 70%)}
+.x{position:absolute;left:60px;right:60px}
+h1{font-size:104px;line-height:1;font-weight:800;letter-spacing:-3px}
+.date{font-size:44px;font-weight:700;color:#ffd23f;margin-top:20px}
+.row{display:flex;align-items:center;background:#fff;color:#0c1533;border-radius:36px;padding:34px 40px;margin-bottom:26px}
+.row b{font-size:50px;display:block}.row small{font-size:30px;color:#667}
+.p{margin-left:auto;text-align:right;font-size:64px;font-weight:800}.p span{display:block;font-size:32px;font-weight:700}
+.box{background:rgba(255,255,255,.1);border-radius:36px;padding:34px 40px;font-size:40px;line-height:1.35}
+.box b{color:#ffd23f}
+.sig{background:#ffd23f;color:#0c1533;border-radius:36px;padding:34px 40px;font-size:46px;font-weight:800;text-align:center}
+.sig small{display:block;font-size:30px;font-weight:600;margin-top:8px}
+.cta{font-size:46px;font-weight:800;text-align:center}
+</style></head><body>
+<div class="brand" style="opacity:1"><img src="../../icons/icon-512.png">Carbu Malin</div>
+<div class="x" style="top:250px"><h1>La météo<br>des prix ⛽</h1><div class="date">{{DATE}}</div></div>
+<div class="x" style="top:560px">{{GAZOLE}}{{E10}}</div>
+<div class="x box" style="top:1000px">🟢 Le moins cher : <b>{{LO}}</b><br>🔴 Le plus cher : <b>{{HI}}</b><br><span style="font-size:32px;color:#ccd">Gazole, moyenne départementale · {{ECART}} ct d'écart</span></div>
+<div class="x sig" style="top:1320px">Le conseil Carbu Malin : {{SIG}}<small>pour le gazole dans {{SIGN}}</small></div>
+<div class="x cta" style="top:1590px">Le conseil pour TON département 👉 lien en bio</div>
+<div class="foot" style="opacity:1;bottom:60px">Prix officiels prix-carburants.gouv.fr · conseil basé sur l'historique, pas une prédiction certaine</div>
+</body></html>

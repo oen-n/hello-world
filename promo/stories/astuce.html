@@ -1,0 +1,45 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><link rel="stylesheet" href="../reels/base.css">
+<style>
+.brand,.foot{position:absolute}
+body.c{background:radial-gradient(900px 800px at 85% 0%,#2f6bff55,transparent 70%),linear-gradient(170deg,#0f2a6b,#0a1838 70%)}
+body.h{background:radial-gradient(900px 800px at 85% 0%,#1fbf7555,transparent 70%),linear-gradient(170deg,#0b4a2c,#071f17 75%)}
+body.m{background:radial-gradient(900px 700px at 90% -5%,#3b3f9e,transparent 70%),linear-gradient(180deg,#1b1f3b,#11132a)}
+.x{position:absolute;left:70px;right:70px}
+.tag{display:inline-block;background:#ffd23f;color:#0c1533;font-size:40px;font-weight:800;padding:14px 32px;border-radius:999px}
+.big{font-size:200px;line-height:1}
+h1{font-size:96px;line-height:1.04;font-weight:800;letter-spacing:-3px;margin-top:30px}
+p{font-size:46px;line-height:1.35;color:rgba(255,255,255,.88);margin-top:40px}
+.app{display:flex;align-items:center;gap:30px;background:#fff;color:#0c1533;border-radius:36px;padding:30px 36px;font-size:40px;line-height:1.3}
+.app img{width:120px;height:120px;border-radius:24%}.app b{font-size:46px}
+</style></head><body>
+<div class="brand" id="br"></div>
+<div class="x" style="top:300px"><span class="tag" id="tag"></span><div class="big" id="ico" style="margin-top:60px"></div><h1 id="t"></h1><p id="p"></p></div>
+<div class="x app" id="app" style="top:1440px"></div>
+<div class="foot" id="foot"></div>
+<script>
+const A={c:["../../icons/icon-512.png","Carbu Malin","La station la moins chère près de chez toi, et l'alerte au bon moment."],
+ h:["../../courses/icons/icon-512.png","Chariot Malin","Ton panier comparé dans les magasins autour de chez toi."]};
+const S=[
+ ["c","Astuce essence","🚗","Lève le pied sur l'autoroute","Rouler à 120 au lieu de 130 km/h, c'est jusqu'à 5 litres économisés sur 500 km (source : ADEME), pour à peine quelques minutes de plus."],
+ ["h","Astuce courses","📝","Jamais sans ta liste","Faire ses courses avec une liste, c'est moins d'achats « coup de cœur » qui gonflent le ticket. Et on n'oublie rien."],
+ ["c","Astuce essence","🛞","Vérifie tes pneus une fois par mois","Des pneus pas assez gonflés, c'est plus de frottement… donc plus de carburant consommé (et une usure plus rapide)."],
+ ["h","Astuce courses","⚖️","Regarde le prix au kilo","Le gros paquet n'est pas toujours le moins cher ! Compare le prix au kilo ou au litre, écrit en petit sur l'étiquette."],
+ ["c","Le saviez-vous ?","🛣️","Les stations d'autoroute sont souvent les plus chères","Fais le plein avant de partir : quelques kilomètres de détour peuvent te faire économiser plusieurs euros."],
+ ["h","Astuce courses","👀","Regarde en haut et en bas","Les produits les plus chers sont souvent placés à hauteur des yeux. Les bonnes affaires se cachent plus haut ou plus bas."],
+ ["c","Astuce essence","❄️","Coupe la clim quand tu n'en as pas besoin","La climatisation augmente la consommation, surtout en ville. Et en hiver, inutile de faire chauffer le moteur à l'arrêt."],
+ ["h","Astuce courses","🍽️","Prévois les menus de la semaine","Savoir ce qu'on mange, c'est acheter juste ce qu'il faut : moins de gaspillage, moins de dépenses. Chariot Malin te les propose en 1 clic."],
+ ["c","Le saviez-vous ?","📊","Les prix changent presque chaque jour","D'une semaine à l'autre, le plein peut varier de plusieurs euros. Faire le plein au bon moment, ça compte."],
+ ["h","Astuce courses","🥫","Teste les marques distributeur","Pour beaucoup de produits de base, la marque du magasin coûte nettement moins cher pour une qualité proche."],
+ ["c","Astuce essence","🎒","Allège ta voiture","Vide le coffre et enlève le coffre de toit quand tu ne t'en sers pas : plus la voiture est lourde, plus elle consomme."],
+ ["h","Astuce courses","🍌","Ne fais pas tes courses le ventre vide","On achète plus (et plus de grignotage) quand on a faim. Mange un petit truc avant de partir !"],
+ ["m","Les Applis Malines","💬","Quelle appli tu voudrais ensuite ?","Énergie, assurance, téléphone, vacances… Réponds-nous en message privé : on lit tout !"],
+ ["m","Les Applis Malines","🤝","Partage à quelqu'un qui paye trop cher","Nos applis sont gratuites et sans inscription. Le meilleur moyen de nous aider : les envoyer à tes proches."],
+];
+const n=+(new URLSearchParams(location.search).get('n')||0)%S.length, s=S[n], a=A[s[0]]||null;
+document.body.className=s[0];
+document.getElementById('br').innerHTML=`<img src="../reseaux/logo-512.png">Les Applis Malines`;
+tag.textContent=s[1]; ico.textContent=s[2]; t.textContent=s[3]; p.textContent=s[4];
+document.getElementById('app').innerHTML = a ? `<img src="${a[0]}"><div><b>${a[1]}</b><br>${a[2]}<br><b style="color:#2f6bff">👉 Lien en bio · gratuit</b></div>`
+ : `<img src="../reseaux/logo-512.png"><div><b>Carbu Malin · Chariot Malin</b><br>Gratuites, sans inscription<br><b style="color:#2f6bff">👉 Lien en bio</b></div>`;
+window.NB=S.length;
+</script></body></html>
