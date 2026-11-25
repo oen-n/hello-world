@@ -1,0 +1,220 @@
+/* =====================================================================
+   LES APPLIS MALINES · direction artistique commune
+   ---------------------------------------------------------------------
+   Une seule feuille de style pour toutes les applis (Carbu Malin,
+   Caddie Malin, et les suivantes). À charger APRÈS la feuille de l'appli.
+
+   L'idée : le logo « M » des Applis Malines.
+   - Nuit bleu marine + aurore bleu → vert (le dégradé du logo)
+   - Formes blanches très arrondies, comme la lettre M
+   - Une petite étoile dorée ✦ : la touche « malin »
+   - Haut d'écran sombre et lumineux, contenu clair en cartes blanches
+   - Chaque appli a sa couleur (data-app sur <body>), le reste est identique
+   ===================================================================== */
+
+@font-face {
+  font-family: "Malin Sans";
+  src: url("fonts/plus-jakarta-sans.woff2") format("woff2");
+  font-weight: 200 800; font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Malin Sans";
+  src: url("fonts/plus-jakarta-sans-ext.woff2") format("woff2");
+  font-weight: 200 800; font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* ---------- Jetons (couleurs, rayons, ombres) ---------- */
+:root {
+  color-scheme: light;
+  /* marque */
+  --m-night: #0c1533;          /* nuit du logo */
+  --m-night-2: #13204a;
+  --m-blue: #2f6bff;
+  --m-green: #1fbf75;
+  --m-gold: #ffc83d;           /* l'étoile */
+  --m-aurora: linear-gradient(120deg, #2f6bff 0%, #18a7d6 50%, #1fbf75 100%);
+  /* couleur de l'appli (remplacée par data-app) */
+  --m-accent: #2f6bff;
+  --m-accent-2: #18a7d6;
+  --m-accent-soft: #e8efff;
+  --m-accent-ink: #1747c2;
+  /* surfaces claires */
+  --m-bg: #f3f5fa;
+  --m-card: #ffffff;
+  --m-ink: #0e1630;
+  --m-ink-2: #4a5472;
+  --m-ink-3: #8a93ad;
+  --m-line: #e6e9f2;
+  --m-chip: #eef1f8;
+  /* états */
+  --m-good: #12a150; --m-good-bg: #e6f7ee;
+  --m-warn: #e8a400; --m-warn-bg: #fff6df;
+  --m-bad: #e0473f;  --m-bad-bg: #fdecea;
+  /* formes */
+  --m-r-xl: 28px; --m-r-lg: 22px; --m-r-md: 16px; --m-r-sm: 12px;
+  --m-shadow: 0 1px 2px rgba(14, 22, 48, .04), 0 10px 30px rgba(14, 22, 48, .07);
+  --m-shadow-pop: 0 18px 50px rgba(14, 22, 48, .22);
+  --m-font: "Malin Sans", "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* alias : les noms déjà utilisés par les applis pointent vers la DA */
+  --bg: var(--m-bg); --surface: var(--m-card); --surface-1: var(--m-card);
+  --text: var(--m-ink); --text-primary: var(--m-ink); --text2: var(--m-ink-2); --text-secondary: var(--m-ink-2);
+  --muted: var(--m-ink-3); --text-muted: var(--m-ink-3); --line: var(--m-line);
+  --accent: var(--m-accent); --accent-bg: var(--m-accent-soft);
+  --neutral: var(--m-chip); --neutral-bg: var(--m-chip);
+  --good-bg: var(--m-good-bg); --warning-bg: var(--m-warn-bg); --warn-bg: var(--m-warn-bg); --critical-bg: var(--m-bad-bg);
+  --good: var(--m-good); --warning: var(--m-warn); --critical: var(--m-bad); --danger: var(--m-bad);
+  --price-good: var(--m-good);
+}
+/* les alias qui dépendent de la couleur de l'appli sont recalculés au niveau de <body> */
+body { --accent: var(--m-accent); --accent-bg: var(--m-accent-soft); }
+/* couleur propre à chaque appli */
+body[data-app="carbu"]  { --m-accent: #2f6bff; --m-accent-2: #18a7d6; --m-accent-soft: #e8efff; --m-accent-ink: #1747c2; }
+body[data-app="panier"] { --m-accent: #12a150; --m-accent-2: #7ccf3a; --m-accent-soft: #e6f7ee; --m-accent-ink: #0b7a3c; }
+body[data-app="hub"]    { --m-accent: #2f6bff; --m-accent-2: #1fbf75; --m-accent-soft: #e8f3f6; --m-accent-ink: #1747c2; }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --m-bg: #0a1024; --m-card: #131b35; --m-ink: #eef2ff; --m-ink-2: #b4bdd8; --m-ink-3: #7f89a8;
+    --m-line: #222c4d; --m-chip: #1b2444;
+    --m-good-bg: #0f2e22; --m-warn-bg: #33280b; --m-bad-bg: #3a1618;
+    --m-shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 12px 32px rgba(0, 0, 0, .35);
+  }
+  body[data-app="carbu"]  { --m-accent: #5b8cff; --m-accent-soft: #1a2a57; --m-accent-ink: #9db8ff; }
+  body[data-app="panier"] { --m-accent: #2fc26c; --m-accent-soft: #123323; --m-accent-ink: #7fe0a6; }
+  body[data-app="hub"]    { --m-accent: #5b8cff; --m-accent-soft: #16294a; --m-accent-ink: #9db8ff; }
+}
+
+/* ---------- Base ---------- */
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--m-font); background: var(--m-bg); color: var(--m-ink);
+  -webkit-font-smoothing: antialiased; letter-spacing: -.005em;
+}
+a { color: var(--m-accent-ink); }
+h1, h2, h3 { letter-spacing: -.02em; }
+h2 { font-size: 1.12rem; font-weight: 800; }
+main { max-width: 640px; margin: 0 auto; }
+.sub { color: var(--m-ink-2); }
+
+/* ---------- Haut d'écran : la « nuit aurore » ---------- */
+.top, .m-hero {
+  position: relative; isolation: isolate; color: #fff;
+  background:
+    radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--m-accent-2) 55%, transparent) 0%, transparent 60%),
+    radial-gradient(90% 80% at 0% 100%, color-mix(in srgb, var(--m-accent) 45%, transparent) 0%, transparent 65%),
+    linear-gradient(180deg, var(--m-night) 0%, var(--m-night-2) 100%);
+  border-bottom: 0;
+}
+.top {
+  position: sticky; top: 0; z-index: 10;
+  padding: calc(12px + env(safe-area-inset-top)) 18px 12px;
+  box-shadow: 0 6px 24px rgba(12, 21, 51, .25);
+}
+.top .brand, .m-hero .brand { color: #fff; font-weight: 800; font-size: 1.2rem; letter-spacing: -.02em; }
+.brand img { border-radius: 10px; box-shadow: 0 4px 14px rgba(0, 0, 0, .25); }
+.top .ghost, .m-hero .ghost {
+  background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .22); color: #fff;
+  border-radius: 999px; padding: 8px 14px; font-weight: 700; backdrop-filter: blur(8px);
+}
+/* la signature commune : « ✦ Les Applis Malines » */
+.m-sign {
+  display: inline-flex; align-items: center; gap: 6px; font-size: .72rem; font-weight: 700;
+  color: rgba(255, 255, 255, .78); letter-spacing: .02em; text-decoration: none;
+}
+.m-sign::before { content: "✦"; color: var(--m-gold); font-size: .9rem; }
+.m-kicker {
+  display: inline-block; font-size: .72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .28); color: rgba(255, 255, 255, .85);
+}
+.m-grad-text {
+  background: linear-gradient(100deg, var(--m-accent-2), color-mix(in srgb, var(--m-accent-2) 40%, #fff));
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* ---------- Cartes ---------- */
+.card {
+  background: var(--m-card); border: 0; border-radius: var(--m-r-lg);
+  box-shadow: var(--m-shadow); padding: 18px; margin: 14px 0;
+}
+
+/* ---------- Boutons ---------- */
+.primary {
+  background: linear-gradient(135deg, var(--m-accent), color-mix(in srgb, var(--m-accent) 70%, var(--m-accent-2)));
+  color: #fff; border: 0; border-radius: 999px; padding: 14px 20px; font-weight: 800; letter-spacing: -.01em;
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--m-accent) 35%, transparent);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.primary:active { transform: scale(.98); }
+.primary:disabled { opacity: .45; box-shadow: none; }
+.ghost {
+  background: var(--m-card); border: 1.5px solid var(--m-line); color: var(--m-ink);
+  border-radius: 999px; padding: 10px 16px; font-weight: 700;
+}
+.full { width: 100%; }
+.link { color: var(--m-accent-ink); font-weight: 700; }
+
+/* ---------- Pastilles (chips) et segments ---------- */
+.chip {
+  background: var(--m-card); border: 1.5px solid var(--m-line); color: var(--m-ink);
+  border-radius: 999px; padding: 8px 14px; font-weight: 700; font-size: .9rem;
+}
+.chip.on, .chip[aria-pressed="true"], .chip[aria-selected="true"] {
+  background: var(--m-accent); border-color: var(--m-accent); color: #fff;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--m-accent) 30%, transparent);
+}
+.seg { background: var(--m-chip); border: 0; border-radius: 999px; padding: 4px; gap: 2px; display: inline-flex; }
+.seg button { border-radius: 999px; border: 0; background: none; color: var(--m-ink-2); font-weight: 700; padding: 7px 12px; }
+.seg button.on { background: var(--m-card); color: var(--m-ink); box-shadow: 0 2px 8px rgba(14, 22, 48, .1); }
+
+/* ---------- Champs ---------- */
+.input, input[type="search"], input[type="text"], textarea, select {
+  font-family: var(--m-font); border-radius: var(--m-r-md); border: 1.5px solid var(--m-line);
+  background: var(--m-card); color: var(--m-ink);
+}
+.input:focus, input:focus, textarea:focus, select:focus { outline: 3px solid color-mix(in srgb, var(--m-accent) 30%, transparent); border-color: var(--m-accent); }
+
+/* ---------- Fenêtres, bandeaux, toasts ---------- */
+dialog.sheet {
+  border: 0; border-radius: var(--m-r-xl); background: var(--m-card); color: var(--m-ink);
+  box-shadow: var(--m-shadow-pop); padding: 22px;
+}
+dialog.sheet::backdrop { background: rgba(12, 21, 51, .55); backdrop-filter: blur(4px); }
+.ibanner {
+  border: 0; border-radius: var(--m-r-xl); background: var(--m-card); box-shadow: var(--m-shadow-pop);
+  outline: 2px solid color-mix(in srgb, var(--m-accent) 35%, transparent);
+}
+.toast { background: var(--m-night); color: #fff; border-radius: 999px; padding: 12px 18px; font-weight: 600; box-shadow: var(--m-shadow-pop); }
+
+/* ---------- Barre d'onglets en bas (style appli) ---------- */
+.m-tabbar {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(10px + env(safe-area-inset-bottom)); z-index: 15;
+  width: min(560px, calc(100% - 20px)); display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px;
+  padding: 6px; border-radius: 26px; background: color-mix(in srgb, var(--m-card) 88%, transparent);
+  backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow: var(--m-shadow-pop); border: 1px solid var(--m-line);
+}
+.m-tabbar a, .m-tabbar button {
+  display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 7px 4px; border-radius: 20px;
+  text-decoration: none; color: var(--m-ink-3); font-size: .7rem; font-weight: 800; border: 0; background: none;
+}
+.m-tabbar .ico { font-size: 1.25rem; line-height: 1.1; filter: grayscale(.4); }
+.m-tabbar .on { color: var(--m-accent-ink); background: var(--m-accent-soft); }
+.m-tabbar .on .ico { filter: none; }
+body.has-tabbar main { padding-bottom: 110px; }
+body.has-tabbar.has-ibanner .m-tabbar { display: none; }
+
+/* ---------- Pied de page ---------- */
+.foot { color: var(--m-ink-3); }
+.m-family {
+  display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--m-ink);
+  background: var(--m-card); border-radius: var(--m-r-lg); box-shadow: var(--m-shadow); padding: 14px 16px; margin: 14px 0;
+}
+.m-family img { width: 44px; height: 44px; border-radius: 12px; }
+.m-family b { display: block; }
+.m-family span { color: var(--m-ink-2); font-size: .85rem; }
+
+@media (prefers-reduced-motion: reduce) { .primary { transition: none; } }
