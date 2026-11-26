@@ -1,6 +1,7 @@
 import { buildSeries, analyze, backtest, depToHist } from "./analysis.js";
 import { CONFIG } from "./config.js";
 import { RESEAUX, lienInstagram, lienTiktok } from "./reseaux.js";
+import { initTrajet } from "./trajet-ui.js";
 
 const API = "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/prix-des-carburants-en-france-flux-instantane-v2/records";
 const GEO = "https://geo.api.gouv.fr/communes";
@@ -561,7 +562,7 @@ const NOTIF_FUELS = ["Gazole", "E10", "SP95", "SP98", "E85", "GPLc"];
 let OS = null;
 let osError = "";
 let osSdk = "pas chargé", osInit = "pas commencé";
-const APP_VERSION = "v15";
+const APP_VERSION = "v16";
 const notifPrefs = load("notifPrefs", { zone: true, station: true, fuel: null });
 
 function diag() {
@@ -692,6 +693,7 @@ async function start() {
 start();
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 setupNotifications();
+initTrajet({ getFuel: () => state.fuel, getPlace: () => state.place, esc, euro, toast });
 setupAds();
 setupStats();
 document.addEventListener("visibilitychange", async () => {

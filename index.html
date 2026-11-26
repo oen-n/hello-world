@@ -107,6 +107,60 @@
 
   <aside id="sponsor" class="card sponsor" hidden></aside>
 
+  <section class="card trajet" id="trajet">
+    <h2>🧭 Mon trajet</h2>
+    <p class="sub">Un long trajet ? Dis où tu vas : l'appli te dit <b>où t'arrêter</b> et <b>combien mettre</b> pour payer le moins cher, selon ta voiture et ce qu'il reste dans ton réservoir.</p>
+    <form id="tjForm" autocomplete="off">
+      <div class="tj-field">
+        <label for="tjFrom">Départ</label>
+        <div class="tj-row"><input id="tjFrom" class="input" type="search" placeholder="Ville ou adresse de départ" enterkeyhint="next">
+          <button type="button" class="chip" id="tjGps" aria-label="Partir de ma position">📍</button></div>
+        <ul class="results tj-sugg" id="tjFromSugg" hidden></ul>
+      </div>
+      <div class="tj-field">
+        <label for="tjTo">Arrivée</label>
+        <input id="tjTo" class="input" type="search" placeholder="Ville ou adresse d'arrivée" enterkeyhint="done">
+        <ul class="results tj-sugg" id="tjToSugg" hidden></ul>
+      </div>
+      <div class="tj-field">
+        <label for="tjCar">Ma voiture</label>
+        <select id="tjCar" class="input"></select>
+        <div class="tj-two">
+          <label>Réservoir <span class="tj-unit"><input id="tjTank" class="input" type="number" inputmode="decimal" min="20" max="150" step="1"> L</span></label>
+          <label>Consommation <span class="tj-unit"><input id="tjCons" class="input" type="number" inputmode="decimal" min="2" max="25" step="0.1"> L/100</span></label>
+        </div>
+      </div>
+      <div class="tj-field">
+        <label for="tjGauge">Dans mon réservoir maintenant : <b id="tjGaugeTxt"></b></label>
+        <input id="tjGauge" type="range" min="5" max="100" step="5" value="50">
+        <div class="tj-gauge-lbl"><span>Réserve</span><span>¼</span><span>½</span><span>¾</span><span>Plein</span></div>
+      </div>
+      <div class="tj-two">
+        <label for="tjArrive">À l'arrivée, je veux
+          <select id="tjArrive" class="input">
+            <option value="reserve">le minimum</option>
+            <option value="half">un demi-réservoir</option>
+            <option value="full">presque le plein</option>
+          </select></label>
+        <label for="tjCorr">Détour maximum
+          <select id="tjCorr" class="input">
+            <option value="2">2 km</option>
+            <option value="5" selected>5 km</option>
+          </select></label>
+      </div>
+      <p class="sub" id="tjFuelTxt"></p>
+      <button class="primary full" type="submit" id="tjGo">🧭 Calculer mes arrêts</button>
+    </form>
+    <p id="tjStatus" class="sub" aria-live="polite"></p>
+    <div id="tjResult" hidden>
+      <div class="tj-kpis" id="tjKpis"></div>
+      <div id="tjMap" class="tj-map" role="img" aria-label="Carte du trajet et des arrêts"></div>
+      <ol id="tjStops" class="tj-stops"></ol>
+      <a id="tjGmaps" class="ghost full btnlink" target="_blank" rel="noopener">🗺️ Ouvrir tout le trajet dans Google Maps</a>
+      <p class="sub tj-note">Prix officiels en direct, déclarés par les stations. Ils peuvent changer d'ici ton passage. Itinéraire : IGN. Carte : © contributeurs OpenStreetMap.</p>
+    </div>
+  </section>
+
   <section class="card viz-root" id="chartCard">
     <div class="row-between">
       <h2 id="chartTitle">Évolution du prix</h2>
@@ -214,6 +268,7 @@
 <nav class="m-tabbar" id="tabbar" aria-label="Aller à">
   <a href="#conseil" class="on"><span class="ico" aria-hidden="true">✦</span>Conseil</a>
   <a href="#stationsCard"><span class="ico" aria-hidden="true">⛽</span>Stations</a>
+  <a href="#trajet"><span class="ico" aria-hidden="true">🧭</span>Trajet</a>
   <a href="#chartCard"><span class="ico" aria-hidden="true">📈</span>Prix</a>
   <a href="#notif"><span class="ico" aria-hidden="true">🔔</span>Alertes</a>
 </nav>

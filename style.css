@@ -268,3 +268,43 @@ body.has-ibanner main { padding-bottom: 170px; }
 .seo details { border-top: 1px solid var(--line); padding: 8px 0; }
 .seo details summary { font-weight: 600; font-size: .95rem; color: inherit; margin-top: 0; }
 .seo details p { margin: 6px 0 0; color: var(--text-secondary); }
+
+/* ---------- Mon trajet ---------- */
+.trajet form { margin-top: 6px; }
+.tj-field { margin: 12px 0; position: relative; }
+.tj-field > label, .tj-two > label { display: block; font-weight: 700; font-size: .9rem; margin-bottom: 6px; color: var(--m-ink); }
+.tj-row { display: flex; gap: 8px; }
+.tj-row .input { flex: 1; min-width: 0; }
+.tj-row .chip { flex: none; width: 48px; font-size: 1.1rem; padding: 0; }
+.trajet .input { width: 100%; font-size: 16px; padding: 12px 14px; }
+.tj-two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+.tj-two > label { font-size: .85rem; }
+.tj-unit { display: flex; align-items: center; gap: 6px; font-weight: 600; color: var(--m-ink-2); }
+.tj-unit .input { padding: 10px 12px; }
+.tj-sugg { position: absolute; left: 0; right: 0; z-index: 6; background: var(--m-card); border-radius: var(--m-r-md); box-shadow: var(--m-shadow-pop); margin-top: 4px; }
+.tj-sugg button { padding: 12px 14px; }
+#tjGauge { width: 100%; accent-color: var(--m-accent); height: 28px; }
+.tj-gauge-lbl { display: flex; justify-content: space-between; font-size: .72rem; color: var(--m-ink-3); font-weight: 700; }
+.tj-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0 12px; }
+.kpi2 { background: var(--m-accent-soft); border-radius: 16px; padding: 12px 8px; text-align: center; }
+.kpi2 b { display: block; font-size: 1.1rem; font-weight: 800; color: var(--m-accent-ink); letter-spacing: -.02em; }
+.kpi2 span { font-size: .72rem; color: var(--m-ink-2); }
+.tj-map { position: relative; z-index: 0; isolation: isolate; height: 300px; border-radius: 20px; overflow: hidden; margin: 4px 0 12px; background: var(--m-chip); }
+.tj-pin { display: grid !important; place-items: center; border-radius: 50%; color: #fff; font-weight: 800; font-size: 13px; border: 3px solid #fff; box-shadow: 0 3px 10px rgba(0, 0, 0, .3); }
+.tj-pin.start { background: var(--m-night); } .tj-pin.end { background: var(--m-night); } .tj-pin.stop { background: var(--m-good); }
+.tj-stops { list-style: none; margin: 0; padding: 0; }
+.tj-stop { display: grid; grid-template-columns: 36px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid var(--m-line); }
+.tj-stop:first-child { border-top: 0; }
+.tj-num { width: 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; background: var(--m-good); color: #fff; font-weight: 800; }
+.tj-when { font-size: .78rem; color: var(--m-ink-3); font-weight: 700; }
+.tj-name { font-weight: 800; margin: 2px 0; }
+.tj-name .sub { font-weight: 500; display: block; margin: 0; }
+.tj-buy { margin: 4px 0; }
+.tj-buy b { color: var(--m-good); }
+.tj-act { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: .8rem; }
+.tj-act a { background: var(--m-chip); border-radius: 999px; padding: 4px 10px; font-weight: 700; color: var(--m-ink); text-decoration: none; }
+.tj-ok, .tj-warn { padding: 12px 14px; border-radius: 16px; background: var(--m-good-bg); line-height: 1.45; }
+.tj-warn { background: var(--m-warn-bg); }
+.tj-note { margin-top: 10px; }
+#trajet { scroll-margin-top: 76px; }
+.m-tabbar a { font-size: .66rem; }
