@@ -88,6 +88,27 @@
 </section>
 
 <main>
+  <section class="card garage" id="garage">
+    <div class="row-between"><h2>⛽ Mon réservoir</h2><span class="ga-level" id="gaLevel">–</span></div>
+    <div class="ga-gauge" aria-hidden="true"><div class="ga-fill" id="gaBar"></div></div>
+    <p class="sub" id="gaDetail"></p>
+    <div class="ga-advice" id="gaAdvice"></div>
+    <button class="primary full" type="button" id="gaFull">⛽ J'ai fait le plein</button>
+    <details id="gaFixBox" class="ga-more"><summary>Indiquer mon niveau actuel</summary>
+      <label class="ga-fix">Mon réservoir est à <b id="gaFixTxt">50 %</b>
+        <input id="gaFix" type="range" min="0" max="100" step="5" value="50"></label>
+      <button class="ghost full" type="button" id="gaFixBtn">Enregistrer ce niveau</button>
+    </details>
+    <details class="ga-more"><summary>Ma voiture et mes km</summary>
+      <div class="tj-two">
+        <label>Réservoir <span class="tj-unit"><input id="gaTank" class="input" type="number" inputmode="decimal" min="20" max="150"> L</span></label>
+        <label>Consommation <span class="tj-unit"><input id="gaCons" class="input" type="number" inputmode="decimal" min="2" max="25" step="0.1"> L/100</span></label>
+      </div>
+      <label class="ga-km">Je roule environ <span class="tj-unit"><input id="gaKmDay" class="input" type="number" inputmode="numeric" min="0" max="500"> km par jour</span></label>
+      <p class="sub">Le niveau est estimé à partir de ton dernier plein et des km roulés (ceux comptés en mode route, ou ta moyenne par jour). Corrige-le quand tu veux.</p>
+    </details>
+  </section>
+
   <section class="card" id="favCard" hidden></section>
 
   <section class="card" id="stationsCard">
@@ -182,6 +203,22 @@
 
   <section class="card" id="tips"></section>
 
+  <section class="card enroute" id="enroute">
+    <h2>🚗 En voiture</h2>
+    <p class="sub">Le <b>mode route</b> affiche en grand ton niveau, le conseil et la station la moins chère autour de toi, avec Waze. Il compte aussi les km de ton trajet.</p>
+    <button class="primary full" type="button" id="rtOpen">🚗 Je prends la route</button>
+    <details class="ga-more"><summary>L'ouvrir tout seul quand je démarre la voiture (iPhone)</summary>
+      <ol class="howto">
+        <li>Ouvre l'appli <b>Raccourcis</b> (installée sur tous les iPhone) → onglet <b>Automatisation</b> → <b>+</b>.</li>
+        <li>Choisis <b>CarPlay</b> → <b>Se connecte</b> (ou <b>Bluetooth</b> → le Bluetooth de ta voiture si tu n'as pas CarPlay) → <b>Exécuter immédiatement</b> → Suivant.</li>
+        <li>Ajoute l'action <b>Afficher une notification</b> avec le texte « 🚗 Je prends la route ».</li>
+        <li>Ajoute l'action <b>Ouvrir les URL</b> et colle cette adresse : <code id="rtUrl"></code> <button type="button" class="chip" id="rtCopy">Copier</button></li>
+        <li>Touche <b>OK</b>. À chaque démarrage, le mode route s'ouvre. Passager ? Appuie sur <b>« Je ne conduis pas »</b>.</li>
+      </ol>
+      <p class="sub">Sur Android : la même chose avec « Modes et routines » (Samsung) ou l'appli gratuite MacroDroid (déclencheur : connexion Bluetooth de la voiture ou Android Auto).</p>
+    </details>
+  </section>
+
   <section class="card" id="notif">
     <h2>🔔 Être prévenu</h2>
     <p>Reçois une notification sur ton téléphone, sans rien installer d'autre :</p>
@@ -262,6 +299,22 @@
   <div class="ib-btns">
     <button id="ibInstall" class="primary" type="button">Installer</button>
     <button id="ibLater" class="ib-later" type="button">Plus tard</button>
+  </div>
+</div>
+
+<div id="drive" class="drive m-hero" role="dialog" aria-modal="true" aria-labelledby="drTitle" hidden>
+  <div class="dr-in">
+    <div class="dr-top"><img src="icons/icon-192.png" alt="" width="44" height="44"><b id="drTitle">Bonne route !</b>
+      <button type="button" class="dr-no" id="drNo">Je ne conduis pas</button></div>
+    <div class="dr-level"><b id="drLevel">?</b><span id="drLevelTxt"></span></div>
+    <div class="dr-adv"><b id="drAdvT"></b><p id="drAdvP"></p></div>
+    <div id="drBest" class="dr-best"></div>
+    <p class="dr-trip" id="drTrip"></p>
+    <div class="dr-btns">
+      <button type="button" class="dr-btn" id="drFull">⛽ J'ai fait le plein</button>
+      <button type="button" class="dr-btn" id="drPlan">🧭 Long trajet</button>
+      <button type="button" class="dr-btn" id="drEnd">🏁 Je suis arrivé</button>
+    </div>
   </div>
 </div>
 

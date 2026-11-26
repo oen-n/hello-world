@@ -2,6 +2,7 @@ import { buildSeries, analyze, backtest, depToHist } from "./analysis.js";
 import { CONFIG } from "./config.js";
 import { RESEAUX, lienInstagram, lienTiktok } from "./reseaux.js";
 import { initTrajet } from "./trajet-ui.js";
+import { initVoiture, estimate } from "./voiture.js";
 
 const API = "https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/prix-des-carburants-en-france-flux-instantane-v2/records";
 const GEO = "https://geo.api.gouv.fr/communes";
@@ -191,6 +192,7 @@ function stationItem(r, i, best) {
 function renderStations(series) {
   const all = stationRows(series);
   const rows = all.filter((r) => r.inRadius).sort((x, y) => x.p - y.p || (x.dist ?? 99) - (y.dist ?? 99));
+  state.bestRow = rows[0] || null;
   const total = rows.length;
   const shown = state.showAll ? rows : rows.slice(0, 8);
   const best = rows[0]?.p, worst = rows[rows.length - 1]?.p;
@@ -331,6 +333,7 @@ function render() {
   $("#placeLabel").textContent = `${state.place.label}${state.place.dep ? ` (${state.place.dep})` : ""}`;
   const series = currentSeries();
   const a = series ? analyze(series) : null;
+  state.analysis = a;
   if (state.hist) renderSignal(series, a);
   renderStations(series);
   if (series) { renderChart(series); renderTips(series, a); }
@@ -339,6 +342,7 @@ function render() {
   $("#updated").textContent = `Carbu Malin ${APP_VERSION} · Historique du département mis à jour le ${gen}${state.live ? " · prix en direct ✔" : " · prix en direct indisponibles (hors ligne ?)"}`;
   renderMoney();
   renderNotifUI();
+  window.dispatchEvent(new Event("carbu:render"));
 }
 
 // ---------- choix du lieu ----------
@@ -561,8 +565,9 @@ function setupStats() {
 const NOTIF_FUELS = ["Gazole", "E10", "SP95", "SP98", "E85", "GPLc"];
 let OS = null;
 let osError = "";
+let lastRefill = load("refillTag", null);
 let osSdk = "pas chargé", osInit = "pas commencé";
-const APP_VERSION = "v16";
+const APP_VERSION = "v17";
 const notifPrefs = load("notifPrefs", { zone: true, station: true, fuel: null });
 
 function diag() {
@@ -598,6 +603,8 @@ async function syncTags() {
   if (zone) add.zone = `${state.place.dep}:${fuel}`; else remove.push("zone");
   if (station) add.station = `${state.fav.sid}:${fuel}`; else remove.push("station");
   try { await OS.User.removeTags(remove); } catch { /* ignore */ }
+  const est = estimate();
+  if (est?.refill && (zone || station)) { add.refill = est.refill; lastRefill = est.refill; save("refillTag", est.refill); } else remove.push("refill");
   if (Object.keys(add).length) await OS.User.addTags(add);
   const what = [zone && `le bon moment dans le ${state.place.dep}`, station && "ta station préférée"].filter(Boolean).join(" et ");
   notifStatus(what ? `✅ Tu seras prévenu pour le ${fuel} : ${what}.` : "Aucune alerte choisie.");
@@ -694,6 +701,16 @@ start();
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 setupNotifications();
 initTrajet({ getFuel: () => state.fuel, getPlace: () => state.place, esc, euro, toast });
+initVoiture({
+  getFuel: () => state.fuel, getSignal: () => state.analysis, getPlace: () => state.place, esc, euro, toast,
+  getBest: () => { const r = state.bestRow; return r && r.m.lat ? { ville: cap(r.m.ville), adresse: r.m.adresse, lat: r.m.lat, lon: r.m.lon, p: r.p, dist: r.dist } : null; },
+  // la date « réservoir bientôt bas » est envoyée à OneSignal pour la notification du jour J
+  onSync: (refill) => {
+    if (refill === lastRefill || !subscribed() || !(notifPrefs.zone || notifPrefs.station)) return;
+    lastRefill = refill; save("refillTag", refill);
+    OS.User.addTags({ refill }).catch(() => {});
+  },
+});
 setupAds();
 setupStats();
 document.addEventListener("visibilitychange", async () => {
