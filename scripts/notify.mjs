@@ -89,6 +89,16 @@ async function advice() {
       if (await send(`⛽ ${fuel} : ${a.label}`, body, [{ field: "tag", key: "zone", relation: "=", value: k }])) { sent++; last[k] = new Date(now).toISOString(); }
     }
   }
+  // « Ton réservoir arrive bientôt sur la réserve » : une fois par jour, aux téléphones dont
+  // la date estimée (étiquette refill, calculée par l'appli) est aujourd'hui.
+  const today = new Date().toLocaleDateString("sv-SE", { timeZone: "Europe/Paris" }); // AAAA-MM-JJ
+  if (last.refill !== today) {
+    const ok = await send("⛽ Ton réservoir arrive bientôt sur la réserve",
+      "Ouvre Carbu Malin : on te dit où et quand faire le plein le moins cher près de chez toi.",
+      [{ field: "tag", key: "refill", relation: "=", value: today }]);
+    console.log(`Réservoir bas (${today}) : ${ok ? "envoyée" : "personne ce jour-là"}`);
+    last.refill = today;
+  }
   fs.writeFileSync(stateUrl, JSON.stringify(next) + "\n");
   fs.writeFileSync(lastUrl, JSON.stringify(last) + "\n");
   console.log(`Conseils : ${sent} notification(s) envoyée(s).`);

@@ -88,6 +88,27 @@
 </section>
 
 <main>
+  <section class="card garage" id="garage">
+    <div class="row-between"><h2>⛽ Mon réservoir</h2><span class="ga-level" id="gaLevel">–</span></div>
+    <div class="ga-gauge" aria-hidden="true"><div class="ga-fill" id="gaBar"></div></div>
+    <p class="sub" id="gaDetail"></p>
+    <div class="ga-advice" id="gaAdvice"></div>
+    <button class="primary full" type="button" id="gaFull">⛽ J'ai fait le plein</button>
+    <details id="gaFixBox" class="ga-more"><summary>Indiquer mon niveau actuel</summary>
+      <label class="ga-fix">Mon réservoir est à <b id="gaFixTxt">50 %</b>
+        <input id="gaFix" type="range" min="0" max="100" step="5" value="50"></label>
+      <button class="ghost full" type="button" id="gaFixBtn">Enregistrer ce niveau</button>
+    </details>
+    <details class="ga-more"><summary>Ma voiture et mes km</summary>
+      <div class="tj-two">
+        <label>Réservoir <span class="tj-unit"><input id="gaTank" class="input" type="number" inputmode="decimal" min="20" max="150"> L</span></label>
+        <label>Consommation <span class="tj-unit"><input id="gaCons" class="input" type="number" inputmode="decimal" min="2" max="25" step="0.1"> L/100</span></label>
+      </div>
+      <label class="ga-km">Je roule environ <span class="tj-unit"><input id="gaKmDay" class="input" type="number" inputmode="numeric" min="0" max="500"> km par jour</span></label>
+      <p class="sub">Le niveau est estimé à partir de ton dernier plein et des km roulés (ceux comptés en mode route, ou ta moyenne par jour). Corrige-le quand tu veux.</p>
+    </details>
+  </section>
+
   <section class="card" id="favCard" hidden></section>
 
   <section class="card" id="stationsCard">
@@ -106,6 +127,60 @@
   </section>
 
   <aside id="sponsor" class="card sponsor" hidden></aside>
+
+  <section class="card trajet" id="trajet">
+    <h2>🧭 Mon trajet</h2>
+    <p class="sub">Un long trajet ? Dis où tu vas : l'appli te dit <b>où t'arrêter</b> et <b>combien mettre</b> pour payer le moins cher, selon ta voiture et ce qu'il reste dans ton réservoir.</p>
+    <form id="tjForm" autocomplete="off">
+      <div class="tj-field">
+        <label for="tjFrom">Départ</label>
+        <div class="tj-row"><input id="tjFrom" class="input" type="search" placeholder="Ville ou adresse de départ" enterkeyhint="next">
+          <button type="button" class="chip" id="tjGps" aria-label="Partir de ma position">📍</button></div>
+        <ul class="results tj-sugg" id="tjFromSugg" hidden></ul>
+      </div>
+      <div class="tj-field">
+        <label for="tjTo">Arrivée</label>
+        <input id="tjTo" class="input" type="search" placeholder="Ville ou adresse d'arrivée" enterkeyhint="done">
+        <ul class="results tj-sugg" id="tjToSugg" hidden></ul>
+      </div>
+      <div class="tj-field">
+        <label for="tjCar">Ma voiture</label>
+        <select id="tjCar" class="input"></select>
+        <div class="tj-two">
+          <label>Réservoir <span class="tj-unit"><input id="tjTank" class="input" type="number" inputmode="decimal" min="20" max="150" step="1"> L</span></label>
+          <label>Consommation <span class="tj-unit"><input id="tjCons" class="input" type="number" inputmode="decimal" min="2" max="25" step="0.1"> L/100</span></label>
+        </div>
+      </div>
+      <div class="tj-field">
+        <label for="tjGauge">Dans mon réservoir maintenant : <b id="tjGaugeTxt"></b></label>
+        <input id="tjGauge" type="range" min="5" max="100" step="5" value="50">
+        <div class="tj-gauge-lbl"><span>Réserve</span><span>¼</span><span>½</span><span>¾</span><span>Plein</span></div>
+      </div>
+      <div class="tj-two">
+        <label for="tjArrive">À l'arrivée, je veux
+          <select id="tjArrive" class="input">
+            <option value="reserve">le minimum</option>
+            <option value="half">un demi-réservoir</option>
+            <option value="full">presque le plein</option>
+          </select></label>
+        <label for="tjCorr">Détour maximum
+          <select id="tjCorr" class="input">
+            <option value="2">2 km</option>
+            <option value="5" selected>5 km</option>
+          </select></label>
+      </div>
+      <p class="sub" id="tjFuelTxt"></p>
+      <button class="primary full" type="submit" id="tjGo">🧭 Calculer mes arrêts</button>
+    </form>
+    <p id="tjStatus" class="sub" aria-live="polite"></p>
+    <div id="tjResult" hidden>
+      <div class="tj-kpis" id="tjKpis"></div>
+      <div id="tjMap" class="tj-map" role="img" aria-label="Carte du trajet et des arrêts"></div>
+      <ol id="tjStops" class="tj-stops"></ol>
+      <a id="tjGmaps" class="ghost full btnlink" target="_blank" rel="noopener">🗺️ Ouvrir tout le trajet dans Google Maps</a>
+      <p class="sub tj-note">Prix officiels en direct, déclarés par les stations. Ils peuvent changer d'ici ton passage. Itinéraire : IGN. Carte : © contributeurs OpenStreetMap.</p>
+    </div>
+  </section>
 
   <section class="card viz-root" id="chartCard">
     <div class="row-between">
@@ -127,6 +202,22 @@
   <aside id="adSlot" class="card ad" hidden></aside>
 
   <section class="card" id="tips"></section>
+
+  <section class="card enroute" id="enroute">
+    <h2>🚗 En voiture</h2>
+    <p class="sub">Le <b>mode route</b> affiche en grand ton niveau, le conseil et la station la moins chère autour de toi, avec Waze. Il compte aussi les km de ton trajet.</p>
+    <button class="primary full" type="button" id="rtOpen">🚗 Je prends la route</button>
+    <details class="ga-more"><summary>L'ouvrir tout seul quand je démarre la voiture (iPhone)</summary>
+      <ol class="howto">
+        <li>Ouvre l'appli <b>Raccourcis</b> (installée sur tous les iPhone) → onglet <b>Automatisation</b> → <b>+</b>.</li>
+        <li>Choisis <b>CarPlay</b> → <b>Se connecte</b> (ou <b>Bluetooth</b> → le Bluetooth de ta voiture si tu n'as pas CarPlay) → <b>Exécuter immédiatement</b> → Suivant.</li>
+        <li>Ajoute l'action <b>Afficher une notification</b> avec le texte « 🚗 Je prends la route ».</li>
+        <li>Ajoute l'action <b>Ouvrir les URL</b> et colle cette adresse : <code id="rtUrl"></code> <button type="button" class="chip" id="rtCopy">Copier</button></li>
+        <li>Touche <b>OK</b>. À chaque démarrage, le mode route s'ouvre. Passager ? Appuie sur <b>« Je ne conduis pas »</b>.</li>
+      </ol>
+      <p class="sub">Sur Android : la même chose avec « Modes et routines » (Samsung) ou l'appli gratuite MacroDroid (déclencheur : connexion Bluetooth de la voiture ou Android Auto).</p>
+    </details>
+  </section>
 
   <section class="card" id="notif">
     <h2>🔔 Être prévenu</h2>
@@ -211,9 +302,26 @@
   </div>
 </div>
 
+<div id="drive" class="drive m-hero" role="dialog" aria-modal="true" aria-labelledby="drTitle" hidden>
+  <div class="dr-in">
+    <div class="dr-top"><img src="icons/icon-192.png" alt="" width="44" height="44"><b id="drTitle">Bonne route !</b>
+      <button type="button" class="dr-no" id="drNo">Je ne conduis pas</button></div>
+    <div class="dr-level"><b id="drLevel">?</b><span id="drLevelTxt"></span></div>
+    <div class="dr-adv"><b id="drAdvT"></b><p id="drAdvP"></p></div>
+    <div id="drBest" class="dr-best"></div>
+    <p class="dr-trip" id="drTrip"></p>
+    <div class="dr-btns">
+      <button type="button" class="dr-btn" id="drFull">⛽ J'ai fait le plein</button>
+      <button type="button" class="dr-btn" id="drPlan">🧭 Long trajet</button>
+      <button type="button" class="dr-btn" id="drEnd">🏁 Je suis arrivé</button>
+    </div>
+  </div>
+</div>
+
 <nav class="m-tabbar" id="tabbar" aria-label="Aller à">
   <a href="#conseil" class="on"><span class="ico" aria-hidden="true">✦</span>Conseil</a>
   <a href="#stationsCard"><span class="ico" aria-hidden="true">⛽</span>Stations</a>
+  <a href="#trajet"><span class="ico" aria-hidden="true">🧭</span>Trajet</a>
   <a href="#chartCard"><span class="ico" aria-hidden="true">📈</span>Prix</a>
   <a href="#notif"><span class="ico" aria-hidden="true">🔔</span>Alertes</a>
 </nav>
