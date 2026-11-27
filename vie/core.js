@@ -376,7 +376,7 @@ export function ics(evenements) {
   const esc = (s) => String(s).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
   const now = new Date();
   const dtstamp = `${now.getUTCFullYear()}${pad(now.getUTCMonth() + 1)}${pad(now.getUTCDate())}T${pad(now.getUTCHours())}${pad(now.getUTCMinutes())}00Z`;
-  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Les Applis Malines//Vie Maline//FR", "CALSCALE:GREGORIAN"];
+  const lines = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Vie Maline//FR", "CALSCALE:GREGORIAN"];
   for (const e of evenements) {
     const finIso = e.fin < e.debut ? addDays(e.date, 1) : e.date;
     lines.push("BEGIN:VEVENT", `UID:${e.uid}@vie-maline`, `DTSTAMP:${dtstamp}`,

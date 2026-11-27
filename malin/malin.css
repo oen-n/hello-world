@@ -74,7 +74,6 @@ body { --accent: var(--m-accent); --accent-bg: var(--m-accent-soft); }
 body[data-app="carbu"]  { --m-accent: #2f6bff; --m-accent-2: #18a7d6; --m-accent-soft: #e8efff; --m-accent-ink: #1747c2; }
 body[data-app="panier"] { --m-accent: #12a150; --m-accent-2: #7ccf3a; --m-accent-soft: #e6f7ee; --m-accent-ink: #0b7a3c; }
 body[data-app="hub"]    { --m-accent: #2f6bff; --m-accent-2: #1fbf75; --m-accent-soft: #e8f3f6; --m-accent-ink: #1747c2; }
-body[data-app="vie"]    { --m-accent: #7a4dff; --m-accent-2: #ff7eb3; --m-accent-soft: #f0ebff; --m-accent-ink: #5a2fd6; }
 
 @media (prefers-color-scheme: dark) {
   :root {
@@ -87,7 +86,6 @@ body[data-app="vie"]    { --m-accent: #7a4dff; --m-accent-2: #ff7eb3; --m-accent
   body[data-app="carbu"]  { --m-accent: #5b8cff; --m-accent-soft: #1a2a57; --m-accent-ink: #9db8ff; }
   body[data-app="panier"] { --m-accent: #2fc26c; --m-accent-soft: #123323; --m-accent-ink: #7fe0a6; }
   body[data-app="hub"]    { --m-accent: #5b8cff; --m-accent-soft: #16294a; --m-accent-ink: #9db8ff; }
-  body[data-app="vie"]    { --m-accent: #9473ff; --m-accent-soft: #251c4d; --m-accent-ink: #c4b2ff; }
 }
 
 /* ---------- Base ---------- */

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Vie Maline – Ton coach de vie : organisation, habitudes, sommeil et concentration (gratuit)</title>
 <meta name="description" content="Raconte ta vie à Vie Maline (à l'écrit ou à la voix) : elle organise ta journée, n'oublie rien à ta place, t'aide à te lever tôt, bien manger, moins utiliser ton téléphone et rester concentré. Gratuit, sans inscription.">
-<meta name="theme-color" content="#0c1533">
+<meta name="theme-color" content="#6b3df5">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
@@ -18,17 +18,12 @@
 <meta property="og:url" content="https://oen-n.github.io/hello-world/vie/">
 <meta property="og:image" content="https://oen-n.github.io/hello-world/vie/icons/icon-512.png">
 <link rel="canonical" href="https://oen-n.github.io/hello-world/vie/">
-<link rel="preload" href="../malin/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="../malin/malin.css">
 </head>
-<body data-app="vie" class="has-tabbar">
+<body class="has-tabbar">
 
 <header class="top">
-  <div class="row-between">
-    <div class="brand"><img src="icons/icon-192.png" alt="" width="32" height="32"><span>Vie Maline</span></div>
-    <a class="m-sign" href="../applis/">Les Applis Malines</a>
-  </div>
+  <div class="brand"><img src="icons/icon-192.png" alt="" width="32" height="32"><span>Vie Maline</span></div>
   <p class="hello" id="hello"></p>
 </header>
 
@@ -201,7 +196,6 @@
       <label class="ghost full file-btn">📂 Restaurer une sauvegarde<input type="file" id="importInput" accept="application/json" hidden></label>
       <button class="link danger" type="button" id="resetBtn">Tout effacer</button>
     </div>
-    <a class="m-family" href="../applis/"><img src="../promo/reseaux/logo-192.png" alt=""><span><b>✦ Les Applis Malines</b><span>Nos autres applis gratuites</span></span></a>
     <p class="foot center">Vie Maline donne des conseils de bien-être général, pas des avis médicaux. En cas de souci de santé, parles-en à un médecin.</p>
   </section>
 </main>
@@ -239,7 +233,7 @@
 
 <div class="toast" id="toast" hidden></div>
 
-<nav class="m-tabbar" id="tabbar" hidden>
+<nav class="tabbar" id="tabbar" hidden>
   <button type="button" data-tab="jour"><span class="ico">☀️</span>Aujourd'hui</button>
   <button type="button" data-tab="taches"><span class="ico">✅</span>À faire</button>
   <button type="button" data-tab="focus"><span class="ico">🎯</span>Focus</button>

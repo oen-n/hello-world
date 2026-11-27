@@ -1,7 +1,7 @@
 // Service worker de Vie Maline : l'appli s'ouvre même sans réseau et affiche les rappels.
-const CACHE = "vie-maline-v1";
+const CACHE = "vie-maline-v2";
 const SHELL = ["./", "index.html", "style.css", "app.js", "core.js", "coach.js", "manifest.webmanifest",
-  "icons/icon-192.png", "../malin/malin.css", "../malin/fonts/plus-jakarta-sans.woff2"];
+  "icons/icon-192.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
