@@ -245,3 +245,41 @@ dialog.sheet h2 { margin-top: 0; }
   .habits { grid-template-columns: 1fr; }
   .kpis b { font-size: .95rem; }
 }
+
+/* Organiser : sélecteur Tâches / Objectifs / Vider ma tête */
+.seg { background: var(--v-chip); border-radius: 999px; padding: 4px; gap: 2px; display: inline-flex; }
+.seg button { border-radius: 999px; border: 0; background: none; color: var(--v-ink-2); font-weight: 700; padding: 8px 12px; white-space: nowrap; }
+.seg button.on { background: var(--v-card); color: var(--v-ink); box-shadow: 0 2px 8px rgba(40, 20, 90, .12); }
+.seg-wrap { display: flex; justify-content: center; margin: 14px 0 0; overflow-x: auto; }
+.seg-wrap .seg { font-size: .9rem; }
+.seg.mini { font-size: .78rem; flex-wrap: wrap; }
+.seg.mini button { padding: 5px 9px; }
+
+/* Priorités et étoiles */
+.tasks.prio { counter-reset: prio; }
+.tasks.prio .task::before { counter-increment: prio; content: counter(prio); flex: none; width: 22px; height: 22px; border-radius: 999px;
+  background: var(--v-gold); color: #3a2a00; font-weight: 800; font-size: .78rem; display: grid; place-items: center; order: -1; }
+.staricon { font-size: 1.1rem; opacity: .55; padding: 4px; }
+.staricon.on { opacity: 1; }
+.task.star .tt { font-weight: 700; }
+
+/* Comment tu te sens ? */
+.feel .chip { font-size: .86rem; padding: 7px 12px; }
+.advice { background: var(--v-accent-soft); border-radius: 16px; padding: 10px 12px; }
+.advice li { margin: 4px 0; font-size: .92rem; }
+
+/* Objectifs */
+.goal h2 { font-size: 1.05rem; }
+.goal.fini { opacity: .75; }
+.why { margin: 4px 0 8px; font-style: italic; color: var(--v-ink-2); font-size: .92rem; }
+.progress { height: 10px; border-radius: 999px; background: var(--v-chip); overflow: hidden; margin-top: 8px; }
+.progress i { display: block; height: 100%; width: var(--p); background: var(--v-sunrise); border-radius: 999px; }
+select.input { appearance: auto; }
+
+/* Vider ma tête */
+.sort { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 12px; }
+.sort li { display: grid; gap: 6px; padding-bottom: 12px; border-bottom: 1px solid var(--v-line); }
+.sort li:last-child { border-bottom: 0; }
+.sort .input { padding: 9px 12px; font-size: .95rem; }
+.sort small { color: var(--v-ink-3); }
+.mem li small { font-size: .76rem; }

@@ -123,6 +123,7 @@
       <button class="ghost small" type="button" id="jourNext" aria-label="Jour suivant">›</button>
     </div>
     <div class="card brief" id="brief"></div>
+    <div class="card" id="ressentiCard"></div>
     <div class="card" id="tachesJour"></div>
     <div class="card">
       <div class="row-between">
@@ -140,6 +141,12 @@
 
   <!-- ============ À faire ============ -->
   <section id="v-taches" class="view" hidden>
+    <div class="seg-wrap"><div class="seg" id="orgSeg" role="tablist">
+      <button type="button" data-seg="taches" class="on">✅ Tâches</button>
+      <button type="button" data-seg="objectifs">🎯 Objectifs</button>
+      <button type="button" data-seg="tete">🧠 Vider ma tête</button>
+    </div></div>
+    <div id="org-taches">
     <form class="card" id="tacheForm" autocomplete="off">
       <h2>➕ Ne rien oublier</h2>
       <p class="sub">Écris ou dis-le comme tu parles : « appeler le dentiste demain à 10h », « payer le loyer le 5 », « courses samedi ».</p>
@@ -148,9 +155,48 @@
         <button type="button" class="mic" data-mic="tacheInput" aria-label="Dicter">🎙️</button>
       </div>
       <p class="sub" id="tacheApercu"></p>
+      <label class="toggle"><input type="checkbox" id="tacheImportante"> ⭐ C'est important (priorité)</label>
       <button class="primary full" type="submit">Ajouter</button>
     </form>
     <div id="tachesListe"></div>
+    </div>
+
+    <div id="org-objectifs" hidden>
+      <div class="card">
+        <h2>🎯 Mes objectifs</h2>
+        <p class="sub">Sport, argent, travail, loisirs… Tout ce que tu veux réaliser. Découpe chaque objectif en petites étapes : je réserve du temps pour lui dans ton programme chaque semaine.</p>
+        <form id="objForm" autocomplete="off">
+          <label class="lbl">Ton objectif
+            <div class="voice-field"><input type="text" class="input" id="objTitre" placeholder="Ex. : courir 10 km, investir 100 € par mois, apprendre la guitare" maxlength="100"><button type="button" class="mic" data-mic="objTitre" aria-label="Dicter">🎙️</button></div>
+          </label>
+          <div class="chips" id="objDomaines"></div>
+          <label class="lbl">Pourquoi c'est important pour toi ? <span class="muted">(ça aide à tenir)</span>
+            <input type="text" class="input" id="objPourquoi" placeholder="Ex. : être fier de moi, avoir plus de liberté" maxlength="140">
+          </label>
+          <label class="lbl">Temps à y consacrer par semaine
+            <select class="input" id="objHeures">
+              <option value="0.5">30 min</option><option value="1" selected>1 h</option><option value="2">2 h</option><option value="3">3 h</option><option value="5">5 h</option><option value="0">Pas de temps fixe</option>
+            </select>
+          </label>
+          <button class="primary full" type="submit">Ajouter cet objectif</button>
+        </form>
+      </div>
+      <div id="objListe"></div>
+    </div>
+
+    <div id="org-tete" hidden>
+      <div class="card">
+        <h2>🧠 Vider ma tête</h2>
+        <p class="sub">Tu as plein de choses en tête ? Écris ou dis <b>tout</b>, en vrac, sans trier : ce que tu dois faire, ce que tu aimerais faire, ce qui t'inquiète. Je range tout pour toi.</p>
+        <div class="voice-field">
+          <textarea class="input" id="teteTexte" rows="6" placeholder="Ex. : faut que j'appelle le garage demain, j'aimerais commencer à investir, je stresse pour mon entretien de jeudi, acheter un cadeau pour maman, me remettre au sport…"></textarea>
+          <button type="button" class="mic" data-mic="teteTexte" aria-label="Dicter">🎙️</button>
+        </div>
+        <button class="primary full" type="button" id="teteTrier">Ranger mes pensées</button>
+      </div>
+      <div id="teteResultat"></div>
+      <div id="pensees"></div>
+    </div>
   </section>
 
   <!-- ============ Focus ============ -->
@@ -184,6 +230,7 @@
 
   <!-- ============ Moi ============ -->
   <section id="v-moi" class="view" hidden>
+    <div class="card" id="tempsCard"></div>
     <div class="card" id="statsCard"></div>
     <div class="card" id="memoireCard"></div>
     <div class="card" id="habitudesGerer"></div>
@@ -191,6 +238,7 @@
       <h2>⚙️ Réglages</h2>
       <button class="ghost full" type="button" id="editProfil">✏️ Modifier mon profil et mes horaires</button>
       <button class="ghost full" type="button" id="notifBtn">🔔 Activer les rappels</button>
+      <button class="ghost full" type="button" id="rappelsSoirBtn">🌙 Rappels de chaque soir dans mon agenda</button>
       <button class="ghost full" type="button" id="cleBtn">🤖 Brancher le coach IA</button>
       <button class="ghost full" type="button" id="exportBtn">💾 Sauvegarder mes données</button>
       <label class="ghost full file-btn">📂 Restaurer une sauvegarde<input type="file" id="importInput" accept="application/json" hidden></label>
@@ -235,7 +283,7 @@
 
 <nav class="tabbar" id="tabbar" hidden>
   <button type="button" data-tab="jour"><span class="ico">☀️</span>Aujourd'hui</button>
-  <button type="button" data-tab="taches"><span class="ico">✅</span>À faire</button>
+  <button type="button" data-tab="taches"><span class="ico">🗂️</span>Organiser</button>
   <button type="button" data-tab="focus"><span class="ico">🎯</span>Focus</button>
   <button type="button" data-tab="coach"><span class="ico">💬</span>Coach</button>
   <button type="button" data-tab="moi"><span class="ico">🙂</span>Moi</button>

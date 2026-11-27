@@ -94,7 +94,7 @@ export function lireTache(texte, ref = new Date()) {
 
   // nettoyage : « penser à », « il faut que je », « rappelle-moi de »…
   let titre = t.replace(/\s+/g, " ").trim()
-    .replace(/^(rappelle[- ]moi\s+(de|d'|qu'il faut)\s*|n'oublie pas\s+(de|d')\s*|penser\s+à\s*|pense\s+à\s*|il faut que je\s+|je dois\s+)/i, "")
+    .replace(/^(rappelle[- ]moi\s+(de|d'|qu'il faut)\s*|n'oublie pas\s+(de|d')\s*|penser\s+à\s*|pense\s+à\s*|il faut que je\s+|il faut que j['’ ]\s*|il faut\s+|faut que j['’ ]\s*|je dois\s+)/i, "")
     .replace(/[\s,.;:-]+$/, "");
   titre = titre.charAt(0).toUpperCase() + titre.slice(1);
   return { titre, date, heure };
@@ -131,7 +131,8 @@ export const HABITUDES_PAR_OBJECTIF = {
 export function habitudesDepuisObjectifs(objectifs) {
   const out = [];
   for (const o of objectifs) for (const h of HABITUDES_PAR_OBJECTIF[o] || []) if (!out.some((x) => x.id === h.id)) out.push({ ...h });
-  if (!out.length) out.push({ id: "h-eau", ico: "💧", nom: "1,5 L d'eau" }, { id: "h-bouger", ico: "🏃", nom: "Bouger 30 min" });
+  if (!out.some((h) => h.id === "h-coucher")) out.unshift({ ...HABITUDES_PAR_OBJECTIF.sommeil[0] });
+  if (out.length < 2) out.push({ id: "h-eau", ico: "💧", nom: "1,5 L d'eau" }, { id: "h-bouger", ico: "🏃", nom: "Bouger 30 min" });
   return out;
 }
 
@@ -146,7 +147,7 @@ export function serie(days, habId, fromIso = today()) {
 // ---------- Le programme du jour ----------
 // Construit la journée à partir du profil : sommeil, repas, travail découpé en
 // séances de concentration, sport, temps pour soi, coupure des écrans.
-export function genererPlan(p, iso, taches = []) {
+export function genererPlan(p, iso, taches = [], objectifs = []) {
   const d = fromIso(iso), jour = d.getDay();
   const obj = new Set(p.objectifs || []);
   const reveil = toMin(p.reveil) ?? 420;
@@ -159,6 +160,7 @@ export function genererPlan(p, iso, taches = []) {
   };
 
   const travaille = (p.travailJours || []).includes(jour);
+  const priorite = prioritesDu(taches, iso)[0];
   const tDeb = toMin(p.travailDebut), tFin = toMin(p.travailFin);
   const sportDuJour = (p.sportJours || []).includes(jour);
   const sDeb = toMin(p.sportHeure), sDur = +p.sportDuree || 60;
@@ -191,7 +193,7 @@ export function genererPlan(p, iso, taches = []) {
         const deb = i === 0 ? a : r5(a + i * (seance + 10)), fin = i === k - 1 ? b : r5(a + i * (seance + 10) + seance);
         n++;
         add(deb, fin, n === 1 ? `${p.metier ? cap(p.metier) : "Travail"} : la tâche la plus importante` : `${p.metier ? cap(p.metier) : "Travail"} : séance ${n}`, "💼", "travail",
-          n === 1 ? "Commence par le plus dur, téléphone en mode Ne pas déranger." : "");
+          n === 1 ? (priorite ? `Commence par ta priorité : « ${priorite.titre} ». Téléphone en Ne pas déranger.` : "Commence par le plus dur, téléphone en mode Ne pas déranger.") : "");
         if (i < k - 1) add(fin, fin + 10, "Pause : lève-toi, bouge, bois de l'eau", "☕", "pause", "Pas de réseaux sociaux pendant la pause : ça fatigue le cerveau au lieu de le reposer.");
       }
     }
@@ -219,7 +221,18 @@ export function genererPlan(p, iso, taches = []) {
   }
   if (!travaille) {
     const c = trouverCreneau(blocs, reveil + 60, dej, 60);
-    if (c != null) add(c, c + 60, "Les choses à faire de la liste", "✅", "taches", "Avance tes tâches en attente : une à la fois.");
+    if (c != null) add(c, c + 60, priorite ? `Ma priorité : ${priorite.titre}` : "Les choses à faire de la liste", priorite ? "⭐" : "✅", "taches",
+      priorite ? "Fais d'abord ta tâche la plus importante, le reste ira tout seul." : "Avance tes tâches en attente : une à la fois.");
+  }
+
+  // Du temps réservé pour chaque objectif (sport, argent, projets, loisirs…)
+  for (const s of seancesObjectifs(objectifs, iso)) {
+    const de = travaille ? Math.max((tFin ?? 1080) + 20, reveil + 60) : reveil + 90;
+    let c = trouverCreneau(blocs, de, coucher - 70, s.duree);
+    if (c == null) c = trouverCreneau(blocs, reveil + 60, coucher - 70, s.duree);
+    if (c == null) continue;
+    const d = DOMAINES.find((x) => x.id === s.objectif.domaine) || DOMAINES.at(-1);
+    add(c, c + s.duree, `${s.objectif.titre}${s.etape ? ` : ${s.etape}` : ""}`, d.ico, "objectif", s.etape ? "Juste cette étape, rien de plus. C'est comme ça qu'on avance." : "Avance un peu sur ton objectif.");
   }
 
   // Soir
@@ -382,9 +395,104 @@ export function ics(evenements) {
     lines.push("BEGIN:VEVENT", `UID:${e.uid}@vie-maline`, `DTSTAMP:${dtstamp}`,
       `DTSTART:${stamp(e.date, e.debut)}`, `DTEND:${stamp(finIso, e.fin)}`, `SUMMARY:${esc(e.titre)}`);
     if (e.note) lines.push(`DESCRIPTION:${esc(e.note)}`);
+    if (e.chaqueJour) lines.push("RRULE:FREQ=DAILY");
     if (e.rappel !== false) lines.push("BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${esc(e.titre)}`, `TRIGGER:-PT${e.avance ?? 5}M`, "END:VALARM");
     lines.push("END:VEVENT");
   }
   lines.push("END:VCALENDAR");
   return lines.join("\r\n");
+}
+
+
+// ---------- Objectifs ----------
+export const DOMAINES = [
+  { id: "sport", ico: "🏃", nom: "Sport et santé" },
+  { id: "argent", ico: "💶", nom: "Argent et investissement" },
+  { id: "travail", ico: "💼", nom: "Travail et études" },
+  { id: "loisirs", ico: "🎸", nom: "Loisirs et passions" },
+  { id: "apprendre", ico: "📚", nom: "Apprendre" },
+  { id: "proches", ico: "🤝", nom: "Famille et amis" },
+  { id: "perso", ico: "✨", nom: "Projet perso" },
+];
+// Répartit les heures par semaine de chaque objectif en séances (45 min environ), sur des jours étalés
+export function seancesObjectifs(objectifs, iso) {
+  const jour = (fromIso(iso).getDay() + 6) % 7; // lundi = 0
+  const out = [];
+  objectifs.filter((o) => !o.fini && (+o.heuresSemaine || 0) > 0).forEach((o, i) => {
+    const min = Math.round(+o.heuresSemaine * 60);
+    const n = Math.min(7, Math.max(1, Math.round(min / 45)));
+    const duree = Math.max(15, Math.round(min / n / 5) * 5);
+    // n jours répartis sur la semaine, décalés d'un objectif à l'autre
+    const jours = Array.from({ length: n }, (_, k) => (Math.floor((k * 7) / n) + i * 2) % 7);
+    if (jours.includes(jour)) out.push({ objectif: o, duree, etape: (o.etapes || []).find((e) => !e.fait)?.titre || "" });
+  });
+  return out;
+}
+
+// ---------- Priorités ----------
+// Les 3 priorités du jour : d'abord les tâches marquées ⭐ (du jour, en retard ou sans date), puis celles du jour
+export function prioritesDu(taches, iso, n = 3) {
+  const ouvertes = taches.filter((t) => !t.fait && (!t.date || t.date <= iso));
+  const rang = (t) => (t.important ? 0 : 2) + (t.date === iso || (t.date && t.date < iso) ? 0 : 1);
+  return ouvertes.filter((t) => t.important || t.date === iso || (t.date && t.date < iso))
+    .sort((a, b) => rang(a) - rang(b) || (a.date || "9").localeCompare(b.date || "9") || (a.heure || "99").localeCompare(b.heure || "99"))
+    .slice(0, n);
+}
+
+// ---------- Comment tu te sens ? ----------
+export const RESSENTIS = [
+  { id: "fatigue", ico: "😴", nom: "Fatigué",
+    conseils: ["Vise 7 à 8 h de sommeil : ce soir, couche-toi 30 minutes plus tôt que d'habitude.", "Fais attention à ce que tu manges : du sucre et des plats gras donnent un coup de barre après le repas.", "Sors 10 minutes à la lumière du jour et bois un grand verre d'eau : c'est souvent plus efficace qu'un café.", "Pas plus de 20 minutes de sieste, et avant 16 h."],
+    habitude: { id: "h-coucher", ico: "🛏️", nom: "Couché à l'heure" } },
+  { id: "stress", ico: "😰", nom: "Stressé",
+    conseils: ["Respire : inspire 4 secondes, expire 6 secondes, pendant 2 minutes.", "Vide ta tête : écris tout ce qui te stresse dans « Vider ma tête ». Ça prend moins de place une fois écrit.", "Choisis UNE chose à faire maintenant, la plus petite. Le reste attendra.", "Une marche de 20 minutes dehors fait vraiment baisser le stress."],
+    habitude: { id: "h-respirer", ico: "🧘", nom: "Respirer / méditer 5 min" } },
+  { id: "motivation", ico: "😶", nom: "Pas motivé",
+    conseils: ["Ne cherche pas la motivation : commence 2 minutes seulement. Elle vient en faisant.", "Lance une séance de 15 minutes en mode travail 🎯, juste 15.", "Rappelle-toi pourquoi tu le fais : regarde tes objectifs.", "Range ton espace 5 minutes : un cadre propre donne envie d'avancer."],
+    habitude: { id: "h-focus", ico: "🎯", nom: "Une séance de travail sans distraction" } },
+  { id: "mange", ico: "🍔", nom: "Mal mangé",
+    conseils: ["Pas de culpabilité : le prochain repas compte plus que le dernier.", "Au prochain repas : moitié légumes, un quart de protéines, un quart de féculents.", "Bois de l'eau : on confond souvent soif et faim.", "Prépare ou prévois ton prochain repas maintenant, pour ne pas craquer au dernier moment."],
+    habitude: { id: "h-legumes", ico: "🥗", nom: "Fruits et légumes à chaque repas" } },
+  { id: "telephone", ico: "📱", nom: "Trop de téléphone",
+    conseils: ["Pose ton téléphone dans une autre pièce pendant 1 heure.", "Coupe les notifications des réseaux sociaux, garde juste tes proches.", "Programme le Ne pas déranger avec tes horaires (onglet Focus).", "Ce soir : téléphone à charger hors de la chambre."],
+    habitude: { id: "h-ecrans-soir", ico: "🌙", nom: "Écrans coupés 1 h avant de dormir" } },
+  { id: "forme", ico: "💪", nom: "En forme",
+    conseils: ["Profite de cette énergie pour ta priorité ⭐ du jour.", "C'est le bon moment pour avancer sur un objectif.", "Note ce qui t'a mis en forme aujourd'hui dans ton bilan : on le refera."] },
+];
+
+// ---------- Vider sa tête ----------
+// Découpe un texte en vrac en éléments, et devine pour chacun : tâche, objectif ou simple pensée.
+export function trierPensees(texte, ref = new Date()) {
+  const morceaux = String(texte || "").replace(/’/g, "'")
+    .split(/\n+|[.;!?]+\s+|,\s*(?:et\s+)?(?=(?:il faut|je dois|faut|penser|appeler|acheter|payer|envoyer|prendre|réserver|faire|finir|j'aimerais|je veux|je voudrais)\b)|\s+(?:et puis|et aussi|aussi|puis)\s+/i)
+    .map((x) => x.trim().replace(/^[-•*]\s*/, "").replace(/[.;,!]+$/, ""))
+    .filter((x) => x.length > 2);
+  return morceaux.map((m) => {
+    const t = m.toLowerCase();
+    const lu = lireTache(m, ref);
+    let type = "pensee";
+    if (/(j'aimerais|je voudrais|je veux|mon rêve|objectif|devenir|apprendre|économiser|epargner|épargner|investir|perdre \d+|courir un|me remettre|me mettre à|commencer à)/.test(t)) type = "objectif";
+    if (lu.date || /^(il faut|faut|je dois|penser|appeler|acheter|payer|envoyer|prendre|réserver|rappeler|répondre|finir|faire|ranger|nettoyer|aller|réparer|écrire|rendre|inscri)/.test(t)) type = "tache";
+    if (/(j'ai peur|je m'inquiète|ça m'angoisse|je stresse|j'en ai marre|je me sens|je suis triste|je suis fatigué)/.test(t)) type = "pensee";
+    const domaine = /sport|courir|muscu|salle|kilos|santé|marathon/.test(t) ? "sport" : /argent|investi|épargn|economis|économis|bourse|crypto|budget/.test(t) ? "argent"
+      : /travail|boulot|promotion|étude|exam|diplôme|cv/.test(t) ? "travail" : /guitare|musique|dessin|lire|livre|jeu|photo|cuisine/.test(t) ? "loisirs"
+      : /apprendre|langue|anglais|espagnol|code|formation/.test(t) ? "apprendre" : /famille|amis|maman|papa|frère|soeur|sœur|copine|copain/.test(t) ? "proches" : "perso";
+    let texte = type === "tache" ? lu.titre : m;
+    if (type === "objectif") texte = texte.replace(/^(j['’ ]?aimerais|je voudrais|je veux|mon objectif (c'est|est) de|mon rêve (c'est|est) de)\s+(bien\s+)?/i, "");
+    return { id: Math.random().toString(36).slice(2, 9), texte: texte.charAt(0).toUpperCase() + texte.slice(1), type, date: lu.date, heure: lu.heure, domaine };
+  });
+}
+
+// ---------- Mon temps de la semaine ----------
+export function tempsSemaine(plans) {
+  const cat = { travail: 0, sport: 0, objectif: 0, loisir: 0, repas: 0, sommeil: 0 };
+  for (const plan of plans) for (const b of plan) {
+    let d = (toMin(b.fin) - toMin(b.debut) + 1440) % 1440;
+    if (b.type === "travail") cat.travail += d;
+    else if (b.type === "sport") cat.sport += d;
+    else if (b.type === "objectif") cat.objectif += d;
+    else if (b.type === "loisir" || b.type === "taches") cat.loisir += d;
+    else if (b.type === "repas") cat.repas += d;
+  }
+  return cat;
 }

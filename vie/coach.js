@@ -23,6 +23,9 @@ Comment tu travailles :
 - Quand elle t'apprend quelque chose de durable sur elle (horaires, travail, famille, goûts, difficultés, objectifs), enregistre-le avec l'outil « memoriser », en une phrase courte. Ne mémorise pas ce qui est déjà dans la mémoire.
 - Quand elle te demande de ne pas oublier quelque chose, ou qu'une action datée ressort de la conversation, crée la tâche avec « ajouter_tache ».
 - Quand elle te demande d'organiser ou de réorganiser une journée, utilise « planifier_journee » avec un programme complet et réaliste de son lever à son coucher (repas, travail par séances avec pauses, sport, temps pour soi, coupure des écrans 1 h avant le coucher). Respecte ses contraintes.
+- Aide-la à prioriser : marque « important » les tâches qui comptent vraiment (3 par jour au plus) et rappelle-lui de commencer par la plus importante.
+- Quand elle veut réaliser quelque chose (sport, investissement, travail, études, loisirs, projet), aide-la à en faire un objectif clair avec « ajouter_objectif » : un titre concret, pourquoi c'est important pour elle, le temps par semaine qu'elle peut y consacrer de façon réaliste, et 3 à 5 premières étapes très petites. L'application réserve ce temps dans son programme.
+- Quand elle a trop de choses en tête, aide-la à vider sa tête : reformule clairement ce qu'elle dit, sépare ce qui est à faire (tâches), ce qu'elle veut réaliser (objectifs) et ce qui n'est qu'une inquiétude, puis propose une seule prochaine action.
 - Quand une nouvelle habitude à suivre chaque jour l'aiderait et qu'elle est d'accord, utilise « ajouter_habitude ».
 - Après avoir utilisé un outil, dis-lui en une phrase ce que tu as fait.
 
@@ -43,6 +46,7 @@ const TOOLS = [
         titre: { type: "string", description: "Ce qu'il faut faire, court, commençant par un verbe. Ex. : « Appeler le dentiste »" },
         date: { ...DATE, description: "Jour (AAAA-MM-JJ), si connu" },
         heure: { ...HHMM, description: "Heure (HH:MM), si connue" },
+        important: { type: "boolean", description: "Vrai si c'est une priorité" },
       },
       required: ["titre"],
       additionalProperties: false,
@@ -78,6 +82,23 @@ const TOOLS = [
     },
   },
   {
+    name: "ajouter_objectif",
+    description: "Ajoute un objectif à réaliser (sport, argent, travail, loisirs…) découpé en petites étapes. L'application réserve du temps chaque semaine pour lui dans le programme.",
+    eager_input_streaming: true,
+    input_schema: {
+      type: "object",
+      properties: {
+        titre: { type: "string", description: "Objectif concret. Ex. : « Courir 10 km en mars »" },
+        domaine: { type: "string", enum: ["sport", "argent", "travail", "loisirs", "apprendre", "proches", "perso"] },
+        pourquoi: { type: "string", description: "Pourquoi c'est important pour elle, en une phrase" },
+        heures_par_semaine: { type: "number", description: "Temps réaliste à y consacrer par semaine, en heures (0 à 10)" },
+        etapes: { type: "array", items: { type: "string" }, description: "3 à 5 premières étapes, très petites et concrètes" },
+      },
+      required: ["titre", "domaine"],
+      additionalProperties: false,
+    },
+  },
+  {
     name: "ajouter_habitude",
     description: "Ajoute une habitude à cocher chaque jour dans l'application.",
     eager_input_streaming: true,
@@ -106,7 +127,11 @@ const isStr = (v, max = 400) => typeof v === "string" && v.trim().length > 0 && 
 const okH = (v) => v === undefined || (typeof v === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(v));
 const okD = (v) => v === undefined || (typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v));
 const VALIDE = {
-  ajouter_tache: (i) => isStr(i.titre, 200) && okD(i.date) && okH(i.heure),
+  ajouter_tache: (i) => isStr(i.titre, 200) && okD(i.date) && okH(i.heure) && (i.important === undefined || typeof i.important === "boolean"),
+  ajouter_objectif: (i) => isStr(i.titre, 160) && ["sport", "argent", "travail", "loisirs", "apprendre", "proches", "perso"].includes(i.domaine)
+    && (i.heures_par_semaine === undefined || (typeof i.heures_par_semaine === "number" && i.heures_par_semaine >= 0 && i.heures_par_semaine <= 20))
+    && (i.etapes === undefined || (Array.isArray(i.etapes) && i.etapes.length <= 12 && i.etapes.every((e) => isStr(e, 160))))
+    && (i.pourquoi === undefined || typeof i.pourquoi === "string"),
   planifier_journee: (i) => okD(i.date) && i.date && Array.isArray(i.blocs) && i.blocs.length > 0 && i.blocs.length <= 60
     && i.blocs.every((b) => b && okH(b.debut) && okH(b.fin) && b.debut && b.fin && isStr(b.titre, 160)),
   ajouter_habitude: (i) => isStr(i.nom, 80),
@@ -210,6 +235,51 @@ export async function lireProfil({ apiKey, recit, actuel }) {
   if (r.stop_reason === "refusal") throw new Error("Le coach n'a pas pu lire ce texte.");
   const txt = r.content.find((b) => b.type === "text")?.text;
   return JSON.parse(txt);
+}
+
+// « Vider ma tête » : range un texte en vrac en tâches, objectifs et pensées
+const TRI_SCHEMA = {
+  type: "object",
+  properties: {
+    resume: { type: "string", description: "2 phrases chaleureuses qui clarifient ce qu'elle vit et proposent la prochaine action la plus utile" },
+    elements: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          texte: { type: "string", description: "Reformulé court et clair ; pour une tâche, commence par un verbe" },
+          type: { type: "string", enum: ["tache", "objectif", "pensee"] },
+          date: { type: "string", description: "AAAA-MM-JJ si une date ressort, sinon chaîne vide" },
+          heure: { type: "string", description: "HH:MM si une heure ressort, sinon chaîne vide" },
+          important: { type: "boolean" },
+          domaine: { type: "string", enum: ["sport", "argent", "travail", "loisirs", "apprendre", "proches", "perso"] },
+        },
+        required: ["texte", "type", "date", "heure", "important", "domaine"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["resume", "elements"],
+  additionalProperties: false,
+};
+export async function trierPensees({ apiKey, texte, aujourdhui }) {
+  const c = await client(apiKey);
+  const r = await c.beta.messages.create({
+    model: MODEL,
+    max_tokens: 16000,
+    betas: BETAS,
+    fallbacks: "default",
+    output_config: { effort: "low", format: { type: "json_schema", schema: TRI_SCHEMA } },
+    system: "Tu aides une personne à vider sa tête. Elle a écrit ou dicté en vrac tout ce qu'elle a en tête. Sépare chaque idée : « tache » = une action à faire, « objectif » = quelque chose qu'elle veut réaliser sur la durée, « pensee » = une inquiétude, une émotion ou une réflexion. Marque important au plus 3 tâches, les plus urgentes ou qui comptent le plus. Dates relatives à calculer depuis la date du jour donnée. Tutoie, en français.",
+    messages: [{ role: "user", content: `Nous sommes le ${aujourdhui}.\n\nCe que j'ai en tête :\n${texte}` }],
+  });
+  if (r.stop_reason === "refusal") throw new Error("refus");
+  const d = JSON.parse(r.content.find((b) => b.type === "text")?.text || "{}");
+  const okD = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v || ""), okH = (v) => /^([01]\d|2[0-3]):[0-5]\d$/.test(v || "");
+  return {
+    resume: d.resume || "",
+    elements: (d.elements || []).filter((x) => x && x.texte).map((x) => ({ ...x, date: okD(x.date) ? x.date : null, heure: okH(x.heure) ? x.heure : null })),
+  };
 }
 
 // Petit test de la clé

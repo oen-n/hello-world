@@ -1,5 +1,5 @@
 // Service worker de Vie Maline : l'appli s'ouvre même sans réseau et affiche les rappels.
-const CACHE = "vie-maline-v2";
+const CACHE = "vie-maline-v3";
 const SHELL = ["./", "index.html", "style.css", "app.js", "core.js", "coach.js", "manifest.webmanifest",
   "icons/icon-192.png"];
 

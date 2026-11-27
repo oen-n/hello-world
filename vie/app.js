@@ -2,7 +2,7 @@
 import {
   today, addDays, isoDate, toMin, toHHMM, nowMin, jourLong, jourCourt, fmtH, JOURS_COURTS,
   lireTache, OBJECTIFS, habitudesDepuisObjectifs, serie, genererPlan, dureeSommeil, minutesSommeil,
-  lireRecit, conseilDuJour, analyser, ics,
+  lireRecit, conseilDuJour, analyser, ics, DOMAINES, prioritesDu, RESSENTIS, trierPensees, tempsSemaine,
 } from "./core.js";
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -12,7 +12,7 @@ const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(
 
 // ---------- Données (tout reste dans le navigateur) ----------
 const KEY = "vie-maline-v1";
-const VIDE = { profile: null, tasks: [], days: {}, habits: [], chat: [], chatApi: [], settings: { apiKey: "", raccourcis: false } };
+const VIDE = { profile: null, tasks: [], goals: [], pensees: [], days: {}, habits: [], chat: [], chatApi: [], settings: { apiKey: "", raccourcis: false } };
 let S = charger();
 function charger() {
   try { return { ...structuredClone(VIDE), ...JSON.parse(localStorage.getItem(KEY) || "{}") }; } catch { return structuredClone(VIDE); }
@@ -195,7 +195,7 @@ function planDu(iso) {
       .map((t) => ({ id: `tache-${t.id}`, debut: t.heure, fin: toHHMM(toMin(t.heure) + 15), titre: t.titre, ico: "🔔", type: "tache", tacheId: t.id }));
     return [...d.planIA.map((b, i) => ({ id: `ia-${i}`, ico: "•", ...b })), ...taches].sort((a, b) => toMin(a.debut) - toMin(b.debut));
   }
-  return genererPlan(S.profile, iso, S.tasks);
+  return genererPlan(S.profile, iso, S.tasks, S.goals);
 }
 function tachesDu(iso) {
   const t = today();
@@ -223,10 +223,16 @@ function rendreJour() {
     </div>
     <p class="tip">💡 ${esc(conseilDuJour(p.objectifs, iso))}</p>`;
 
-  // Les tâches du jour
-  const tj = tachesDu(iso).sort((a, b) => (a.heure || "99").localeCompare(b.heure || "99"));
-  $("#tachesJour").innerHTML = `<div class="row-between"><h2>✅ À faire ${estAuj ? "aujourd'hui" : "ce jour-là"}</h2><a class="link" href="#taches">+ Ajouter</a></div>` +
-    (tj.length ? `<ul class="tasks">${tj.map(ligneTache).join("")}</ul>` : `<p class="empty">Rien de prévu. ${estAuj ? "Profites-en, ou ajoute ce qui te trotte dans la tête." : ""}</p>`);
+  // Comment tu te sens ?
+  rendreRessenti(iso);
+
+  // Les priorités, puis le reste des tâches du jour
+  const prio = prioritesDu(S.tasks, iso);
+  const autres = tachesDu(iso).filter((x) => !prio.includes(x)).sort((a, b) => (a.heure || "99").localeCompare(b.heure || "99"));
+  $("#tachesJour").innerHTML = `<div class="row-between"><h2>🏆 Tes priorités ${estAuj ? "du jour" : ""}</h2><a class="link" href="#taches">+ Ajouter</a></div>` +
+    (prio.length ? `<p class="sub">Fais-les dans l'ordre, la 1re d'abord. Si tu ne fais que ça, ta journée est réussie.</p><ol class="tasks prio">${prio.map(ligneTache).join("")}</ol>`
+      : `<p class="empty">Aucune priorité. Marque une tâche avec ⭐ pour qu'elle passe en premier.</p>`) +
+    (autres.length ? `<h3>Et aussi</h3><ul class="tasks">${autres.map(ligneTache).join("")}</ul>` : "");
 
   // Le programme
   $("#planSource").innerHTML = dj.planIA?.length
@@ -275,8 +281,9 @@ function rendreJour() {
 
 function ligneTache(t) {
   const retard = t.date && t.date < today();
-  return `<li class="task${t.fait ? " done" : ""}">
+  return `<li class="task${t.fait ? " done" : ""}${t.important ? " star" : ""}">
     <button class="check" type="button" data-tache="${esc(t.id)}" aria-pressed="${!!t.fait}" aria-label="Fait">${t.fait ? "✓" : ""}</button>
+    ${t.fait ? "" : `<button class="icon staricon${t.important ? " on" : ""}" type="button" data-star="${esc(t.id)}" aria-pressed="${!!t.important}" aria-label="Important" title="Important">${t.important ? "⭐" : "☆"}</button>`}
     <span class="tt">${esc(t.titre)}<small class="${retard && !t.fait ? "late" : ""}">${t.date ? (retard && !t.fait ? "⚠️ en retard · " : "") + jourCourt(t.date) : "sans date"}${t.heure ? ` · 🔔 ${fmtH(t.heure)}` : ""}</small></span>
     ${t.date && t.heure && !t.fait ? `<button class="icon" type="button" data-agenda="${esc(t.id)}" aria-label="Ajouter à l'agenda" title="Ajouter à l'agenda">📅</button>` : ""}
     <button class="icon" type="button" data-suppr="${esc(t.id)}" aria-label="Supprimer" title="Supprimer">🗑️</button>
@@ -285,8 +292,13 @@ function ligneTache(t) {
 
 // Un seul écouteur pour les clics de toute l'appli
 document.addEventListener("click", (e) => {
-  const el = e.target.closest("[data-tache],[data-bloc],[data-h],[data-suppr],[data-agenda],[data-focus],.scale button");
+  const el = e.target.closest("[data-tache],[data-bloc],[data-h],[data-suppr],[data-agenda],[data-focus],[data-star],.scale button");
   if (!el) return;
+  if (el.dataset.star) {
+    const t = S.tasks.find((x) => x.id === el.dataset.star);
+    if (t) { t.important = !t.important; sauver(); if (t.important) toast("⭐ Passée en priorité"); }
+    rafraichir(); return;
+  }
   if (el.matches(".scale button")) {
     const k = el.parentElement.dataset.k, dj = jourData(jourVu);
     dj.bilan ||= {}; dj.bilan[k] = dj.bilan[k] === +el.dataset.v ? undefined : +el.dataset.v;
@@ -339,8 +351,8 @@ $("#planAgenda").addEventListener("click", () => {
 });
 
 // ---------- À faire ----------
-function ajouterTache({ titre, date = null, heure = null }) {
-  const t = { id: uid(), titre: titre.trim(), date: date || (heure ? today() : null), heure: heure || null, fait: false, cree: Date.now() };
+function ajouterTache({ titre, date = null, heure = null, important = false, objectifId = null }) {
+  const t = { id: uid(), titre: titre.trim(), date: date || (heure ? today() : null), heure: heure || null, important: !!important, objectifId, fait: false, cree: Date.now() };
   S.tasks.push(t); sauver(); planifierRappels();
   return t;
 }
@@ -354,16 +366,20 @@ $("#tacheForm").addEventListener("submit", (e) => {
   const v = $("#tacheInput").value.trim(); if (!v) return;
   const r = lireTache(v);
   if (!r.titre) return;
-  ajouterTache(r);
-  $("#tacheInput").value = ""; $("#tacheApercu").textContent = "";
+  ajouterTache({ ...r, important: $("#tacheImportante").checked });
+  $("#tacheInput").value = ""; $("#tacheApercu").textContent = ""; $("#tacheImportante").checked = false;
   toast(r.heure ? `🔔 Je te le rappelle ${jourCourt(r.date)} à ${fmtH(r.heure)}` : "✅ C'est noté, tu ne l'oublieras pas.");
   rendreTaches();
 });
 function rendreTaches() {
   brancherMicros($("#v-taches"));
+  $$("#orgSeg button").forEach((b) => b.classList.toggle("on", b.dataset.seg === segOrg));
+  for (const k of ["taches", "objectifs", "tete"]) $(`#org-${k}`).hidden = k !== segOrg;
+  if (segOrg === "objectifs") return rendreObjectifs();
+  if (segOrg === "tete") return rendrePensees();
   const t = today(), dem = addDays(t, 1);
   const ouvertes = S.tasks.filter((x) => !x.fait);
-  const tri = (a, b) => (a.date || "9").localeCompare(b.date || "9") || (a.heure || "99").localeCompare(b.heure || "99");
+  const ordre = (a, b) => (b.important ? 1 : 0) - (a.important ? 1 : 0) || (a.date || "9").localeCompare(b.date || "9") || (a.heure || "99").localeCompare(b.heure || "99");
   const groupes = [
     ["⚠️ En retard", ouvertes.filter((x) => x.date && x.date < t)],
     ["☀️ Aujourd'hui", ouvertes.filter((x) => x.date === t)],
@@ -372,11 +388,189 @@ function rendreTaches() {
     ["📥 Sans date", ouvertes.filter((x) => !x.date)],
     ["✔️ Fait récemment", S.tasks.filter((x) => x.fait).sort((a, b) => (b.faitLe || 0) - (a.faitLe || 0)).slice(0, 8)],
   ];
-  const html = groupes.filter(([, l]) => l.length).map(([titre, l]) => `<div class="card"><h2>${titre} <span class="muted">${l.length}</span></h2><ul class="tasks">${l.sort(tri).map(ligneTache).join("")}</ul></div>`).join("");
+  const html = groupes.filter(([, l]) => l.length).map(([titre, l]) => `<div class="card"><h2>${titre} <span class="muted">${l.length}</span></h2><ul class="tasks">${l.sort(ordre).map(ligneTache).join("")}</ul></div>`).join("");
   $("#tachesListe").innerHTML = html || `<p class="empty">Ta liste est vide. Tout ce qui te passe par la tête, mets-le ici : ton cerveau est fait pour réfléchir, pas pour stocker. 🧠</p>`;
   $("#tachesListe").insertAdjacentHTML("beforeend", notifEtat() === "granted" ? "" : `<p class="note center">🔔 <button class="link" type="button" id="notifInline">Active les rappels</button> pour être prévenu à l'heure, ou touche 📅 pour ajouter une tâche à l'agenda du téléphone.</p>`);
   $("#notifInline")?.addEventListener("click", demanderNotifs);
 }
+
+// ---------- Organiser : sous-parties ----------
+let segOrg = "taches";
+$("#orgSeg").addEventListener("click", (e) => { const b = e.target.closest("[data-seg]"); if (b) { segOrg = b.dataset.seg; rendreTaches(); } });
+
+// ---------- Comment tu te sens ? ----------
+function rendreRessenti(iso) {
+  const dj = jourData(iso), r = RESSENTIS.find((x) => x.id === dj.ressenti);
+  const futur = iso > today();
+  $("#ressentiCard").hidden = futur;
+  if (futur) return;
+  const dejaHab = r?.habitude && S.habits.some((h) => h.id === r.habitude.id);
+  $("#ressentiCard").innerHTML = `<h2>💬 Comment tu te sens ${iso === today() ? "aujourd'hui" : "ce jour-là"} ?</h2>
+    <div class="chips feel">${RESSENTIS.map((x) => `<button type="button" class="chip${x.id === dj.ressenti ? " on" : ""}" data-ressenti="${x.id}">${x.ico} ${x.nom}</button>`).join("")}</div>
+    ${r ? `<ul class="bullets advice">${r.conseils.map((c) => `<li>👉 ${esc(c)}</li>`).join("")}</ul>
+      ${r.habitude && !dejaHab ? `<button class="ghost small" type="button" data-addhab="${r.id}">+ Suivre l'habitude « ${esc(r.habitude.nom)} »</button>` : ""}` : ""}`;
+}
+$("#ressentiCard").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-ressenti]");
+  if (b) { const dj = jourData(jourVu); dj.ressenti = dj.ressenti === b.dataset.ressenti ? undefined : b.dataset.ressenti; sauver(); rendreRessenti(jourVu); return; }
+  const h = e.target.closest("[data-addhab]");
+  if (h) {
+    const r = RESSENTIS.find((x) => x.id === h.dataset.addhab);
+    if (r?.habitude && !S.habits.some((x) => x.id === r.habitude.id)) { S.habits.push({ ...r.habitude }); sauver(); toast("🌱 Habitude ajoutée"); rendreJour(); }
+  }
+});
+
+// ---------- Objectifs ----------
+let domaineChoisi = "sport";
+function ajouterObjectif({ titre, domaine = "perso", pourquoi = "", heuresSemaine = 1, etapes = [] }) {
+  const o = { id: uid(), titre: titre.trim(), domaine, pourquoi, heuresSemaine: +heuresSemaine || 0, etapes: etapes.filter(Boolean).map((t) => ({ id: uid(), titre: t, fait: false })), fini: false, cree: Date.now() };
+  S.goals.push(o); sauver();
+  return o;
+}
+function rendreObjectifs() {
+  $("#objDomaines").innerHTML = DOMAINES.map((d) => `<button type="button" class="chip${d.id === domaineChoisi ? " on" : ""}" data-dom="${d.id}">${d.ico} ${d.nom}</button>`).join("");
+  const actifs = S.goals.filter((o) => !o.fini), finis = S.goals.filter((o) => o.fini);
+  const total = actifs.reduce((a, o) => a + (+o.heuresSemaine || 0), 0);
+  const carte = (o) => {
+    const d = DOMAINES.find((x) => x.id === o.domaine) || DOMAINES.at(-1);
+    const faits = o.etapes.filter((e) => e.fait).length;
+    const pct = o.etapes.length ? Math.round((faits / o.etapes.length) * 100) : 0;
+    return `<div class="card goal${o.fini ? " fini" : ""}" data-goal="${esc(o.id)}">
+      <div class="row-between"><h2>${d.ico} ${esc(o.titre)}</h2>${o.fini ? "<span>🏅</span>" : ""}</div>
+      <p class="sub">${esc(d.nom)}${+o.heuresSemaine ? ` · ⏱️ ${o.heuresSemaine >= 1 ? o.heuresSemaine + " h" : Math.round(o.heuresSemaine * 60) + " min"} par semaine dans ton programme` : ""}</p>
+      ${o.pourquoi ? `<p class="why">💭 « ${esc(o.pourquoi)} »</p>` : ""}
+      ${o.etapes.length ? `<div class="progress"><i style="--p:${pct}%"></i></div><p class="sub">${faits}/${o.etapes.length} étapes</p>` : ""}
+      <ul class="tasks">${o.etapes.map((e) => `<li class="task${e.fait ? " done" : ""}"><button class="check" type="button" data-etape="${esc(e.id)}" aria-pressed="${e.fait}" aria-label="Fait">${e.fait ? "✓" : ""}</button><span class="tt">${esc(e.titre)}</span><button class="icon" type="button" data-etsuppr="${esc(e.id)}" aria-label="Supprimer">✕</button></li>`).join("")}</ul>
+      ${o.fini ? "" : `<form class="inline" data-etform><input class="input" placeholder="${o.etapes.length ? "Étape suivante…" : "1re petite étape, ex. : chercher un plan d'entraînement"}" maxlength="120"><button class="ghost" type="submit">+</button></form>`}
+      <div class="row-end">
+        <button class="link danger" type="button" data-objsuppr>Supprimer</button>
+        <button class="ghost small" type="button" data-objfini>${o.fini ? "Reprendre" : "🎉 Objectif atteint"}</button>
+      </div>
+    </div>`;
+  };
+  $("#objListe").innerHTML = (actifs.length ? `<p class="note center">⏱️ Tu réserves <b>${total} h</b> par semaine à tes objectifs. Elles sont dans ton programme du jour.</p>` : `<p class="empty">Pas encore d'objectif. Qu'est-ce que tu aimerais réaliser ces prochains mois ?</p>`) +
+    actifs.map(carte).join("") + (finis.length ? `<h3 class="center">🏅 Objectifs atteints</h3>${finis.map(carte).join("")}` : "");
+}
+$("#objDomaines").addEventListener("click", (e) => { const b = e.target.closest("[data-dom]"); if (b) { domaineChoisi = b.dataset.dom; rendreObjectifs(); } });
+$("#objForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const titre = $("#objTitre").value.trim(); if (!titre) return;
+  ajouterObjectif({ titre, domaine: domaineChoisi, pourquoi: $("#objPourquoi").value.trim(), heuresSemaine: +$("#objHeures").value });
+  $("#objTitre").value = ""; $("#objPourquoi").value = "";
+  toast("🎯 Objectif ajouté ! Découpe-le en petites étapes.");
+  rendreObjectifs();
+});
+$("#objListe").addEventListener("click", (e) => {
+  const carte = e.target.closest("[data-goal]"); if (!carte) return;
+  const o = S.goals.find((x) => x.id === carte.dataset.goal); if (!o) return;
+  const et = e.target.closest("[data-etape]");
+  if (et) { const x = o.etapes.find((y) => y.id === et.dataset.etape); x.fait = !x.fait; sauver(); if (x.fait) toast(o.etapes.every((y) => y.fait) ? "🎉 Toutes les étapes faites ! Ajoute la suite ou marque l'objectif atteint." : "✅ Une étape de plus !"); rendreObjectifs(); return; }
+  const es = e.target.closest("[data-etsuppr]");
+  if (es) { o.etapes = o.etapes.filter((y) => y.id !== es.dataset.etsuppr); sauver(); rendreObjectifs(); return; }
+  if (e.target.closest("[data-objfini]")) { o.fini = !o.fini; sauver(); if (o.fini) { toast("🏅 Bravo, objectif atteint !"); bip(); } rendreObjectifs(); return; }
+  if (e.target.closest("[data-objsuppr]") && confirm(`Supprimer l'objectif « ${o.titre} » ?`)) { S.goals = S.goals.filter((x) => x !== o); sauver(); rendreObjectifs(); }
+});
+$("#objListe").addEventListener("submit", (e) => {
+  const f = e.target.closest("[data-etform]"); if (!f) return;
+  e.preventDefault();
+  const o = S.goals.find((x) => x.id === f.closest("[data-goal]").dataset.goal);
+  const v = $("input", f).value.trim();
+  if (o && v) { o.etapes.push({ id: uid(), titre: v, fait: false }); sauver(); rendreObjectifs(); }
+});
+
+// ---------- Vider ma tête ----------
+let tri = null; // résultat en attente de validation
+const TYPES = [["tache", "✅ Tâche"], ["objectif", "🎯 Objectif"], ["pensee", "💭 Pensée"], ["ignorer", "✕"]];
+function rendrePensees() {
+  $("#teteResultat").innerHTML = tri ? `<div class="card">
+      <h2>📦 Voilà comment je range tout ça</h2>
+      ${tri.resume ? `<p class="tip">${esc(tri.resume)}</p>` : ""}
+      <p class="sub">Change le type si je me suis trompé, puis valide.</p>
+      <ul class="sort">${tri.elements.map((x, i) => `<li>
+        <input class="input" data-tri-texte="${i}" value="${esc(x.texte)}">
+        <small>${x.date ? `📅 ${jourCourt(x.date)}${x.heure ? " · " + fmtH(x.heure) : ""}` : ""}</small>
+        <div class="seg mini">${TYPES.map(([t, l]) => `<button type="button" data-tri="${i}" data-type="${t}" class="${x.type === t ? "on" : ""}">${l}</button>`).join("")}</div>
+      </li>`).join("")}</ul>
+      <button class="primary full" type="button" id="triValider">Ranger</button>
+    </div>` : "";
+  $("#pensees").innerHTML = S.pensees.length ? `<div class="card"><h2>💭 Pensées notées</h2>
+    <p class="sub">C'est écrit, tu peux arrêter d'y penser. Transforme-les en tâche quand tu es prêt, ou lâche-les.</p>
+    <ul class="mem">${S.pensees.map((x) => `<li><span>${esc(x.texte)}<small class="muted"> · ${jourCourt(x.date)}</small></span>
+      <button class="icon" type="button" data-p2t="${esc(x.id)}" title="En faire une tâche" aria-label="En faire une tâche">✅</button>
+      <button class="icon" type="button" data-psuppr="${esc(x.id)}" title="Lâcher prise" aria-label="Lâcher prise">🕊️</button></li>`).join("")}</ul></div>` : "";
+}
+$("#teteTrier").addEventListener("click", async () => {
+  const texte = $("#teteTexte").value.trim();
+  if (texte.length < 5) { toast("Écris ou dicte d'abord ce que tu as en tête 🙂"); return; }
+  recoActive?.stop();
+  const btn = $("#teteTrier"); btn.disabled = true; btn.textContent = "Je range…";
+  try {
+    if (S.settings.apiKey) {
+      try {
+        const coach = await import("./coach.js");
+        const r = await coach.trierPensees({ apiKey: S.settings.apiKey, texte, aujourdhui: `${today()} ${toHHMM(nowMin())}` });
+        tri = { resume: r.resume, elements: r.elements.map((x) => ({ ...x, date: x.date || null, heure: x.heure || null })) };
+      } catch (err) { toast("Le coach IA n'a pas répondu, je range sans lui."); }
+    }
+    if (!tri) tri = { resume: "", elements: trierPensees(texte) };
+    if (!tri.elements.length) { tri = null; toast("Je n'ai rien trouvé à ranger."); }
+  } finally { btn.disabled = false; btn.textContent = "Ranger mes pensées"; }
+  rendrePensees();
+  $("#teteResultat").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+$("#teteResultat").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-tri]");
+  if (b) { tri.elements[+b.dataset.tri].type = b.dataset.type; rendrePensees(); return; }
+  if (e.target.id !== "triValider") return;
+  $$("[data-tri-texte]").forEach((i) => { tri.elements[+i.dataset.triTexte].texte = i.value.trim(); });
+  const n = { tache: 0, objectif: 0, pensee: 0 };
+  for (const x of tri.elements) {
+    if (!x.texte || x.type === "ignorer") continue;
+    if (x.type === "tache") ajouterTache({ titre: x.texte, date: x.date, heure: x.heure, important: x.important });
+    else if (x.type === "objectif") ajouterObjectif({ titre: x.texte, domaine: x.domaine || "perso", heuresSemaine: 1 });
+    else S.pensees.push({ id: uid(), texte: x.texte, date: today() });
+    n[x.type]++;
+  }
+  sauver(); tri = null; $("#teteTexte").value = "";
+  toast(`🧠 Rangé : ${n.tache} tâche${n.tache > 1 ? "s" : ""}, ${n.objectif} objectif${n.objectif > 1 ? "s" : ""}, ${n.pensee} pensée${n.pensee > 1 ? "s" : ""}. Ta tête est plus légère !`);
+  rendrePensees();
+});
+$("#pensees").addEventListener("click", (e) => {
+  const t = e.target.closest("[data-p2t]"), d = e.target.closest("[data-psuppr]");
+  const id = (t || d)?.dataset.p2t || (t || d)?.dataset.psuppr; if (!id) return;
+  const p = S.pensees.find((x) => x.id === id);
+  if (t && p) { ajouterTache({ titre: p.texte }); toast("✅ Ajoutée à tes tâches"); }
+  else if (d) toast("🕊️ Lâché. Bien joué.");
+  S.pensees = S.pensees.filter((x) => x.id !== id); sauver(); rendrePensees();
+});
+
+// ---------- Rappels de chaque soir (agenda) ----------
+$("#rappelsSoirBtn").addEventListener("click", () => {
+  const p = S.profile, t = today();
+  const c = toMin(p.coucher) ?? 1380;
+  const evts = [
+    { uid: "soir-ecrans", date: t, debut: toHHMM(c - 60), fin: toHHMM(c - 45), titre: "🌙 Écrans coupés : on se prépare à dormir", note: "Téléphone à charger loin du lit. Vise 7 à 8 h de sommeil.", chaqueJour: true, avance: 0 },
+    { uid: "soir-bilan", date: t, debut: toHHMM(c - 15), fin: toHHMM(c - 5), titre: "📝 Bilan de la journée dans Vie Maline", note: "Coche tes habitudes et note ta journée.", chaqueJour: true, avance: 0 },
+    { uid: "soir-dodo", date: t, debut: toHHMM(c), fin: toHHMM(c + 5), titre: "😴 Au lit !", note: `Lever prévu à ${fmtH(p.reveil)}. Coche « Couché à l'heure » demain matin.`, chaqueJour: true, avance: 0 },
+  ];
+  telecharger("vie-maline-rappels-du-soir.ics", ics(evts), "text/calendar");
+  toast("🌙 Ouvre le fichier : 3 rappels chaque soir dans ton agenda, même appli fermée.");
+});
+
+// ---------- Mon temps de la semaine ----------
+function rendreTemps() {
+  const plans = Array.from({ length: 7 }, (_, i) => planDu(addDays(today(), i)));
+  const c = tempsSemaine(plans);
+  const h = (m) => (m >= 60 ? `${Math.floor(m / 60)} h${m % 60 ? String(m % 60).padStart(2, "0") : ""}` : `${m} min`);
+  const sommeil = minutesSommeil(S.profile) * 7;
+  const lignes = [["💼", "Travail", c.travail], ["🎯", "Mes objectifs", c.objectif], ["🏃", "Sport", c.sport], ["🎸", "Temps pour moi", c.loisir], ["😴", "Sommeil", sommeil]];
+  const max = Math.max(...lignes.map((l) => l[2]), 1);
+  $("#tempsCard").innerHTML = `<h2>⏳ Mon temps des 7 prochains jours</h2>
+    <p class="sub">D'après ton programme. Ce qui compte pour toi a sa place.</p>
+    <div class="bars">${lignes.map(([i, n, m]) => `<div class="bar"><span>${i} ${n}</span><i style="--p:${Math.round((m / max) * 100)}%"></i><small>${h(m)}</small></div>`).join("")}</div>
+    ${c.objectif ? "" : `<p class="tip">💡 Aucun temps réservé pour tes objectifs. <a href="#taches" data-goseg="objectifs">Ajoute un objectif</a> et je lui trouve de la place.</p>`}`;
+}
+document.addEventListener("click", (e) => { const a = e.target.closest("[data-goseg]"); if (a) segOrg = a.dataset.goseg; });
 
 // ---------- Rappels ----------
 const notifEtat = () => ("Notification" in window ? Notification.permission : "unsupported");
@@ -539,7 +733,7 @@ function rendreAideDnd() {
 }
 
 // ---------- Coach ----------
-const SUGGESTIONS = ["Organise ma journée de demain", "J'ai du mal à me lever le matin", "Je passe trop de temps sur mon téléphone", "Rappelle-moi d'appeler le médecin lundi à 9h", "Qu'est-ce que je mange ce soir ?", "Je procrastine, aide-moi"];
+const SUGGESTIONS = ["J'ai trop de choses en tête", "Aide-moi à fixer un objectif", "Organise ma journée de demain", "J'ai du mal à me lever le matin", "Je passe trop de temps sur mon téléphone", "Rappelle-moi d'appeler le médecin lundi à 9h", "Qu'est-ce que je mange ce soir ?", "Je procrastine, aide-moi"];
 let enCoursCoach = null;
 function rendreCoach() {
   brancherMicros($("#v-coach"));
@@ -575,7 +769,12 @@ function contexte() {
     memoire: memoire || [],
     programme_aujourdhui: planDu(t).map((b) => `${b.debut}-${b.fin} ${b.titre}`),
     programme_demain_est_du_coach: !!S.days[addDays(t, 1)]?.planIA?.length,
-    taches_a_faire: S.tasks.filter((x) => !x.fait).slice(0, 40).map((x) => `${x.titre}${x.date ? ` (${x.date}${x.heure ? " " + x.heure : ""})` : ""}`),
+    taches_a_faire: S.tasks.filter((x) => !x.fait).slice(0, 40).map((x) => `${x.important ? "⭐ " : ""}${x.titre}${x.date ? ` (${x.date}${x.heure ? " " + x.heure : ""})` : ""}`),
+    priorites_du_jour: prioritesDu(S.tasks, t).map((x) => x.titre),
+    objectifs: S.goals.filter((o) => !o.fini).map((o) => ({ titre: o.titre, domaine: o.domaine, pourquoi: o.pourquoi || undefined, heures_par_semaine: o.heuresSemaine, etapes: o.etapes.map((e) => `${e.fait ? "[fait] " : ""}${e.titre}`) })),
+    objectifs_atteints: S.goals.filter((o) => o.fini).map((o) => o.titre),
+    pensees_notees: S.pensees.slice(-15).map((x) => x.texte),
+    ressenti_aujourdhui: RESSENTIS.find((r) => r.id === S.days[t]?.ressenti)?.nom,
     habitudes_aujourdhui: S.habits.map((h) => `${h.nom} : ${S.days[t]?.habits?.[h.id] ? "fait" : "pas encore"} (série ${serie(S.days, h.id, t)} j)`),
     bilans_7_jours: bilans,
     minutes_concentration_aujourdhui: S.days[t]?.focusMin || 0,
@@ -592,6 +791,10 @@ function executerOutil(nom, i) {
     dj.planIA = i.blocs.map((b) => ({ debut: b.debut, fin: b.fin, titre: b.titre, ico: b.ico || "•", type: b.type || "autre", conseil: b.conseil || "" }));
     sauver(); planifierRappels();
     return { resume: `🗓️ Programme de ${jourCourt(i.date)} mis à jour`, retour: "Programme enregistré, visible dans l'onglet Aujourd'hui." };
+  }
+  if (nom === "ajouter_objectif") {
+    const o = ajouterObjectif({ titre: i.titre, domaine: i.domaine || "perso", pourquoi: i.pourquoi || "", heuresSemaine: i.heures_par_semaine ?? 1, etapes: i.etapes || [] });
+    return { resume: `🎯 Objectif : ${o.titre}${o.etapes.length ? ` (${o.etapes.length} étapes)` : ""}`, retour: "Objectif ajouté ; du temps lui est réservé dans le programme." };
   }
   if (nom === "ajouter_habitude") {
     if (!S.habits.some((h) => h.nom.toLowerCase() === i.nom.toLowerCase())) S.habits.push({ id: `h-${uid()}`, nom: i.nom, ico: i.ico || "🌱" });
@@ -664,6 +867,12 @@ function coachSansIA(texte, rep) {
     rep.outils.push(`✅ Tâche : ${x.titre}${x.date ? ` (${jourCourt(x.date)}${x.heure ? " " + fmtH(x.heure) : ""})` : ""}`);
     return `C'est noté 👍 Je l'ai mis dans ta liste${x.heure ? ` avec un rappel à ${fmtH(x.heure)}` : ""}.`;
   }
+  if (/trop de choses|en tête|en tete|pensées|pensees|débordé|deborde|submergé|la tête pleine/.test(t)) {
+    return "Je comprends 💛 Va dans **Organiser → 🧠 Vider ma tête** : écris ou dicte TOUT ce que tu as en tête, en vrac. Je range ça en tâches, objectifs et pensées. Ensuite, on ne garde que 3 priorités pour aujourd'hui.";
+  }
+  if (/objectif|réaliser|realiser|investir|économiser|economiser|me fixer|projet/.test(t)) {
+    return "Bonne idée 🎯 Va dans **Organiser → 🎯 Objectifs** :\n- écris ton objectif de façon concrète (ex. : « courir 10 km », « investir 100 € par mois ») ;\n- note pourquoi c'est important pour toi ;\n- choisis le temps par semaine ;\n- découpe-le en toutes petites étapes.\nJe lui réserve du temps dans ton programme.";
+  }
   if (/organis|programme|planning|journée|journee|demain/.test(t)) {
     const iso = /demain/.test(t) ? addDays(today(), 1) : today();
     const plan = planDu(iso).filter((b) => b.type !== "pause");
@@ -720,6 +929,7 @@ $("#cleDlg").addEventListener("close", async () => {
 // ---------- Moi ----------
 function rendreMoi() {
   if (!S.profile) return;
+  rendreTemps();
   const a = analyser(S.days, S.habits, 14);
   $("#statsCard").innerHTML = `<h2>📈 Mes 14 derniers jours</h2>
     <div class="kpis">

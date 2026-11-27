@@ -4,11 +4,11 @@ Une appli qu'on installe depuis le navigateur (Android et iPhone). On lui racont
 
 | Onglet | Ce qu'il fait |
 |---|---|
-| ☀️ **Aujourd'hui** | Le programme de la journée heure par heure, d'après ton profil : lever, repas, travail en séances avec pauses, sport, temps pour toi, écrans coupés 1 h avant le coucher. Habitudes à cocher (séries 🔥), bilan du soir (humeur, énergie, sommeil). 📅 met la journée dans l'agenda du téléphone, avec rappels. |
-| ✅ **À faire** | On écrit ou on dicte comme on parle (« appeler le dentiste demain à 10h », « loyer le 5 ») : date et heure comprises toutes seules. Rappels par notification ou via l'agenda. |
+| ☀️ **Aujourd'hui** | « Comment tu te sens ? » (fatigué, stressé, pas motivé…) avec des conseils simples ; les 3 priorités du jour ; le programme de la journée heure par heure, d'après ton profil : lever, repas, travail en séances avec pauses, sport, temps pour toi, écrans coupés 1 h avant le coucher. Habitudes à cocher (séries 🔥), bilan du soir (humeur, énergie, sommeil). 📅 met la journée dans l'agenda du téléphone, avec rappels. |
+| 🗂️ **Organiser** | **Tâches** : on écrit ou dicte comme on parle (« appeler le dentiste demain à 10h »), date et heure comprises toutes seules ; ⭐ pour les priorités. **Objectifs** : sport, argent, travail, loisirs… découpés en petites étapes, avec du temps réservé chaque semaine dans le programme. **Vider ma tête** : on écrit ou dicte tout en vrac, l'appli range en tâches, objectifs et pensées. |
 | 🎯 **Focus** | Mode travail plein écran : minuteur, écran allumé, compteur de chaque fois qu'on quitte l'appli pour aller sur son téléphone. Guide pour que le téléphone passe tout seul en Ne pas déranger pendant le travail et la nuit (avec tes horaires). |
 | 💬 **Coach** | Sans IA : rappels et conseils simples. Avec le coach IA (Claude, d'Anthropic) : vraie conversation, il organise tes journées, ajoute tâches et habitudes, et retient ce qui compte pour toi. |
-| 🙂 **Moi** | Statistiques sur 14 jours, ce que le coach sait de toi, habitudes, profil, sauvegarde. |
+| 🙂 **Moi** | Mon temps des 7 prochains jours (travail, objectifs, sport, temps pour soi, sommeil), rappels de chaque soir dans l'agenda (écrans coupés, bilan, au lit), statistiques sur 14 jours, ce que le coach sait de toi, habitudes, profil, sauvegarde. |
 
 ## Fichiers
 
