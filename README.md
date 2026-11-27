@@ -93,3 +93,28 @@ Une marque commune pour toutes les applis, présente sur Instagram et TikTok.
 | `promo/reseaux/*.png` | Photo de profil, post de présentation, couvertures de vidéos, modèle « nouvelle appli » (sources HTML à côté) |
 
 Nouvelle appli : ajouter une ligne dans `APPLIS` (`reseaux.js`).
+
+---
+
+# ☀️ Vie Maline – Ton coach de vie (dossier `vie/`)
+
+Troisième appli, dans `vie/` (en ligne : `https://oen-n.github.io/hello-world/vie/`). On lui raconte sa vie (à l'écrit ou **à la voix**), elle s'occupe du reste :
+
+| Onglet | Ce qu'il fait |
+|---|---|
+| ☀️ **Aujourd'hui** | Le programme de la journée heure par heure, fait d'après le profil : lever, repas, travail en séances avec pauses, sport, temps pour soi, écrans coupés 1 h avant le coucher, bilan du soir. Le bloc en cours est mis en avant. Habitudes à cocher (avec séries 🔥) et bilan du soir (humeur, énergie, sommeil). Bouton 📅 pour mettre la journée dans l'agenda du téléphone avec rappels. |
+| ✅ **À faire** | On écrit ou on dicte comme on parle (« appeler le dentiste demain à 10h », « loyer le 5 ») : la date et l'heure sont comprises toutes seules. Rappels par notification, ou 📅 pour l'agenda du téléphone (rappels garantis). |
+| 🎯 **Focus** | Mode travail plein écran : minuteur, écran qui reste allumé, et compteur de chaque fois qu'on quitte l'appli pour aller sur son téléphone. Guide pas à pas, avec ses propres horaires, pour que le téléphone passe **tout seul** en Ne pas déranger pendant le travail et la nuit (iPhone : Concentration ; Android : Bien-être numérique). Sur iPhone, option pour lancer un raccourci qui active le mode Concentration. |
+| 💬 **Coach** | Sans IA : comprend les rappels et donne des conseils simples. **Avec le coach IA** (Claude, Anthropic) : vraie conversation, il organise les journées à la place de la personne, ajoute des tâches et des habitudes, et retient ce qui compte (onglet Moi → « Ce que ton coach sait de toi »). |
+| 🙂 **Moi** | Statistiques sur 14 jours et constats (« les jours où tu fais du sport, ton humeur est meilleure »), mémoire du coach, habitudes, profil, sauvegarde. |
+
+| Fichier | Rôle |
+|---|---|
+| `vie/index.html`, `vie/style.css`, `vie/app.js` | L'appli (aucun serveur, tout est dans le téléphone) |
+| `vie/core.js` | Le programme du jour, la lecture des phrases en français, les habitudes, les statistiques, le fichier agenda |
+| `vie/coach.js` | Le coach IA (Claude) |
+| `vie/vendor/anthropic.js` | Le SDK officiel d'Anthropic (`@anthropic-ai/sdk` 1.14.0) en un seul fichier pour le navigateur |
+
+**Coach IA** : chaque personne colle **sa propre clé API** Anthropic (Moi → Réglages). La clé reste sur son téléphone, les messages partent directement du téléphone vers Anthropic. Avant d'en faire un vrai produit grand public, il faudra un petit serveur qui garde **ta** clé (et un abonnement pour couvrir le coût) : sinon les gens doivent créer un compte développeur.
+
+**Limites honnêtes** : une appli web ne peut pas activer elle-même le Ne pas déranger ni bloquer d'autres applis (seules de vraies applis Android/iPhone le peuvent). Les rappels par notification marchent quand l'appli est ouverte ou en arrière-plan ; pour des rappels garantis, utiliser 📅 Agenda.

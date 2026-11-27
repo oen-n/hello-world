@@ -24,7 +24,7 @@ et une ligne dans `reseaux.js` (`APPLIS`).
 | Ambiance | Haut d'écran **sombre « nuit aurore »** (bleu marine + lueurs de la couleur de l'appli), contenu **clair** en cartes blanches |
 | Police | **Plus Jakarta Sans** (« Malin Sans »), titres en 800, lettres un peu serrées |
 | Couleurs de marque | Nuit `#0c1533`, bleu `#2f6bff`, vert `#1fbf75`, étoile dorée `#ffc83d` |
-| Couleur de chaque appli | Carbu Malin = bleu `#2f6bff` · Chariot Malin = vert `#12a150` |
+| Couleur de chaque appli | Carbu Malin = bleu `#2f6bff` · Chariot Malin = vert `#12a150` · Vie Maline = violet `#7a4dff` |
 | Formes | Très arrondies : cartes 22 px, fenêtres 28 px, boutons et pastilles en pilule |
 | Ombres | Douces, jamais de bordure dure sur les cartes |
 | Boutons | Principal = pilule dégradée de la couleur de l'appli ; secondaire = pilule blanche bordée |
@@ -39,3 +39,4 @@ et une ligne dans `reseaux.js` (`APPLIS`).
 | Les Applis Malines | `promo/reseaux/logo-512.png` |
 | Carbu Malin | `icons/logo-carbu-malin.png` (1024 px) → `icons/icon-512.png`, `icon-192.png`, `icon-180.png`, `favicon-64.png` |
 | Panier Malin | `courses/icons/icon.svg` (provisoire, à refaire dans le style 3D brillant) |
+| Vie Maline | `vie/icons/icon.svg` → `vie/icons/icon-512.png`, `icon-192.png`, `icon-180.png`, `icon-64.png` |

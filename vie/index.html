@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Vie Maline – Ton coach de vie : organisation, habitudes, sommeil et concentration (gratuit)</title>
+<meta name="description" content="Raconte ta vie à Vie Maline (à l'écrit ou à la voix) : elle organise ta journée, n'oublie rien à ta place, t'aide à te lever tôt, bien manger, moins utiliser ton téléphone et rester concentré. Gratuit, sans inscription.">
+<meta name="theme-color" content="#0c1533">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Vie Maline">
+<meta property="og:title" content="Vie Maline – Ton coach de vie">
+<meta property="og:description" content="Raconte ta vie, elle organise tes journées, te rappelle tout et t'aide à prendre soin de toi.">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="fr_FR">
+<meta property="og:url" content="https://oen-n.github.io/hello-world/vie/">
+<meta property="og:image" content="https://oen-n.github.io/hello-world/vie/icons/icon-512.png">
+<link rel="canonical" href="https://oen-n.github.io/hello-world/vie/">
+<link rel="preload" href="../malin/fonts/plus-jakarta-sans.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="../malin/malin.css">
+</head>
+<body data-app="vie" class="has-tabbar">
+
+<header class="top">
+  <div class="row-between">
+    <div class="brand"><img src="icons/icon-192.png" alt="" width="32" height="32"><span>Vie Maline</span></div>
+    <a class="m-sign" href="../applis/">Les Applis Malines</a>
+  </div>
+  <p class="hello" id="hello"></p>
+</header>
+
+<main>
+  <!-- ============ Bienvenue (premier lancement) ============ -->
+  <section id="v-bienvenue" class="view" hidden>
+    <div class="card intro">
+      <h2>👋 Salut, moi c'est ton coach de vie.</h2>
+      <p>Raconte-moi ta vie : ton travail, tes horaires, tes hobbies, ce que tu veux changer. Je m'occupe de :</p>
+      <ul class="bullets">
+        <li>🗓️ <b>organiser ta journée</b>, heure par heure ;</li>
+        <li>🔔 <b>ne rien oublier</b> (rappels et ajout à ton agenda) ;</li>
+        <li>🌱 te faire prendre de <b>bonnes habitudes</b> (lever tôt, sommeil, manger mieux, moins de téléphone) ;</li>
+        <li>🎯 te mettre en <b>mode travail</b> pour rester concentré.</li>
+      </ul>
+      <p class="sub">Tout reste sur ton téléphone. Pas de compte à créer.</p>
+      <button class="primary full" id="startOnboarding" type="button">C'est parti</button>
+    </div>
+  </section>
+
+  <!-- ============ Questionnaire ============ -->
+  <section id="v-profil" class="view" hidden>
+    <form id="profilForm" class="card" autocomplete="off">
+      <h2 id="profilTitre">Faisons connaissance</h2>
+
+      <label class="lbl">Ton prénom
+        <input type="text" name="prenom" class="input" placeholder="Ex. : Noé" maxlength="40">
+      </label>
+
+      <fieldset class="grp">
+        <legend>Raconte-moi ta vie 🎙️</legend>
+        <p class="sub">Ton travail, tes horaires, tes hobbies, ta famille, ce qui te fatigue, ce que tu veux améliorer… Plus tu en dis, mieux je t'aide. Tu peux parler au lieu d'écrire.</p>
+        <div class="voice-field">
+          <textarea name="recit" class="input" rows="6" placeholder="Ex. : Je travaille dans un magasin du lundi au vendredi de 9h à 18h. Je me lève à 7h30 mais je voudrais me lever à 6h30. Je fais du foot le mardi et le jeudi soir. J'aime la guitare et les jeux vidéo. Je passe trop de temps sur TikTok le soir et je dors mal…"></textarea>
+          <button type="button" class="mic" data-mic="recit" aria-label="Dicter">🎙️</button>
+        </div>
+        <button type="button" class="ghost small" id="analyserRecit">✨ Remplir le reste à partir de mon texte</button>
+        <p class="sub" id="analyseInfo"></p>
+      </fieldset>
+
+      <fieldset class="grp">
+        <legend>Ce que tu veux améliorer</legend>
+        <div class="chips" id="objectifsChips"></div>
+      </fieldset>
+
+      <fieldset class="grp">
+        <legend>Ton sommeil</legend>
+        <div class="two">
+          <label class="lbl">Je veux me lever à<input type="time" name="reveil" class="input" value="07:00"></label>
+          <label class="lbl">Je veux me coucher à<input type="time" name="coucher" class="input" value="23:00"></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="grp">
+        <legend>Ton travail ou tes études</legend>
+        <label class="lbl">Ce que tu fais<input type="text" name="metier" class="input" placeholder="Ex. : vendeur, étudiant en BTS, infirmière…" maxlength="80"></label>
+        <div class="days" id="travailJours"></div>
+        <div class="two">
+          <label class="lbl">De<input type="time" name="travailDebut" class="input" value="09:00"></label>
+          <label class="lbl">À<input type="time" name="travailFin" class="input" value="17:30"></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="grp">
+        <legend>Tes repas</legend>
+        <div class="three">
+          <label class="lbl">Petit-déj<input type="time" name="petitDej" class="input" value="07:30"></label>
+          <label class="lbl">Midi<input type="time" name="dejeuner" class="input" value="12:30"></label>
+          <label class="lbl">Soir<input type="time" name="diner" class="input" value="19:30"></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="grp">
+        <legend>Ton sport</legend>
+        <label class="lbl">Quel sport ?<input type="text" name="sport" class="input" placeholder="Ex. : foot, course, salle, marche…" maxlength="60"></label>
+        <div class="days" id="sportJours"></div>
+        <div class="two">
+          <label class="lbl">À quelle heure ?<input type="time" name="sportHeure" class="input" value="18:30"></label>
+          <label class="lbl">Durée (min)<input type="number" name="sportDuree" class="input" value="60" min="10" max="240" step="5"></label>
+        </div>
+      </fieldset>
+
+      <fieldset class="grp">
+        <legend>Tes hobbies et ce qui te fait du bien</legend>
+        <input type="text" name="hobbies" class="input" placeholder="Ex. : guitare, lecture, dessin, voir mes potes…" maxlength="160">
+      </fieldset>
+
+      <button class="primary full" type="submit" id="profilSubmit">Créer mon programme</button>
+    </form>
+  </section>
+
+  <!-- ============ Aujourd'hui ============ -->
+  <section id="v-jour" class="view" hidden>
+    <div class="daynav">
+      <button class="ghost small" type="button" id="jourPrev" aria-label="Jour précédent">‹</button>
+      <b id="jourTitre"></b>
+      <button class="ghost small" type="button" id="jourNext" aria-label="Jour suivant">›</button>
+    </div>
+    <div class="card brief" id="brief"></div>
+    <div class="card" id="tachesJour"></div>
+    <div class="card">
+      <div class="row-between">
+        <h2>🗓️ Ton programme</h2>
+        <div class="row">
+          <button class="ghost small" type="button" id="planAgenda" title="Ajouter à mon agenda">📅 Agenda</button>
+        </div>
+      </div>
+      <p class="sub" id="planSource"></p>
+      <ol class="timeline" id="timeline"></ol>
+    </div>
+    <div class="card" id="habitudesJour"></div>
+    <div class="card" id="bilanJour"></div>
+  </section>
+
+  <!-- ============ À faire ============ -->
+  <section id="v-taches" class="view" hidden>
+    <form class="card" id="tacheForm" autocomplete="off">
+      <h2>➕ Ne rien oublier</h2>
+      <p class="sub">Écris ou dis-le comme tu parles : « appeler le dentiste demain à 10h », « payer le loyer le 5 », « courses samedi ».</p>
+      <div class="voice-field">
+        <input type="text" class="input" id="tacheInput" placeholder="Qu'est-ce que tu ne dois pas oublier ?">
+        <button type="button" class="mic" data-mic="tacheInput" aria-label="Dicter">🎙️</button>
+      </div>
+      <p class="sub" id="tacheApercu"></p>
+      <button class="primary full" type="submit">Ajouter</button>
+    </form>
+    <div id="tachesListe"></div>
+  </section>
+
+  <!-- ============ Focus ============ -->
+  <section id="v-focus" class="view" hidden>
+    <div class="card focus-card">
+      <h2>🎯 Mode travail</h2>
+      <p class="sub">Choisis une durée, pose ton téléphone face contre la table et ne le touche plus jusqu'à la fin.</p>
+      <label class="lbl">Sur quoi tu te concentres ?
+        <input type="text" class="input" id="focusSujet" placeholder="Ex. : finir le dossier client" maxlength="80">
+      </label>
+      <div class="chips" id="focusDurees"></div>
+      <button class="primary full" type="button" id="focusStart">Lancer le mode travail</button>
+      <p class="sub" id="focusStats"></p>
+    </div>
+    <div class="card" id="dndAide"></div>
+  </section>
+
+  <!-- ============ Coach ============ -->
+  <section id="v-coach" class="view" hidden>
+    <div class="card" id="coachSetup" hidden></div>
+    <div id="chat" class="chat" aria-live="polite"></div>
+    <div class="suggestions" id="coachSugg"></div>
+    <form class="composer" id="coachForm" autocomplete="off">
+      <div class="voice-field">
+        <textarea class="input" id="coachInput" rows="1" placeholder="Parle à ton coach…"></textarea>
+        <button type="button" class="mic" data-mic="coachInput" aria-label="Dicter">🎙️</button>
+      </div>
+      <button class="primary" type="submit" id="coachSend" aria-label="Envoyer">➤</button>
+    </form>
+  </section>
+
+  <!-- ============ Moi ============ -->
+  <section id="v-moi" class="view" hidden>
+    <div class="card" id="statsCard"></div>
+    <div class="card" id="memoireCard"></div>
+    <div class="card" id="habitudesGerer"></div>
+    <div class="card">
+      <h2>⚙️ Réglages</h2>
+      <button class="ghost full" type="button" id="editProfil">✏️ Modifier mon profil et mes horaires</button>
+      <button class="ghost full" type="button" id="notifBtn">🔔 Activer les rappels</button>
+      <button class="ghost full" type="button" id="cleBtn">🤖 Brancher le coach IA</button>
+      <button class="ghost full" type="button" id="exportBtn">💾 Sauvegarder mes données</button>
+      <label class="ghost full file-btn">📂 Restaurer une sauvegarde<input type="file" id="importInput" accept="application/json" hidden></label>
+      <button class="link danger" type="button" id="resetBtn">Tout effacer</button>
+    </div>
+    <a class="m-family" href="../applis/"><img src="../promo/reseaux/logo-192.png" alt=""><span><b>✦ Les Applis Malines</b><span>Nos autres applis gratuites</span></span></a>
+    <p class="foot center">Vie Maline donne des conseils de bien-être général, pas des avis médicaux. En cas de souci de santé, parles-en à un médecin.</p>
+  </section>
+</main>
+
+<!-- Écran plein du mode travail -->
+<div class="focus-screen" id="focusScreen" hidden>
+  <p class="focus-label" id="focusLabel">Mode travail</p>
+  <div class="focus-time" id="focusTime">25:00</div>
+  <div class="focus-bar"><span id="focusBar"></span></div>
+  <p class="focus-tip" id="focusTip">📵 Ton téléphone reste posé. Tu peux le faire.</p>
+  <div class="focus-actions">
+    <button class="ghost" type="button" id="focusPause">⏸ Pause</button>
+    <button class="ghost" type="button" id="focusStop">Arrêter</button>
+  </div>
+</div>
+
+<!-- Fenêtre : clé du coach IA -->
+<dialog class="sheet" id="cleDlg">
+  <form method="dialog" id="cleForm">
+    <h2>🤖 Brancher le coach IA</h2>
+    <p>Le coach IA comprend tout ce que tu lui racontes, organise tes journées à ta place et retient ce qui compte pour toi. Il utilise <b>Claude</b> (Anthropic).</p>
+    <ol class="steps">
+      <li>Va sur <a href="https://platform.claude.com/settings/keys" target="_blank" rel="noopener">platform.claude.com</a> et crée une clé API (payant à l'usage, quelques centimes par conversation).</li>
+      <li>Colle-la ici. Elle reste <b>uniquement sur ce téléphone</b>.</li>
+    </ol>
+    <input type="password" class="input" id="cleInput" placeholder="sk-ant-…" autocomplete="off">
+    <p class="sub" id="cleInfo"></p>
+    <div class="row-end">
+      <button class="link danger" value="remove" id="cleRemove" type="submit">Retirer la clé</button>
+      <button class="ghost" value="cancel" type="submit">Annuler</button>
+      <button class="primary" value="ok" type="submit">Enregistrer</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" hidden></div>
+
+<nav class="m-tabbar" id="tabbar" hidden>
+  <button type="button" data-tab="jour"><span class="ico">☀️</span>Aujourd'hui</button>
+  <button type="button" data-tab="taches"><span class="ico">✅</span>À faire</button>
+  <button type="button" data-tab="focus"><span class="ico">🎯</span>Focus</button>
+  <button type="button" data-tab="coach"><span class="ico">💬</span>Coach</button>
+  <button type="button" data-tab="moi"><span class="ico">🙂</span>Moi</button>
+</nav>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

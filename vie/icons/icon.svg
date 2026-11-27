@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5b2fe0"/><stop offset=".55" stop-color="#8a4dff"/><stop offset="1" stop-color="#ff7eb3"/>
+    </linearGradient>
+    <radialGradient id="glow" cx=".3" cy=".18" r=".7"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="white" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#e9e2ff"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#ffb300"/></linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#2a0b7a" flood-opacity=".45"/></filter>
+    <clipPath id="r"><rect width="1024" height="1024" rx="230"/></clipPath>
+  </defs>
+  <g clip-path="url(#r)">
+    <rect width="1024" height="1024" fill="url(#bg)"/>
+    <path d="M-40 700 C 220 600, 420 820, 700 700 S 1100 640, 1100 640 V1100 H-40Z" fill="#fff" opacity=".10"/>
+    <path d="M-40 790 C 260 700, 480 900, 760 790 S 1100 760, 1100 760 V1100 H-40Z" fill="#fff" opacity=".10"/>
+    <rect width="1024" height="1024" fill="url(#glow)"/>
+  </g>
+  <g filter="url(#sh)">
+    <!-- soleil qui se lève -->
+    <path d="M262 640 a250 250 0 0 1 500 0 Z" fill="url(#white)"/>
+    <g stroke="url(#white)" stroke-width="54" stroke-linecap="round">
+      <line x1="512" y1="250" x2="512" y2="320"/>
+      <line x1="300" y1="338" x2="345" y2="385"/>
+      <line x1="724" y1="338" x2="679" y2="385"/>
+      <line x1="180" y1="520" x2="245" y2="535"/>
+      <line x1="844" y1="520" x2="779" y2="535"/>
+    </g>
+    <rect x="190" y="660" width="644" height="58" rx="29" fill="url(#white)"/>
+    <rect x="300" y="760" width="424" height="50" rx="25" fill="url(#white)" opacity=".85"/>
+    <!-- coche dans le soleil -->
+    <path d="M425 560 l60 58 l120 -120" fill="none" stroke="#7a4dff" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- étincelle dorée -->
+  <path d="M800 170 C 812 240, 830 258, 900 270 C 830 282, 812 300, 800 370 C 788 300, 770 282, 700 270 C 770 258, 788 240, 800 170Z" fill="url(#gold)"/>
+  <circle cx="190" cy="230" r="16" fill="#fff" opacity=".8"/>
+  <circle cx="880" cy="440" r="10" fill="#fff" opacity=".7"/>
+</svg>

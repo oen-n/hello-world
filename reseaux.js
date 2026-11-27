@@ -15,6 +15,8 @@ export const APPLIS = [
     texte: "La station la moins chère près de chez toi et le bon moment pour faire le plein." },
   { id: "chariot-malin", nom: "Chariot Malin", ico: "🛒", url: "../courses/", image: "courses/icons/icon-192.png", couleur: "#0f8a4c",
     texte: "Ta liste de courses ou tes menus de la semaine, et le magasin le moins cher près de chez toi." },
+  { id: "vie-maline", nom: "Vie Maline", ico: "☀️", url: "../vie/", image: "vie/icons/icon-192.png", couleur: "#7a4dff",
+    texte: "Ton coach de vie : il organise tes journées, te rappelle tout et t'aide à prendre soin de toi." },
 ];
 
 export const lienInstagram = (u) => (u ? `https://www.instagram.com/${encodeURIComponent(u)}/` : "");
