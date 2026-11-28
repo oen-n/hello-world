@@ -170,6 +170,7 @@
   <div class="king-portrait"><span class="crown">👑</span><img src="ryan.jpg" alt="Le Roi Ryan"></div>
   <h1>La Cour du Roi Ryan</h1>
   <p class="sub">Sa Majesté Ryan I<sup>er</sup>, Roi des Musaraignes,<br>cherche son héritier. Tape vite. Tape bien.</p>
+  <div class="players" style="width:min(340px,100%);margin-top:6px"><input id="solo-name" maxlength="20" placeholder="Ton nom de sujet royal" aria-label="Ton nom"></div>
   <button id="btn-solo">🐭 Jouer solo</button>
   <button id="btn-contest">🏆 Concours entre potes</button>
   <button class="alt" id="btn-board">📜 Classement de la Cour</button>
@@ -223,6 +224,13 @@
   <div id="field"></div>
 </section>
 <div id="msg"></div>
+<div id="share-box" style="display:none;position:fixed;inset:0;z-index:80;background:#000b;align-items:center;justify-content:center;padding:16px">
+  <div class="card" style="display:flex;flex-direction:column;align-items:center">
+    <b>Copie ce texte et envoie-le aux potes :</b>
+    <textarea readonly style="width:100%;height:150px;margin:10px 0;font:inherit;font-size:16px;border-radius:12px;padding:8px;user-select:text;-webkit-user-select:text"></textarea>
+    <button onclick="this.closest('#share-box').style.display='none'">OK</button>
+  </div>
+</div>
 
 <!-- RÉSULTAT -->
 <section id="result" class="screen">
@@ -260,6 +268,11 @@
 <script>
 (() => {
   const $ = s => document.querySelector(s);
+  const LS = {
+    get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+    set(k, v){ try { localStorage.setItem(k, v); } catch(e){} },
+    del(k){ try { localStorage.removeItem(k); } catch(e){} },
+  };
   const DURATION = 45;
   const STORE = 'roi-ryan-classement';
 
@@ -554,11 +567,11 @@
   }
 
   // ---------- Classement ----------
-  const loadBoard = () => { try { return JSON.parse(localStorage.getItem(STORE)) || []; } catch(e){ return []; } };
+  const loadBoard = () => { try { return JSON.parse(LS.get(STORE)) || []; } catch(e){ return []; } };
   function addToBoard(name, score){
     const b = loadBoard(); b.push({ name: name || 'Anonyme', score, date: Date.now() });
     b.sort((a, c) => c.score - a.score);
-    const top = b.slice(0, 10); localStorage.setItem(STORE, JSON.stringify(top));
+    const top = b.slice(0, 10); LS.set(STORE, JSON.stringify(top));
     return top.findIndex(e => e.score === score && e.name === (name || 'Anonyme'));
   }
   function renderBoard(){
@@ -568,7 +581,11 @@
       : '<p class="sub">Personne n\'a encore osé défier le Roi.</p>';
   }
   $('#btn-board').onclick = () => show('board');
-  $('#btn-reset-board').onclick = () => { if (confirm('Effacer tout le classement ?')){ localStorage.removeItem(STORE); renderBoard(); } };
+  $('#btn-reset-board').onclick = e => {
+    const b = e.currentTarget;
+    if (!b.dataset.sure){ b.dataset.sure = 1; b.textContent = 'Appuie encore pour confirmer'; setTimeout(() => { delete b.dataset.sure; b.textContent = 'Effacer le classement'; }, 3000); return; }
+    LS.del(STORE); renderBoard(); delete b.dataset.sure; b.textContent = 'Effacer le classement';
+  };
 
   // ---------- Écran résultat ----------
   function showResult(res, buttonsHtml){
@@ -586,12 +603,11 @@
   }
 
   // ---------- Solo ----------
-  let soloName = localStorage.getItem('roi-ryan-nom') || '';
+  let soloName = LS.get('roi-ryan-nom') || '';
+  $('#solo-name').value = soloName;
   $('#btn-solo').onclick = () => {
-    const n = prompt('Ton nom de sujet royal ?', soloName);
-    if (n === null) return;
-    soloName = n.trim().slice(0, 20) || 'Anonyme';
-    localStorage.setItem('roi-ryan-nom', soloName);
+    soloName = $('#solo-name').value.trim().slice(0, 20) || 'Anonyme';
+    LS.set('roi-ryan-nom', soloName);
     playSolo();
   };
   function playSolo(){
@@ -608,7 +624,7 @@
   }
 
   // ---------- Concours ----------
-  let players = JSON.parse(localStorage.getItem('roi-ryan-joueurs') || '["",""]');
+  let players; try { players = JSON.parse(LS.get('roi-ryan-joueurs') || '["",""]'); } catch(e){ players = ['', '']; }
   if (players.length < 2) players = ['', ''];
   function renderPlayers(){
     $('#player-list').innerHTML = players.map((p, i) => `
@@ -623,7 +639,7 @@
   let contest = null;
   $('#btn-start-contest').onclick = () => {
     const names = players.map((p, i) => p.trim() || 'Pote ' + (i + 1));
-    localStorage.setItem('roi-ryan-joueurs', JSON.stringify(players));
+    LS.set('roi-ryan-joueurs', JSON.stringify(players));
     contest = { names, results: [], i: 0 };
     nextTurn();
   };
@@ -666,11 +682,11 @@
   };
 
   async function share(text){
-    const url = location.href.split('#')[0];
-    try{
-      if (navigator.share){ await navigator.share({ text, url }); return; }
-      await navigator.clipboard.writeText(text + '\n' + url); flash('📋 Copié !');
-    }catch(e){ if (e.name !== 'AbortError') prompt('Copie ce texte :', text + '\n' + url); }
+    try{ await navigator.clipboard.writeText(text); flash('📋 Copié ! Colle-le dans le groupe'); }
+    catch(e){
+      const box = $('#share-box'); box.querySelector('textarea').value = text; box.style.display = 'flex';
+      box.querySelector('textarea').select();
+    }
   }
 
   // Si on quitte l'onglet en pleine partie, on arrête proprement
