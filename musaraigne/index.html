@@ -379,7 +379,8 @@
   }
   const sfx = {
     // vrai cri de musaraigne : rafale de petits gazouillis très aigus
-    squeak(){ twitter(4 + rnd(4), .16, 3800); tone(5200, 2600, .09, 'sine', .14, .02); },
+    // vrai cri de musaraigne (enregistrement) + gros « bonk » sur la tête
+    squeak(){ if (!playCri()) { twitter(4 + rnd(4), .16, 3800); } bonk(); },
     chirp(vol){ twitter(2 + rnd(3), vol || .05, 4200 + rnd(1500)); },
     gold(){ [880,1320,1760].forEach((f,i) => tone(f, f*1.01, .12, 'triangle', .12, i*.06)); },
     bad(){ tone(220, 80, .3, 'sawtooth', .15); },
@@ -401,6 +402,76 @@
   sfx.laugh = () => { [0,1,2,3].forEach(i => tone(260 - i * 25, 200 - i * 25, .12, 'sawtooth', .1, i * .16)); };
   sfx.win = () => { [523,659,784,1047,784,1047,1319].forEach((f,i) => tone(f, f, .2, 'square', .09, i * .12)); };
   sfx.horde = () => { for (let k = 0; k < 6; k++) setTimeout(() => twitter(5 + rnd(4), .07, 3400 + rnd(2500)), k * 110); };
+  // ---- Cris enregistrés (cri1.mp3, cri2.mp3) ----
+  const CRIS = ['cri1.mp3', 'cri2.mp3'], criBuf = [];
+  let master;
+  function out(){
+    if (!master){
+      master = ac.createDynamicsCompressor();             // compresseur = plus fort sans saturer
+      master.threshold.value = -18; master.knee.value = 6; master.ratio.value = 8;
+      master.attack.value = .002; master.release.value = .15;
+      const g = ac.createGain(); g.gain.value = 1.6; master.connect(g).connect(ac.destination);
+    }
+    return master;
+  }
+  function loadCris(){
+    if (criBuf.loading) return; criBuf.loading = true;
+    CRIS.forEach((u, i) => fetch(u).then(r => r.arrayBuffer())
+      .then(b => new Promise((ok, ko) => ac.decodeAudioData(b, ok, ko)))
+      .then(buf => { criBuf[i] = buf; }).catch(() => {}));
+  }
+  function playCri(){
+    try{
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)(); loadCris();
+      const ready = criBuf.filter(Boolean); if (!ready.length) return false;
+      const src = ac.createBufferSource(), g = ac.createGain();
+      src.buffer = pick(ready); src.playbackRate.value = .9 + Math.random() * .3;
+      g.gain.value = 1.4; src.connect(g).connect(out()); src.start();
+      return true;
+    }catch(e){ return false; }
+  }
+  function bonk(){
+    try{
+      const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(55, t + .12);
+      g.gain.setValueAtTime(.9, t); g.gain.exponentialRampToValueAtTime(.001, t + .16);
+      o.connect(g).connect(out()); o.start(t); o.stop(t + .17);
+    }catch(e){}
+  }
+
+  // ---- PROUT bien gras (synthétisé) ----
+  let lastProut = 0;
+  function prout(){
+    try{
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      const now = ac.currentTime; if (now - lastProut < .12) return; lastProut = now;
+      const dur = .45 + Math.random() * .5, t = now, base = 62 + Math.random() * 30;
+      // la « voix » : dent de scie grave qui tremble
+      const o = ac.createOscillator(); o.type = 'sawtooth';
+      o.frequency.setValueAtTime(base * 1.25, t);
+      o.frequency.linearRampToValueAtTime(base, t + dur * .3);
+      o.frequency.linearRampToValueAtTime(base * .7, t + dur);
+      const lfo = ac.createOscillator(), lg = ac.createGain();   // vibration des « joues »
+      lfo.type = 'square'; lfo.frequency.value = 22 + Math.random() * 14; lg.gain.value = base * .35;
+      lfo.connect(lg).connect(o.frequency);
+      const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 520; f.Q.value = 7;
+      // le « souffle » : bruit filtré
+      const nb = ac.createBuffer(1, ac.sampleRate * dur, ac.sampleRate), d = nb.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      const n = ac.createBufferSource(); n.buffer = nb;
+      const nf = ac.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = 180; nf.Q.value = 1.2;
+      const ng = ac.createGain(); ng.gain.value = .35;
+      // enveloppe qui crachote
+      const g = ac.createGain(); g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(1, t + .02);
+      for (let k = .06; k < dur - .05; k += .05 + Math.random() * .06) g.gain.linearRampToValueAtTime(.45 + Math.random() * .55, t + k);
+      g.gain.linearRampToValueAtTime(.8, t + dur - .06); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+      o.connect(f).connect(g); n.connect(nf).connect(ng).connect(g); g.connect(out());
+      [o, lfo, n].forEach(x => { x.start(t); x.stop(t + dur + .02); });
+    }catch(e){}
+  }
+  sfx.prout = prout;
+
   const buzz = ms => navigator.vibrate && navigator.vibrate(ms);
 
   // ---------- Terrain ----------
@@ -411,7 +482,7 @@
     const c = document.createElement('div'); c.className = 'critter';
     h.appendChild(c); field.appendChild(h);
     const hole = { el: c, busy: false, type: null, timer: null, hit: false };
-    c.addEventListener('pointerdown', e => { e.preventDefault(); whack(hole, e.clientX, e.clientY); });
+    c.addEventListener('pointerdown', e => { e.preventDefault(); if (whack(hole, e.clientX, e.clientY)) e.hitOk = true; });
     holes.push(hole);
   }
 
@@ -574,7 +645,7 @@
         G.hits++; if (h.type === 'gold') G.gold++;
         sfx.squeak(); launchAt(x, y, h.type === 'gold' ? 30 : 10, h.type === 'gold');
       }
-      updateHud(); setTimeout(() => hide(h, false), 140); return;
+      updateHud(); setTimeout(() => hide(h, false), 140); return true;
     }
     let pts = 0, color = '#fff';
     switch (h.type){
@@ -587,10 +658,10 @@
         G.royalUntil = performance.now() + 5000;
         flash(pick(KING_HIT)); break;
       case 'imposter':
-        G.fails++; G.combo = 0; pts = -50; color = 'var(--red)'; sfx.bad(); buzz([60,40,60]);
+        G.fails++; G.combo = 0; pts = -50; color = 'var(--red)'; sfx.prout(); buzz([60,40,60]);
         flash(pick(IMPOSTER)); shake(); break;
       default: // chat, chouette
-        G.fails++; G.combo = 0; pts = -30; color = 'var(--red)'; sfx.bad(); buzz(120);
+        G.fails++; G.combo = 0; pts = -30; color = 'var(--red)'; sfx.prout(); buzz(120);
         if (Math.random() < .5) flash(pick(PREDATOR)); shake();
     }
     G.score = Math.max(0, G.score + pts);
@@ -598,6 +669,7 @@
     floatTextAt((pts > 0 ? '+' : '') + pts, x, y, color);
     updateHud();
     setTimeout(() => hide(h, false), 140);
+    return true;
   }
 
   function tickTimer(){
@@ -642,6 +714,15 @@
     setTimeout(() => cb(res), 900);
   }
 
+  // Tape dans le vide = PROUT
+  $('#game').addEventListener('pointerdown', e => {
+    if (e.hitOk || !G || !G.running) return;
+    if (e.target.closest('.hud')) return;
+    prout();
+    floatTextAt(pick(['💨 PROUT', '💨 Raté !', '💨 Pfrrrt', '💨 Oups…']), e.clientX, e.clientY, '#c9a56b');
+    if (G.mode !== 'boss' && G.combo > 0){ G.combo = 0; updateHud(); }
+  });
+
   // ---------- BOSS : Ryan Grognon ----------
   function bossStart(){
     const el = document.createElement('div'); el.id = 'boss';
@@ -650,7 +731,7 @@
     G.hearts = 3; G.projs = []; G.destroyed = 0; G.dmg = 0;
     G.boss = { el, hp: BOSS_HP, phase: 1, x: 40, y: 30, vx: 1.6, vy: 1.1, nextAttack: performance.now() + 1800, nextTalk: performance.now() + 2500 };
     el.addEventListener('pointerdown', e => {
-      e.preventDefault(); if (!G || !G.running) return;
+      e.preventDefault(); if (!G || !G.running) return; e.hitOk = true;
       damage(3, e.clientX, e.clientY);
     });
     say('Cette couronne est à MOI !');
@@ -694,7 +775,7 @@
       p.el.style.transform = `translate(${p.x}px,${p.y}px) rotate(${p.y * 2}deg)`;
       if (p.y > H - 14){
         p.dead = true; p.el.remove();
-        G.hearts--; sfx.bad(); buzz(150); shake(); flash('💩 SPLATCH ! −1 vie');
+        G.hearts--; sfx.prout(); buzz(150); shake(); flash('💩 SPLATCH ! −1 vie');
         updateHud();
         if (G.hearts <= 0){ bossEnd(false); return; }
       }
@@ -937,6 +1018,10 @@
       box.querySelector('textarea').select();
     }
   }
+
+  document.addEventListener('pointerdown', () => {
+    try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); loadCris(); } catch(e){}
+  }, { once: true, capture: true });
 
   // Si on quitte l'onglet en pleine partie, on arrête proprement
   document.addEventListener('visibilitychange', () => { if (document.hidden && G){ stopGame(); G = null; show('menu'); } });
