@@ -404,6 +404,7 @@
   sfx.horde = () => { for (let k = 0; k < 6; k++) setTimeout(() => twitter(5 + rnd(4), .07, 3400 + rnd(2500)), k * 110); };
   // ---- Cris enregistrés (cri1.mp3, cri2.mp3) ----
   const CRIS = ['cri1.mp3', 'cri2.mp3'], criBuf = [];
+  let petBuf = null;
   let master;
   function out(){
     if (!master){
@@ -419,6 +420,9 @@
     CRIS.forEach((u, i) => fetch(u).then(r => r.arrayBuffer())
       .then(b => new Promise((ok, ko) => ac.decodeAudioData(b, ok, ko)))
       .then(buf => { criBuf[i] = buf; }).catch(() => {}));
+    fetch('pet.mp3').then(r => r.arrayBuffer())
+      .then(b => new Promise((ok, ko) => ac.decodeAudioData(b, ok, ko)))
+      .then(buf => { petBuf = buf; }).catch(() => {});
   }
   function playCri(){
     try{
@@ -444,7 +448,14 @@
   function prout(){
     try{
       ac = ac || new (window.AudioContext || window.webkitAudioContext)();
-      const now = ac.currentTime; if (now - lastProut < .12) return; lastProut = now;
+      const now = ac.currentTime; if (now - lastProut < .25) return; lastProut = now;
+      if (petBuf){                                  // le vrai pet enregistré
+        const src = ac.createBufferSource(), g = ac.createGain();
+        src.buffer = petBuf; src.playbackRate.value = .88 + Math.random() * .24;
+        g.gain.value = 1.5; src.connect(g).connect(out()); src.start();
+        return;
+      }
+      // (secours si le fichier n'est pas encore chargé : pet synthétisé)
       const dur = .45 + Math.random() * .5, t = now, base = 62 + Math.random() * 30;
       // la « voix » : dent de scie grave qui tremble
       const o = ac.createOscillator(); o.type = 'sawtooth';
