@@ -1,0 +1,50 @@
+<!DOCTYPE html><html lang="fr"><head><meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<style>
+body{background:radial-gradient(900px 800px at 85% 0%,#1fbf7555,transparent 70%),linear-gradient(170deg,#0b4a2c,#071f17 75%)}
+.it{left:60px;right:60px;padding:26px 36px;font-size:48px;font-weight:700;display:flex;align-items:center;gap:24px}
+.ck{width:56px;height:56px;border-radius:16px;border:5px solid #12a150;display:grid;place-items:center;color:#fff;font-size:36px}
+.row{left:60px;right:60px;padding:28px 36px;display:flex;align-items:center;gap:26px;font-size:46px}
+.row .n{width:80px;height:80px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800}
+.row .p{margin-left:auto;font-weight:800;font-size:56px}
+.row small{display:block;font-size:30px;color:#667}
+.best{outline:8px solid #ffd23f}
+.gain{left:60px;right:60px;top:1330px;text-align:center;font-size:60px;font-weight:800;background:#ffd23f;color:#0c1533;border-radius:999px;padding:26px}
+.day{left:60px;right:60px;padding:26px 36px;font-size:46px;display:flex;gap:24px}
+.day b{color:#12a150;width:110px}
+</style></head><body>
+<div class="brand" data-a="0,13" data-fx="fade"><img src="../../courses/icons/icon-512.png">Chariot Malin</div>
+
+<div class="hook" data-a="0.15,2.7" data-fx="pop">Même panier.<br><em>15,90 €</em> d'écart. 🤯</div>
+
+<div class="cap" data-a="2.9,6.2">Écris ta liste de courses 📝</div>
+<div class="card it" data-a="3.2,6.2" data-fx="left" style="top:640px"><span class="ck" id="k1"></span>🍝 Pâtes</div>
+<div class="card it" data-a="3.5,6.2" data-fx="left" style="top:790px"><span class="ck" id="k2"></span>🥛 Lait</div>
+<div class="card it" data-a="3.8,6.2" data-fx="left" style="top:940px"><span class="ck" id="k3"></span>🍗 Poulet</div>
+<div class="card it" data-a="4.1,6.2" data-fx="left" style="top:1090px"><span class="ck" id="k4"></span>🍎 Pommes</div>
+<div class="card it" data-a="4.4,6.2" data-fx="left" style="top:1240px;color:#667">+ 20 autres articles…</div>
+
+<div class="cap" data-a="6.4,10">L'appli compare ton panier <em>dans les magasins autour de toi</em> 🛒</div>
+<div class="card row best" data-a="6.9,10" data-fx="right" style="top:640px"><div class="n" style="background:#12a150">A</div><div>Magasin A<small>2,1 km</small></div><div class="p" id="pa">68,40 €</div></div>
+<div class="card row" data-a="7.1,10" data-fx="right" style="top:830px"><div class="n" style="background:#2f6bff">B</div><div>Magasin B<small>3,4 km</small></div><div class="p">71,95 €</div></div>
+<div class="card row" data-a="7.3,10" data-fx="right" style="top:1020px"><div class="n" style="background:#e5533d">C</div><div>Magasin C<small>0,6 km</small></div><div class="p">84,30 €</div></div>
+<div class="gain" data-a="8,10" data-fx="pop">💶 15,90 € d'économie sur ce panier</div>
+<div class="foot" data-a="6.4,10" data-fx="fade">Exemple illustratif · l'appli donne des prix estimés selon le niveau de prix de chaque enseigne</div>
+
+<div class="cap" data-a="10.2,13">Pas d'idée ? Elle te propose <em>les menus de la semaine</em> 🎲</div>
+<div class="card day" data-a="10.5,13" data-fx="up" style="top:640px"><b>Lun</b>Lasagnes</div>
+<div class="card day" data-a="10.7,13" data-fx="up" style="top:780px"><b>Mar</b>Curry de pois chiches</div>
+<div class="card day" data-a="10.9,13" data-fx="up" style="top:920px"><b>Mer</b>Saumon &amp; riz</div>
+<div class="card day" data-a="11.1,13" data-fx="up" style="top:1060px"><b>Jeu</b>Croque-monsieur</div>
+<div class="cap" data-a="11.6,13" data-fx="pop" style="top:1240px;font-size:52px;text-align:center">…et les ingrédients vont <em>direct dans ta liste</em> ✅</div>
+
+<div class="cta" data-a="13.2" data-fx="pop"><img src="../../courses/icons/icon-512.png"><h2>Chariot Malin</h2>
+<div class="pills"><span class="pill y">100 % gratuit</span><span class="pill">Sans inscription</span><span class="pill">Android & iPhone</span></div>
+<div class="bio">👉 Lien en bio</div></div>
+<script src="engine.js"></script>
+<script>
+window.custom=t=>{ [1,2,3,4].forEach(i=>{const k=document.getElementById('k'+i), on=t>4.6+i*.25;
+  k.style.background=on?'#12a150':'transparent'; k.textContent=on?'✓':'';});
+ const c=document.querySelector('.cta img'); if(t>13.8) c.style.transform=`scale(${1+.04*Math.sin((t-13.8)*5)})`;
+ const b=document.querySelector('.bio'); if(t>13.6) b.style.transform=`translateY(${-10*Math.abs(Math.sin((t-13.6)*4))}px)`; };
+render(0);
+</script></body></html>
