@@ -4,132 +4,104 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#2b1d12">
-<title>La Cour du Roi Ryan – Le jeu des musaraignes</title>
+<title>Le Roi Ryan et ses musaraignes</title>
 <style>
-  :root{
-    --bg:#2b1d12; --dirt:#5a3c22; --dirt2:#3d2814; --grass:#6fae3f; --gold:#ffcc33;
-    --txt:#fff7e8; --red:#e5484d; --card:#3a2817;
-  }
+  :root{ --bg:#2b1d12; --gold:#ffcc33; --txt:#fff7e8; --red:#e5484d; --card:#3a2817; }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
   html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);
     font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden;touch-action:manipulation}
   .screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;
-    padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));overflow-y:auto}
+    padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));overflow-y:auto}
   .screen.on{display:flex}
   .screen > *{flex-shrink:0}
-  #game > #field{flex-shrink:1}
-  h1{font-size:clamp(26px,7vw,40px);margin:8px 0 2px;text-align:center;line-height:1.1;
-    text-shadow:0 3px 0 #000a}
+  h1{font-size:clamp(26px,7vw,40px);margin:8px 0 2px;text-align:center;line-height:1.1;text-shadow:0 3px 0 #000a}
   h2{margin:8px 0;text-align:center}
-  .sub{opacity:.85;text-align:center;margin:0 0 12px;font-size:15px}
+  .sub{opacity:.88;text-align:center;margin:0 0 12px;font-size:15px}
   button{font:inherit;font-weight:800;border:0;border-radius:16px;padding:14px 18px;margin:6px 0;
     width:min(340px,100%);font-size:18px;cursor:pointer;color:#2b1d12;background:var(--gold);
     box-shadow:0 5px 0 #a87b00;transition:transform .05s}
   button:active{transform:translateY(4px);box-shadow:0 1px 0 #a87b00}
   button.alt{background:#e9dcc6;box-shadow:0 5px 0 #9c8a6c}
   button.small{width:auto;padding:8px 12px;font-size:15px;margin:0}
+  input{font:inherit;font-size:17px;padding:10px 12px;border-radius:12px;border:2px solid #0004;width:100%;
+    background:#fff7e8;color:#2b1d12;user-select:text;-webkit-user-select:text}
+  .card{background:var(--card);border-radius:18px;padding:14px;width:min(380px,100%);margin:8px 0}
+
+  /* Menu */
   .king-portrait{position:relative;width:170px;height:190px;margin:22px auto 4px}
   .king-portrait img{width:170px;height:170px;border-radius:50%;object-fit:cover;position:absolute;bottom:0;
     border:6px solid var(--gold);box-shadow:0 0 30px #ffcc3399}
   .crown{position:absolute;left:50%;transform:translateX(-50%) rotate(-8deg);top:-26px;font-size:64px;
-    filter:drop-shadow(0 3px 2px #0008);animation:bob 1.6s ease-in-out infinite}
+    filter:drop-shadow(0 3px 2px #0008);animation:bob 1.6s ease-in-out infinite;z-index:2}
   @keyframes bob{50%{transform:translateX(-50%) rotate(6deg) translateY(-4px)}}
-  .card{background:var(--card);border-radius:18px;padding:14px;width:min(380px,100%);margin:8px 0}
   .rules{font-size:14.5px;line-height:1.45}
-  .rules div{display:flex;gap:10px;align-items:center;margin:4px 0}
+  .rules div{display:flex;gap:10px;align-items:center;margin:5px 0}
   .rules .ic{width:34px;text-align:center;font-size:24px;flex:none}
-  .rules img{width:30px;height:30px;border-radius:50%;object-fit:cover}
-  .mini-shrew{width:34px;height:34px}
-
-  /* HUD + terrain */
-  #game{padding-top:max(10px,env(safe-area-inset-top))}
-  .hud{width:min(480px,100%);display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:800}
-  .hud .box{background:var(--card);border-radius:12px;padding:6px 10px;text-align:center;min-width:80px}
-  .hud small{display:block;font-size:11px;opacity:.7;font-weight:600}
-  #score{font-size:24px}
-  #timer{font-size:22px}
-  #combo{font-size:20px;color:var(--gold)}
-  #player-name{font-weight:800;margin:6px 0 0;opacity:.9}
-  #royal-banner{height:30px;margin:4px 0;font-weight:900;color:var(--gold);font-size:18px;text-align:center;
-    opacity:0;transition:opacity .2s}
-  #royal-banner.on{opacity:1;animation:pulse .5s infinite alternate}
-  @keyframes pulse{to{transform:scale(1.08)}}
-  #field{width:min(480px,100%);flex:1;max-height:560px;display:grid;grid-template-columns:repeat(3,1fr);
-    grid-template-rows:repeat(4,1fr);gap:8px;padding:10px;border-radius:24px;
-    background:radial-gradient(circle at 30% 20%,#7fc04c,var(--grass) 60%,#4f8a2a);
-    box-shadow:inset 0 -8px 0 #0003;position:relative;transition:box-shadow .3s}
-  body.royal #field{box-shadow:0 0 0 5px var(--gold),0 0 40px var(--gold),inset 0 -8px 0 #0003}
-  body.shake #field{animation:shake .3s}
-  @keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
-  .hole{position:relative;overflow:hidden;border-radius:0 0 50% 50%/0 0 30% 30%}
-  .hole::before{content:"";position:absolute;left:8%;right:8%;bottom:6%;height:32%;border-radius:50%;
-    background:radial-gradient(ellipse at 50% 40%,#140c05,var(--dirt2) 70%)}
-  .hole::after{content:"";position:absolute;left:2%;right:2%;bottom:0;height:20%;border-radius:50% 50% 40% 40%;
-    background:linear-gradient(var(--dirt),var(--dirt2));z-index:3}
-  .critter{position:absolute;left:50%;bottom:8%;width:78%;aspect-ratio:1;transform:translate(-50%,110%);
-    transition:transform .14s ease-out;z-index:2;display:flex;align-items:center;justify-content:center;cursor:pointer}
-  .critter.up{transform:translate(-50%,0)}
-  .critter.hit{transform:translate(-50%,0) scale(.8) rotate(12deg);filter:brightness(1.6)}
-  .critter svg{width:100%;height:100%;overflow:visible}
-  .critter .emo{font-size:min(17vw,80px);line-height:1}
-  .critter .ryan{width:84%;aspect-ratio:1;border-radius:50%;object-fit:cover;border:4px solid var(--gold);
-    box-shadow:0 0 18px var(--gold)}
-  .critter .ryan-wrap{position:relative;width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center}
-  .critter .ryan-wrap .c{position:absolute;top:-8%;left:50%;transform:translateX(-50%) rotate(-10deg);
-    font-size:min(10vw,46px)}
-  .critter.imposter .ryan{border-color:#7a7a7a;box-shadow:0 0 12px #e5484d}
-  .critter.imposter .c{font-size:min(8vw,36px);top:-4%}
-  .runner{position:fixed;width:74px;height:44px;z-index:40;cursor:pointer;touch-action:none}
-  #menu .runner{position:absolute;z-index:0;opacity:.9}
-  #menu > *:not(.runner){position:relative;z-index:1}
-  #menu .king-portrait{position:relative}
+  .runner{position:absolute;width:70px;height:42px;z-index:0;opacity:.9;cursor:pointer;touch-action:none}
+  .screen > *:not(.runner){position:relative;z-index:1}
   .runner svg{width:100%;height:100%;animation:trot .18s infinite alternate}
-  .runner.caught{animation-play-state:paused!important;transform:scale(1.4) rotate(-20deg);opacity:.4;transition:.2s}
   @keyframes trot{to{translate:0 -4px}}
   @keyframes runR{from{left:-90px}to{left:calc(100% + 20px)}}
   @keyframes runL{from{left:calc(100% + 20px)}to{left:-90px}}
-  #boss{position:absolute;left:0;top:0;width:34%;aspect-ratio:1;z-index:5;touch-action:none;cursor:pointer;will-change:transform}
-  #boss img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:5px solid #b31d1d;
-    box-shadow:0 0 0 4px #0006,0 12px 20px #0008;transition:filter .08s}
-  #boss .bcrown{position:absolute;top:-26%;left:50%;font-size:min(12vw,56px);transform:translateX(-50%) rotate(18deg);
-    filter:drop-shadow(0 3px 2px #0008)}
-  #boss.ouch img{filter:brightness(1.9) saturate(.2)}
-  #boss.p2 img{border-color:#ff6a00;box-shadow:0 0 26px #ff6a00}
-  #boss.p3 img{border-color:#ff0000;box-shadow:0 0 44px #ff0000;animation:rage .12s infinite alternate}
-  @keyframes rage{to{transform:rotate(4deg) scale(1.03)}}
-  #boss .bubble{position:absolute;bottom:112%;left:50%;transform:translateX(-50%);background:#fff;color:#1a1a1a;
-    font-weight:800;font-size:13px;padding:6px 9px;border-radius:12px;white-space:nowrap;display:none;z-index:2}
-  #boss .bubble.on{display:block}
-  .proj{position:absolute;left:0;top:0;width:52px;height:52px;margin:-26px 0 0 -26px;font-size:34px;z-index:6;
-    display:flex;align-items:center;justify-content:center;touch-action:none;cursor:pointer;
-    filter:drop-shadow(0 3px 2px #0009)}
-  .flyer{position:fixed;width:64px;height:38px;z-index:45;pointer-events:none;margin:-19px 0 0 -32px;
-    transition:transform .3s cubic-bezier(.5,-0.3,.8,1)}
-  .flyer svg{width:100%;height:100%}
-  #boss-bar{width:min(480px,100%);margin:4px 0 2px;display:none}
-  body.boss #boss-bar{display:block}
-  body.boss #royal-banner{display:none}
-  .bb-name{font-weight:900;font-size:14px;text-align:center;margin-bottom:3px;color:#ffb3b3}
-  .bb{height:18px;background:#0007;border-radius:10px;overflow:hidden;border:2px solid #000}
-  .bb i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#e5484d,#ff9a3c);transition:width .2s}
-  .mode-pick{display:flex;gap:8px;width:100%}
-  .mode-pick button{flex:1;margin:0;font-size:16px;padding:12px 6px;background:#e9dcc6;box-shadow:0 4px 0 #9c8a6c}
-  .mode-pick button.sel{background:var(--gold);box-shadow:0 4px 0 #a87b00;outline:3px solid #fff}
-  button.boss-btn{background:#e5484d;color:#fff;box-shadow:0 5px 0 #8f1f22}
-  .runner.baby{width:46px;height:28px}
-  .board-h{margin:4px 0 6px;font-weight:900}
-  .float{position:fixed;pointer-events:none;font-weight:900;font-size:22px;z-index:50;
-    text-shadow:0 2px 0 #000,0 0 6px #000;animation:floatUp .9s ease-out forwards;white-space:nowrap;
-    transform:translate(-50%,-50%)}
-  @keyframes floatUp{to{transform:translate(-50%,-160%);opacity:0}}
-  #msg{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;
-    font-size:clamp(22px,6vw,34px);font-weight:900;text-align:center;width:92%;text-shadow:0 3px 0 #000,0 0 10px #000;
-    opacity:0}
-  #msg.show{animation:pop 1.3s ease-out forwards}
+
+  /* Ville */
+  .town{display:flex;flex-direction:column;gap:8px;width:min(380px,100%)}
+  .house{display:flex;align-items:center;gap:12px;background:var(--card);border-radius:16px;padding:10px 12px;border:3px solid transparent}
+  .house .em{font-size:40px;flex:none}
+  .house b{display:block}
+  .house small{opacity:.8}
+  .house.next{border-color:var(--gold);box-shadow:0 0 18px #ffcc3366}
+  .house.done{opacity:.6}
+  .house.locked{opacity:.4}
+  .order{display:flex;gap:10px;align-items:flex-start;width:min(380px,100%);margin:8px 0}
+  .order img{width:62px;height:62px;border-radius:50%;object-fit:cover;border:3px solid var(--gold);flex:none}
+  .order p{margin:0;background:#fff7e8;color:#2b1d12;border-radius:14px;padding:10px 12px;font-weight:700;font-size:15px;position:relative}
+  .order p::before{content:"";position:absolute;left:-8px;top:18px;border:8px solid transparent;border-left:0;border-right-color:#fff7e8}
+
+  /* Jeu */
+  #game{padding:max(6px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom));overflow:hidden}
+  .hud{width:min(520px,100%);display:flex;justify-content:space-between;align-items:center;gap:6px;font-weight:800}
+  .hud .box{background:var(--card);border-radius:12px;padding:4px 8px;text-align:center;min-width:70px;font-size:18px}
+  .hud small{display:block;font-size:10px;opacity:.7;font-weight:600}
+  #ryan-bar{width:min(520px,100%);display:flex;align-items:center;gap:8px;margin:5px 0;min-height:40px}
+  #ryan-bar img{width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);flex:none}
+  #ryan-say{background:#fff7e8;color:#2b1d12;border-radius:12px;padding:5px 9px;font-weight:800;font-size:13.5px;
+    opacity:0;transition:opacity .2s;line-height:1.2}
+  #ryan-say.on{opacity:1}
+  #game > #stage{flex:1 1 auto;width:100%;position:relative;min-height:200px;display:flex;align-items:center;justify-content:center;touch-action:none}
+  canvas{display:block;border-radius:10px;box-shadow:0 6px 20px #0009}
+  #dpad{display:grid;grid-template-columns:repeat(3,62px);grid-template-rows:repeat(2,52px);gap:6px;margin-top:6px}
+  #dpad button{width:auto;margin:0;padding:0;font-size:26px;border-radius:14px}
+  #dpad [data-d="up"]{grid-column:2;grid-row:1}
+  #dpad [data-d="left"]{grid-column:1;grid-row:2}
+  #dpad [data-d="down"]{grid-column:2;grid-row:2}
+  #dpad [data-d="right"]{grid-column:3;grid-row:2}
+  body.shake #stage{animation:shake .3s}
+  @keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+  #msg{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;
+    font-size:clamp(22px,6.5vw,36px);font-weight:900;text-align:center;width:92%;text-shadow:0 3px 0 #000,0 0 10px #000;opacity:0}
+  #msg.show{animation:pop 1.4s ease-out forwards}
   @keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}
     80%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0}}
+  .overlay{position:fixed;inset:0;z-index:80;background:#000b;display:none;align-items:center;justify-content:center;padding:16px;flex-direction:column}
+  .overlay.on{display:flex}
+  .countdown{font-size:110px;font-weight:900;color:var(--gold);text-shadow:0 6px 0 #000a}
 
-  /* résultats */
+  /* Finale */
+  #finale{justify-content:center;overflow:hidden}
+  .court{position:relative;width:min(380px,96vw);aspect-ratio:1;margin:8px 0}
+  .court .king{position:absolute;left:50%;top:50%;width:38%;aspect-ratio:1;transform:translate(-50%,-50%);z-index:3}
+  .court .king img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:5px solid var(--gold);box-shadow:0 0 30px var(--gold)}
+  .court .king span{position:absolute;top:-30%;left:50%;transform:translateX(-50%) rotate(-8deg);font-size:52px}
+  .court .sh{position:absolute;width:15%;aspect-ratio:1;transform:translate(-50%,-50%);animation:hop .5s ease-in-out infinite alternate}
+  .court .sh svg{width:100%;height:100%}
+  @keyframes hop{to{margin-top:-8px}}
+  .kiss{position:absolute;font-size:26px;z-index:4;transform:translate(-50%,-50%);transition:left .45s ease-out,top .45s ease-out;pointer-events:none}
+  .heart{position:absolute;font-size:22px;z-index:5;transform:translate(-50%,-50%);animation:floatUp .9s ease-out forwards;pointer-events:none}
+  @keyframes floatUp{to{transform:translate(-50%,-180%);opacity:0}}
+  #kiss-count{font-size:22px;font-weight:900;color:#ff8fb8;text-shadow:0 2px 0 #000}
+
+  /* Résultats */
   .big{font-size:56px;font-weight:900;color:var(--gold);text-align:center;margin:4px 0;text-shadow:0 4px 0 #000a}
   .title-rank{font-size:20px;font-weight:800;text-align:center}
   .quote{font-style:italic;text-align:center;margin:10px 0 0;display:flex;gap:10px;align-items:center}
@@ -139,14 +111,11 @@
   ol.board{margin:0;padding-left:28px}
   ol.board li{padding:5px 0;border-bottom:1px solid #fff1;display:flex;justify-content:space-between;gap:8px}
   ol.board li span:last-child{font-weight:800;color:var(--gold)}
-  .players input{font:inherit;font-size:17px;padding:10px 12px;border-radius:12px;border:2px solid #0004;width:100%;
-    background:#fff7e8;color:#2b1d12;user-select:text;-webkit-user-select:text}
   .players .row{display:flex;gap:8px;margin:6px 0;align-items:center}
   .players .row button{width:46px;flex:none;padding:10px 0;margin:0;background:#e9dcc6;box-shadow:0 3px 0 #9c8a6c}
   .podium{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin:14px 0 6px;width:min(380px,100%)}
   .podium .step{flex:1;text-align:center;font-weight:800}
-  .podium .bar{border-radius:12px 12px 0 0;display:flex;align-items:flex-start;justify-content:center;
-    padding-top:6px;font-size:26px;color:#2b1d12}
+  .podium .bar{border-radius:12px 12px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:6px;font-size:26px;color:#2b1d12}
   .podium .p1 .bar{height:120px;background:var(--gold)}
   .podium .p2 .bar{height:85px;background:#d7d7d7}
   .podium .p3 .bar{height:60px;background:#d08a4a}
@@ -156,30 +125,21 @@
   .gage b{color:var(--red)}
   .passer{font-size:24px;text-align:center;margin:20px 0}
   .passer b{color:var(--gold);font-size:34px;display:block}
-  .countdown{font-size:110px;font-weight:900;color:var(--gold);text-shadow:0 6px 0 #000a}
-  .row-btns{display:flex;gap:8px;width:min(340px,100%)}
-  .row-btns button{flex:1}
 </style>
 </head>
 <body>
 
-<!-- Dessin de la musaraigne (réutilisé partout) -->
 <svg width="0" height="0" style="position:absolute">
   <defs>
     <symbol id="shrew" viewBox="0 0 100 100">
-      <ellipse cx="50" cy="78" rx="34" ry="26" fill="var(--fur,#6b5a4a)"/>
-      <ellipse cx="22" cy="30" rx="10" ry="9" fill="var(--fur,#6b5a4a)"/>
-      <ellipse cx="78" cy="30" rx="10" ry="9" fill="var(--fur,#6b5a4a)"/>
-      <ellipse cx="22" cy="30" rx="5" ry="4.5" fill="#d9a3a0"/>
-      <ellipse cx="78" cy="30" rx="5" ry="4.5" fill="#d9a3a0"/>
-      <path d="M18 48 Q20 22 50 22 Q80 22 82 48 Q80 62 60 70 L52 94 Q50 97 48 94 L40 70 Q20 62 18 48Z" fill="var(--fur,#6b5a4a)"/>
-      <path d="M40 66 L50 96 L60 66 Q50 72 40 66Z" fill="var(--snout,#8a7563)"/>
+      <ellipse cx="50" cy="78" rx="34" ry="26" fill="#6b5a4a"/>
+      <ellipse cx="22" cy="30" rx="10" ry="9" fill="#6b5a4a"/><ellipse cx="78" cy="30" rx="10" ry="9" fill="#6b5a4a"/>
+      <ellipse cx="22" cy="30" rx="5" ry="4.5" fill="#d9a3a0"/><ellipse cx="78" cy="30" rx="5" ry="4.5" fill="#d9a3a0"/>
+      <path d="M18 48 Q20 22 50 22 Q80 22 82 48 Q80 62 60 70 L52 94 Q50 97 48 94 L40 70 Q20 62 18 48Z" fill="#6b5a4a"/>
+      <path d="M40 66 L50 96 L60 66 Q50 72 40 66Z" fill="#8a7563"/>
       <circle cx="50" cy="95" r="4" fill="#e78a9a"/>
       <circle cx="37" cy="46" r="4.2" fill="#111"/><circle cx="63" cy="46" r="4.2" fill="#111"/>
       <circle cx="38.3" cy="44.6" r="1.3" fill="#fff"/><circle cx="64.3" cy="44.6" r="1.3" fill="#fff"/>
-      <g stroke="#222" stroke-width="1" stroke-linecap="round" opacity=".7">
-        <path d="M45 84 L26 80"/><path d="M45 87 L27 90"/><path d="M55 84 L74 80"/><path d="M55 87 L73 90"/>
-      </g>
     </symbol>
     <symbol id="shrew-side" viewBox="0 0 120 70">
       <path d="M8 46 Q-4 40 2 30" stroke="#5c4c3e" stroke-width="3" fill="none" stroke-linecap="round"/>
@@ -189,7 +149,6 @@
       <circle cx="117" cy="46.5" r="3" fill="#e78a9a"/>
       <circle cx="84" cy="36" r="3" fill="#111"/><circle cx="85" cy="35" r=".9" fill="#fff"/>
       <ellipse cx="74" cy="28" rx="6" ry="5" fill="#d9a3a0"/>
-      <g stroke="#222" stroke-width=".8" opacity=".7"><path d="M108 46 L100 38"/><path d="M108 47 L98 50"/></g>
       <g fill="#e1b3a8"><rect x="22" y="58" width="6" height="8" rx="2"/><rect x="58" y="57" width="6" height="9" rx="2"/></g>
     </symbol>
   </defs>
@@ -198,46 +157,50 @@
 <!-- MENU -->
 <section id="menu" class="screen on">
   <div class="king-portrait"><span class="crown">👑</span><img src="ryan.jpg" alt="Le Roi Ryan"></div>
-  <h1>La Cour du Roi Ryan</h1>
-  <p class="sub">Sa Majesté Ryan I<sup>er</sup>, Roi des Musaraignes,<br>cherche son héritier. Tape vite. Tape bien.</p>
-  <div class="players" style="width:min(340px,100%);margin-top:6px"><input id="solo-name" maxlength="20" placeholder="Ton nom de sujet royal" aria-label="Ton nom"></div>
-  <button id="btn-solo">🐭 Jouer solo</button>
-  <button class="boss-btn" id="btn-boss">⚔️ Mode Boss : Ryan Grognon</button>
+  <h1>Le Roi Ryan et ses musaraignes</h1>
+  <p class="sub">Sa Majesté Ryan I<sup>er</sup> envoie son armée de musaraignes<br>piller toute la bouffe de la ville. Ne te fais pas choper !</p>
+  <div style="width:min(340px,100%);margin-top:4px"><input id="solo-name" maxlength="20" placeholder="Ton nom de musaraigne" aria-label="Ton nom"></div>
+  <button id="btn-solo">🐭 Jouer</button>
   <button id="btn-contest">🏆 Concours entre potes</button>
   <button class="alt" id="btn-board">📜 Classement de la Cour</button>
   <div class="card rules">
-    <div><span class="ic"><svg class="mini-shrew"><use href="#shrew"/></svg></span><span>Musaraigne : <b>+10</b> (les combos multiplient jusqu'à ×5)</span></div>
-    <div><span class="ic"><svg class="mini-shrew" style="--fur:#e0ac1c;--snout:#f5cc4a"><use href="#shrew"/></svg></span><span>Musaraigne dorée : <b>+50</b></span></div>
-    <div><span class="ic"><img src="ryan.jpg" alt=""></span><span><b>Le Roi Ryan 👑</b> : salue-le ! <b>+100</b> et <b>points ×3</b> pendant 5 s</span></div>
-    <div><span class="ic"><img src="ryan-grimace.jpg" alt=""></span><span><b>Ryan Grognon</b> (sans couronne 😤) : il déteste qu'on le touche, <b>−50</b></span></div>
-    <div><span class="ic">🐈</span><span>Chat / 🦉 Chouette : prédateurs, <b>−30</b> et combo perdu</span></div>
-    <div><span class="ic">🏃</span><span>Musaraigne qui traverse l'écran : attrape-la, <b>+20</b></span></div>
-    <div><span class="ic">🐭🐭</span><span>RUÉE DES MUSARAIGNES : elles sortent de partout !</span></div>
-    <div><span class="ic">💨</span><span>Une musaraigne qui s'échappe casse ton combo</span></div>
-    <div><span class="ic">🍼</span><span>CARAVANE DE BÉBÉS : une file de bébés musaraignes (chacun tient la queue de celui de devant)</span></div>
-    <div><span class="ic">⚔️</span><span><b>Mode Boss</b> : Ryan Grognon a volé la couronne ! Tape tes musaraignes pour les lancer sur lui, détruis ses crottes 💩 avant qu'elles touchent le sol. 3 vies.</span></div>
+    <div><span class="ic">🧀</span><span>Ramasse <b>toute la bouffe</b> de chaque maison : <b>+100</b> chacune</span></div>
+    <div><span class="ic">🪏</span><span>Le propriétaire te poursuit avec sa <b>pelle</b>. Touchée = BONK, tu perds une vie (3 en tout)</span></div>
+    <div><span class="ic">🕳️</span><span>Les <b>trous</b> sont des cachettes : il ne peut pas t'y voir</span></div>
+    <div><span class="ic">👑</span><span><b>Ordre du Roi</b> : l'armée de Ryan déboule, le propriétaire panique. Fonce-lui dessus : <b>+200</b></span></div>
+    <div><span class="ic">🍼</span><span>Chaque bouffe ramassée ajoute un bébé musaraigne derrière toi</span></div>
+    <div><span class="ic">🏘️</span><span>4 maisons à piller. À la fin, le Roi Ryan fait plein de bisous à ses musaraignes 😘</span></div>
+    <div><span class="ic">🎮</span><span>Flèches à l'écran, glisse le doigt sur la maison, ou flèches du clavier</span></div>
   </div>
 </section>
 
-<!-- SAISIE DES JOUEURS -->
+<!-- CONCOURS -->
 <section id="setup" class="screen">
   <h1>🏆 Concours</h1>
-  <p class="sub">Chacun son tour sur le même téléphone.<br>Le dernier aura un <b>gage royal</b>. 😈</p>
+  <p class="sub">Chacun fait le pillage complet de la ville, à tour de rôle.<br>Le dernier aura un <b>gage royal</b>. 😈</p>
   <div class="card players">
-    <div class="mode-pick"><button id="mode-classic" class="sel">🐭 Classique</button><button id="mode-boss">⚔️ Boss</button></div>
-    <div id="player-list" style="margin-top:8px"></div>
+    <div id="player-list"></div>
     <button class="alt small" id="btn-add-player" style="margin-top:6px">+ Ajouter un pote</button>
   </div>
   <button id="btn-start-contest">C'est parti !</button>
   <button class="alt" data-go="menu">← Retour</button>
 </section>
 
-<!-- PASSE LE TÉLÉPHONE -->
 <section id="pass" class="screen">
   <div style="flex:1"></div>
   <div class="passer">📱 Passe le téléphone à<b id="pass-name"></b><span id="pass-info" style="font-size:16px;opacity:.8"></span></div>
   <button id="btn-ready">Je suis prêt(e) !</button>
   <div style="flex:1"></div>
+</section>
+
+<!-- VILLE -->
+<section id="town" class="screen">
+  <h1>🏘️ La ville</h1>
+  <p class="sub" id="town-sub"></p>
+  <div class="order"><img src="ryan.jpg" alt="Le Roi Ryan"><p id="town-order"></p></div>
+  <button id="btn-attack">🐭 Attaquer la maison !</button>
+  <div class="town" id="town-list"></div>
+  <button class="alt" id="btn-quit-town" style="margin-top:12px">🏳️ Abandonner</button>
 </section>
 
 <!-- COMPTE À REBOURS -->
@@ -249,23 +212,37 @@
 <!-- JEU -->
 <section id="game" class="screen">
   <div class="hud">
-    <div class="box"><small>SCORE</small><span id="score">0</span></div>
-    <div class="box"><small id="lbl-combo">COMBO</small><span id="combo">×1</span></div>
-    <div class="box"><small>TEMPS</small><span id="timer">45</span></div>
+    <div class="box"><small>SCORE</small><span id="h-score">0</span></div>
+    <div class="box"><small>BOUFFE</small><span id="h-food">0/0</span></div>
+    <div class="box"><small>VIES</small><span id="h-lives">❤️❤️❤️</span></div>
   </div>
-  <div id="player-name"></div>
-  <div id="boss-bar"><div class="bb-name">😤 RYAN GROGNON — voleur de couronne</div><div class="bb"><i id="boss-hp"></i></div></div>
-  <div id="royal-banner">👑 FAVEUR ROYALE ×3 👑</div>
-  <div id="field"></div>
+  <div id="ryan-bar"><img src="ryan.jpg" alt=""><span id="ryan-say"></span></div>
+  <div id="stage"><canvas id="cv"></canvas></div>
+  <div id="dpad">
+    <button data-d="up" aria-label="Haut">⬆️</button>
+    <button data-d="left" aria-label="Gauche">⬅️</button>
+    <button data-d="down" aria-label="Bas">⬇️</button>
+    <button data-d="right" aria-label="Droite">➡️</button>
+  </div>
 </section>
-<div id="msg"></div>
-<div id="share-box" style="display:none;position:fixed;inset:0;z-index:80;background:#000b;align-items:center;justify-content:center;padding:16px">
-  <div class="card" style="display:flex;flex-direction:column;align-items:center">
-    <b>Copie ce texte et envoie-le aux potes :</b>
-    <textarea readonly style="width:100%;height:150px;margin:10px 0;font:inherit;font-size:16px;border-radius:12px;padding:8px;user-select:text;-webkit-user-select:text"></textarea>
-    <button onclick="this.closest('#share-box').style.display='none'">OK</button>
-  </div>
-</div>
+
+<!-- FIN DE MAISON -->
+<section id="clear" class="screen">
+  <h1 id="clear-title">🏠 Maison vidée !</h1>
+  <div class="big" id="clear-score">0</div>
+  <div class="card"><div class="stats" id="clear-stats"></div>
+    <div class="quote"><img src="ryan.jpg" alt=""><span id="clear-quote"></span></div></div>
+  <button id="btn-next-house">➡️ Maison suivante</button>
+</section>
+
+<!-- FINALE : LES BISOUS -->
+<section id="finale" class="screen">
+  <h1>😘 Le Roi Ryan est fier !</h1>
+  <p class="sub">Toute la bouffe de la ville est au palais.<br>Sa Majesté remercie ses musaraignes… une par une.</p>
+  <div class="court" id="court"><div class="king"><span>👑</span><img src="ryan.jpg" alt="Le Roi Ryan"></div></div>
+  <div id="kiss-count">💋 0 bisou</div>
+  <button id="btn-finale-next" style="visibility:hidden">🏆 Voir mon score</button>
+</section>
 
 <!-- RÉSULTAT -->
 <section id="result" class="screen">
@@ -294,12 +271,21 @@
 <!-- CLASSEMENT -->
 <section id="board" class="screen">
   <h1>📜 Classement de la Cour</h1>
-  <p class="sub">Les 10 meilleurs sujets du royaume (sur ce téléphone)</p>
-  <div class="card"><div class="board-h">🐭 Classique</div><ol class="board" id="board-list"></ol></div>
-  <div class="card"><div class="board-h">⚔️ Boss : Ryan Grognon</div><ol class="board" id="board-boss"></ol></div>
+  <p class="sub">Les 10 plus grandes voleuses de bouffe (sur ce téléphone)</p>
+  <div class="card"><ol class="board" id="board-list"></ol></div>
   <button class="alt" data-go="menu">← Retour</button>
   <button class="alt small" id="btn-reset-board" style="margin-top:14px;opacity:.6">Effacer le classement</button>
 </section>
+
+<div id="msg"></div>
+<div class="overlay" id="pause"><div class="countdown" style="font-size:60px">⏸️</div><p class="sub">Pause</p><button id="btn-resume">▶️ Reprendre</button><button class="alt" id="btn-pause-quit">🏳️ Abandonner</button></div>
+<div class="overlay" id="share-box">
+  <div class="card" style="display:flex;flex-direction:column;align-items:center">
+    <b>Copie ce texte et envoie-le aux potes :</b>
+    <textarea readonly style="width:100%;height:150px;margin:10px 0;font:inherit;font-size:16px;border-radius:12px;padding:8px;user-select:text;-webkit-user-select:text"></textarea>
+    <button id="btn-share-ok">OK</button>
+  </div>
+</div>
 
 <script>
 (() => {
@@ -309,623 +295,678 @@
     set(k, v){ try { localStorage.setItem(k, v); } catch(e){} },
     del(k){ try { localStorage.removeItem(k); } catch(e){} },
   };
-  const DURATION = 45;
-  const STORE = 'roi-ryan-classement';
-
-  // ---------- Textes ----------
-  const TITLES = [
-    [0,    'Crotte de musaraigne 💩'],
-    [150,  'Musaraigne stagiaire 🐭'],
-    [400,  'Musaraigne confirmée 🐁'],
-    [700,  'Chevalier du Museau Pointu ⚔️'],
-    [1100, 'Duc des Galeries Souterraines 🕳️'],
-    [1600, 'Grand Vizir du Roi Ryan 🧙'],
-    [2200, 'Héritier du Trône de Ryan 👑'],
-  ];
-  const QUOTES = {
-    bad:  ['« Même un chat aveugle ferait mieux. Honte sur ta galerie. »',
-           '« Je t\'exile au fond du jardin, avec les limaces. »',
-           '« Tu tapes comme une musaraigne qui dort. Et elles ne dorment jamais. »'],
-    mid:  ['« Pas mal… pour un humain. Retourne t\'entraîner. »',
-           '« Tu peux garder ton museau. Pour l\'instant. »',
-           '« Le Roi a vu pire. Le Roi a aussi vu bien mieux. »'],
-    good: ['« Voilà un sujet digne de ma couronne ! »',
-           '« Tu as droit à un ver de terre royal. Savoure-le. »',
-           '« Je te nomme gardien officiel de mes noisettes. »'],
-    top:  ['« Je verse une larme de fierté. Tu es mon héritier. »',
-           '« Agenouille-toi… Je te fais Prince des Musaraignes. »',
-           '« Personne n\'a jamais tapé aussi fort. Même pas moi. »'],
-  };
-  const KING_HIT = ['👑 VIVE LE ROI RYAN !', '👑 Sa Majesté vous bénit !', '👑 GLOIRE À RYAN Ier !'];
-  const IMPOSTER = ['😤 RYAN GROGNON ! Pas touche !', '😤 Il a pas sa couronne, il est vénère !', '😤 Lèse-majesté !'];
-  const PREDATOR = ['🐈 Aïe, griffé !', '🦉 Hou hou… raté !', '😿 Le Roi est déçu.'];
-  const GAGES = [
-    'imite une musaraigne affamée pendant 15 secondes 🐭',
-    'appelle Ryan « Votre Majesté » jusqu\'à demain midi 👑',
-    'fais la tête de Ryan sur la photo et envoie le selfie au groupe 🤪',
-    'fait une révérence au Roi Ryan devant tout le monde 🙇',
-    'déclame un poème de 4 vers à la gloire des musaraignes 📜',
-    'paye la prochaine tournée au Roi (ou des chips au minimum) 🍟',
-    'met « Sujet de Ryan Ier » comme statut pendant 24 h 📱',
-    'couine comme une musaraigne à chaque fois qu\'on dit ton prénom pendant 1 h 🔊',
-  ];
-  const BOSS_LINES = ['Cette couronne est à MOI !', 'Hé hé hé…', 'Tes musaraignes me chatouillent !', 'AÏE ! Mon nez !',
-    'Je vais tout dire à ta mère !', 'Prends ça ! 💩', 'Arrête de me taper !!', 'Le vrai roi, c\'est moi !'];
-  const BOSS_TIPS = ['Tape une musaraigne : elle fonce sur Ryan Grognon !', 'Les crottes 💩 qui touchent le sol te coûtent une vie.',
-    'Si le vrai Roi Ryan 👑 sort d\'un trou, salue-le : il t\'envoie son armée.', 'Les dorées font 3 fois plus mal.'];
-  const TIPS = ['Salue le Roi, il te récompensera…', 'Méfie-toi de Ryan Grognon, il mord.',
-    'Les musaraignes mangent leur poids en insectes chaque jour. Toi, tape.', 'Ne touche pas au chat.'];
+  const STORE = 'roi-ryan-ville';
   const pick = a => a[Math.floor(Math.random() * a.length)];
+  const rnd = n => Math.floor(Math.random() * n);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const titleFor = s => TITLES.filter(t => s >= t[0]).pop()[1];
 
-  // ---------- Écrans ----------
-  function show(id){
-    document.querySelectorAll('.screen').forEach(e => e.classList.toggle('on', e.id === id));
-    if (id === 'board') renderBoard();
-  }
-  document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { stopGame(); show(b.dataset.go); });
+  // =====================================================================
+  //  LES MAISONS
+  //  # mur  . sol  T table  B lit  C canapé  F frigo  O trou (cachette)
+  //  f bouffe  K couronne (Ordre du Roi)  S départ  P propriétaire
+  // =====================================================================
+  const HOUSES = [
+    { name: 'Chez Mamie Josette', em: '🏡', food: ['🧀','🍪','🥖','🍰','🍎','🥧'],
+      floor: ['#ead3b7','#e2c6a6'], wall: '#6b3f2a',
+      owners: [{ face: '👵', shirt: '#b05fa8', speed: 3.4 }],
+      order: 'Mamie Josette a fait des gâteaux. Elle a une pelle et elle sait s\'en servir. RAMENEZ TOUT !',
+      map: ["#############","#f..#...f#.f#","#.T.#....#..#","#.T.D..O.D..#","#...#....#..#","##D###D###.##","#f.....#....#","#.CCC..#..f.#","#......D..P.#","#.O..f.#...K#","#......######","###D####....#","#f..........#","#..TT...BB..#","#..TT...BB.f#","#...........#","#.O.......O.#","#.....S.....#","#############"] },
+    { name: 'La ferme du père Gérard', em: '🛖', food: ['🥚','🧀','🥕','🌽','🥓','🍞'],
+      floor: ['#d9c38f','#cfb67c'], wall: '#7a5230',
+      owners: [{ face: '👨‍🌾', shirt: '#3a6fb0', speed: 3.9 }],
+      order: 'La ferme du père Gérard déborde de bouffe. Attention, il court vite en sabots !',
+      map: ["#############","#f....#....f#","#.BB..#..TT.#","#.BB..D..TT.#","#.....#.Pf..#","#.O...#...O.#","###D#####D###","#f....f....f#","#.CC.....CC.#","#.CC..K..CC.#","#...........#","#####.#.#####","#f..#.#.#..f#","#...D...D...#","#.TT#...#TT.#","#####...#####","#f....O....f#","#.....S.....#","#############"] },
+    { name: 'Le restaurant de Gégé', em: '🏪', food: ['🍕','🍝','🍔','🌭','🍟','🍣'],
+      floor: ['#f1f1f1','#d6d6d6'], wall: '#2d3a4a',
+      owners: [{ face: '👨‍🍳', shirt: '#f4f4f4', speed: 3.7 }, { face: '🧑‍🍳', shirt: '#c9d6e3', speed: 3.4 }],
+      order: 'Le restaurant de Gégé ! Gégé ET son cuistot ont des pelles. Soyez rapides et malignes !',
+      map: ["#############","#f.FF#f..f..#","#....#.TT.T.#","#.f..D.TT.T.#","#...P#..f...#","#.O..#.TT.T.#","###D##.TT.Tf#","#f...#......#","#.FF.D..P...#","#.FF.#.....K#","#....###D####","#..f........#","#.TT.TT.TT..#","#..f.....O..#","#.TT.TT.TT..#","#f.........f#","#.O.......f.#","#.....S.....#","#############"] },
+    { name: 'Le château du Maire', em: '🏰', food: ['🍗','🎂','🍫','🥐','🍇','🦞'],
+      floor: ['#b85454','#a84646'], wall: '#5d5d6c',
+      owners: [{ face: '🤵', shirt: '#222', speed: 4.1 }, { face: '🧓', shirt: '#5a3d7a', speed: 3.8 }],
+      order: 'Le banquet du Maire ! Mission finale. Le Maire et son majordome vous attendent avec leurs pelles…',
+      map: ["#############","#f...#K#...f#","#.BB.#.#.BB.#","#.BB.D.D.BB.#","#....#P#....#","#.O..#.#..f.#","##D###.###D##","#f.........f#","#.TTTT.TTTT.#","#...f...f...#","#.TTTT.TTTT.#","#f....P....f#","###D#####D###","#..f#...#...#","#.f.D.O.D.f.#","#...#...#...#","#f.........f#","#.....S.....#","#############"] },
+  ];
+  const COLS = 13, ROWS = 19, PLAYER_SPEED = 5.2;
+  const BLOCK = new Set(['#', 'T', 'B', 'C', 'F']);
+  const FURN = { T: ['#8a5a32', '🍽️'], B: ['#5b7fc2', '🛏️'], C: ['#b54848', '🛋️'], F: ['#dfe6ec', '🧊'] };
 
-  // ---------- Sons (WebAudio, aucun fichier) ----------
-  let ac;
-  function tone(f1, f2, dur, type='square', vol=.12, delay=0){
-    try{
-      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
-      const t = ac.currentTime + delay, o = ac.createOscillator(), g = ac.createGain();
-      o.type = type; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + dur);
-      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
-      o.connect(g).connect(ac.destination); o.start(t); o.stop(t + dur);
-    }catch(e){}
-  }
-  const sfx = {
-    // vrai cri de musaraigne : rafale de petits gazouillis très aigus
-    // vrai cri de musaraigne (enregistrement) + gros « bonk » sur la tête
-    squeak(){ if (!playCri()) { twitter(4 + rnd(4), .16, 3800); } bonk(); },
-    chirp(vol){ twitter(2 + rnd(3), vol || .05, 4200 + rnd(1500)); },
-    gold(){ [880,1320,1760].forEach((f,i) => tone(f, f*1.01, .12, 'triangle', .12, i*.06)); },
-    bad(){ tone(220, 80, .3, 'sawtooth', .15); },
-    king(){ [523,659,784,1047].forEach((f,i) => tone(f, f, .18, 'square', .09, i*.11)); },
-    tick(){ tone(1000, 1000, .04, 'square', .06); },
-    end(){ [784,659,523,392].forEach((f,i) => tone(f, f, .2, 'triangle', .12, i*.15)); },
-  };
-  function rnd(n){ return Math.floor(Math.random() * n); }
-  function twitter(n, vol, base){
-    for (let i = 0; i < n; i++){
-      const f = base * (0.85 + Math.random() * .4), d = i * (0.035 + Math.random() * .025);
-      tone(f * .8, f * 1.35, .028, 'sine', vol, d);      // petit « tsi » montant
-      tone(f * 1.3, f * .9, .02, 'triangle', vol * .5, d + .022);
-    }
-  }
-  sfx.thud = () => { tone(170, 55, .16, 'sawtooth', .2); tone(90, 40, .2, 'square', .12); };
-  sfx.throw = () => tone(700, 180, .25, 'sine', .07);
-  sfx.pop = () => { tone(500, 1400, .07, 'triangle', .14); tone(1400, 2200, .05, 'sine', .08, .05); };
-  sfx.laugh = () => { [0,1,2,3].forEach(i => tone(260 - i * 25, 200 - i * 25, .12, 'sawtooth', .1, i * .16)); };
-  sfx.win = () => { [523,659,784,1047,784,1047,1319].forEach((f,i) => tone(f, f, .2, 'square', .09, i * .12)); };
-  sfx.horde = () => { for (let k = 0; k < 6; k++) setTimeout(() => twitter(5 + rnd(4), .07, 3400 + rnd(2500)), k * 110); };
-  // ---- Cris enregistrés (cri1.mp3, cri2.mp3) ----
-  const CRIS = ['cri1.mp3', 'cri2.mp3'], criBuf = [];
-  let petBuf = null;
-  let master;
+  // =====================================================================
+  //  SONS
+  // =====================================================================
+  let ac, master;
+  function ctx(){ ac = ac || new (window.AudioContext || window.webkitAudioContext)(); return ac; }
   function out(){
     if (!master){
-      master = ac.createDynamicsCompressor();             // compresseur = plus fort sans saturer
+      master = ac.createDynamicsCompressor();
       master.threshold.value = -18; master.knee.value = 6; master.ratio.value = 8;
       master.attack.value = .002; master.release.value = .15;
       const g = ac.createGain(); g.gain.value = 1.6; master.connect(g).connect(ac.destination);
     }
     return master;
   }
-  function loadCris(){
-    if (criBuf.loading) return; criBuf.loading = true;
-    CRIS.forEach((u, i) => fetch(u).then(r => r.arrayBuffer())
-      .then(b => new Promise((ok, ko) => ac.decodeAudioData(b, ok, ko)))
-      .then(buf => { criBuf[i] = buf; }).catch(() => {}));
-    fetch('pet.mp3').then(r => r.arrayBuffer())
-      .then(b => new Promise((ok, ko) => ac.decodeAudioData(b, ok, ko)))
-      .then(buf => { petBuf = buf; }).catch(() => {});
-  }
-  function playCri(){
+  function tone(f1, f2, dur, type='square', vol=.12, delay=0){
     try{
-      ac = ac || new (window.AudioContext || window.webkitAudioContext)(); loadCris();
-      const ready = criBuf.filter(Boolean); if (!ready.length) return false;
-      const src = ac.createBufferSource(), g = ac.createGain();
-      src.buffer = pick(ready); src.playbackRate.value = .9 + Math.random() * .3;
-      g.gain.value = 1.4; src.connect(g).connect(out()); src.start();
-      return true;
+      ctx();
+      const t = ac.currentTime + delay, o = ac.createOscillator(), g = ac.createGain();
+      o.type = type; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+      o.connect(g).connect(ac.destination); o.start(t); o.stop(t + dur);
+    }catch(e){}
+  }
+  function noise(dur, freq, q, vol, delay=0, type='bandpass'){
+    try{
+      ctx();
+      const t = ac.currentTime + delay, b = ac.createBuffer(1, Math.max(1, ac.sampleRate * dur), ac.sampleRate), d = b.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      const s = ac.createBufferSource(); s.buffer = b;
+      const f = ac.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+      const g = ac.createGain(); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+      s.connect(f).connect(g).connect(out()); s.start(t); s.stop(t + dur);
+    }catch(e){}
+  }
+  const bufs = {};
+  function load(name){
+    if (bufs[name] !== undefined) return; bufs[name] = null;
+    fetch(name).then(r => r.arrayBuffer())
+      .then(b => new Promise((ok, ko) => ac.decodeAudioData(b, ok, ko)))
+      .then(buf => { bufs[name] = buf; }).catch(() => {});
+  }
+  function loadAll(){ try { ctx(); ['cri1.mp3', 'cri2.mp3', 'pet.mp3'].forEach(load); } catch(e){} }
+  function play(name, gain, rate, direct){
+    try{
+      ctx(); loadAll(); if (!bufs[name]) return false;
+      const s = ac.createBufferSource(), g = ac.createGain();
+      s.buffer = bufs[name]; s.playbackRate.value = rate || 1; g.gain.value = gain;
+      s.connect(g).connect(direct ? ac.destination : out()); s.start(); return true;
     }catch(e){ return false; }
   }
-  function bonk(){
-    try{
-      const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain();
-      o.type = 'sine'; o.frequency.setValueAtTime(220, t); o.frequency.exponentialRampToValueAtTime(55, t + .12);
-      g.gain.setValueAtTime(.9, t); g.gain.exponentialRampToValueAtTime(.001, t + .16);
-      o.connect(g).connect(out()); o.start(t); o.stop(t + .17);
-    }catch(e){}
-  }
-
-  // ---- PROUT bien gras (synthétisé) ----
-  let lastProut = 0;
-  function prout(){
-    try{
-      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
-      const now = ac.currentTime; if (now - lastProut < .25) return; lastProut = now;
-      if (petBuf){                                  // le vrai pet enregistré
-        const src = ac.createBufferSource(), g = ac.createGain();
-        src.buffer = petBuf; src.playbackRate.value = .88 + Math.random() * .24;
-        g.gain.value = 2.2; src.connect(g).connect(ac.destination); src.start();   // en direct, sans compresseur = plus fort
-        return;
-      }
-      // (secours si le fichier n'est pas encore chargé : pet synthétisé)
-      const dur = .45 + Math.random() * .5, t = now, base = 62 + Math.random() * 30;
-      // la « voix » : dent de scie grave qui tremble
-      const o = ac.createOscillator(); o.type = 'sawtooth';
-      o.frequency.setValueAtTime(base * 1.25, t);
-      o.frequency.linearRampToValueAtTime(base, t + dur * .3);
-      o.frequency.linearRampToValueAtTime(base * .7, t + dur);
-      const lfo = ac.createOscillator(), lg = ac.createGain();   // vibration des « joues »
-      lfo.type = 'square'; lfo.frequency.value = 22 + Math.random() * 14; lg.gain.value = base * .35;
-      lfo.connect(lg).connect(o.frequency);
-      const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 520; f.Q.value = 7;
-      // le « souffle » : bruit filtré
-      const nb = ac.createBuffer(1, ac.sampleRate * dur, ac.sampleRate), d = nb.getChannelData(0);
-      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-      const n = ac.createBufferSource(); n.buffer = nb;
-      const nf = ac.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = 180; nf.Q.value = 1.2;
-      const ng = ac.createGain(); ng.gain.value = .35;
-      // enveloppe qui crachote
-      const g = ac.createGain(); g.gain.setValueAtTime(0, t);
-      g.gain.linearRampToValueAtTime(1, t + .02);
-      for (let k = .06; k < dur - .05; k += .05 + Math.random() * .06) g.gain.linearRampToValueAtTime(.45 + Math.random() * .55, t + k);
-      g.gain.linearRampToValueAtTime(.8, t + dur - .06); g.gain.exponentialRampToValueAtTime(.001, t + dur);
-      o.connect(f).connect(g); n.connect(nf).connect(ng).connect(g); g.connect(out());
-      [o, lfo, n].forEach(x => { x.start(t); x.stop(t + dur + .02); });
-    }catch(e){}
-  }
-  sfx.prout = prout;
-
-  const buzz = ms => navigator.vibrate && navigator.vibrate(ms);
-
-  // ---------- Terrain ----------
-  const field = $('#field');
-  const holes = [];
-  for (let i = 0; i < 12; i++){
-    const h = document.createElement('div'); h.className = 'hole';
-    const c = document.createElement('div'); c.className = 'critter';
-    h.appendChild(c); field.appendChild(h);
-    const hole = { el: c, busy: false, type: null, timer: null, hit: false };
-    c.addEventListener('pointerdown', e => { e.preventDefault(); if (whack(hole, e.clientX, e.clientY)) e.hitOk = true; });
-    holes.push(hole);
-  }
-
-  const TYPES = {
-    shrew:    { w: 85, html: '<svg><use href="#shrew"/></svg>' },
-    gold:     { w: 7,  html: '<svg style="--fur:#e0ac1c;--snout:#f5cc4a"><use href="#shrew"/></svg>' },
-    cat:      { w: 13, html: '<span class="emo">🐈</span>' },
-    owl:      { w: 7,  html: '<span class="emo">🦉</span>' },
-    king:     { w: 5,  html: '<div class="ryan-wrap"><img class="ryan" src="ryan.jpg" alt=""><span class="c">👑</span></div>' },
-    imposter: { w: 7,  html: '<div class="ryan-wrap"><img class="ryan" src="ryan-grimace.jpg" alt=""><span class="c">😤</span></div>' },
+  const sfx = {
+    cri(){ if (!play(pick(['cri1.mp3', 'cri2.mp3']), 1.4, .9 + Math.random() * .3)) tone(3800, 5600, .08, 'sine', .15); },
+    munch(){ tone(900, 1500, .06, 'triangle', .14); tone(1500, 2400, .05, 'sine', .08, .05); },
+    pet(){ if (!play('pet.mp3', 2.2, .88 + Math.random() * .24, true)) tone(90, 50, .5, 'sawtooth', .3); },
+    clang(){                                   // coup de pelle métallique
+      [523, 1347, 2211, 3120].forEach((f, i) => tone(f, f * .98, .55 - i * .1, 'sine', .22 - i * .04));
+      noise(.08, 2500, .8, .5); tone(160, 50, .2, 'sine', .6);
+    },
+    king(){ [523,659,784,1047].forEach((f,i) => tone(f, f, .18, 'square', .09, i * .11)); },
+    win(){ [523,659,784,1047,784,1047,1319].forEach((f,i) => tone(f, f, .2, 'square', .09, i * .12)); },
+    tick(){ tone(1000, 1000, .04, 'square', .06); },
+    scared(){ tone(900, 300, .35, 'sawtooth', .1); },
+    mwah(){                                    // bisou !
+      const d = Math.random() * .04;
+      noise(.03, 2600, 1.5, .35, d, 'highpass');
+      tone(380 + rnd(120), 820 + rnd(200), .16, 'sine', .32, d + .02);
+      tone(1200, 1900, .07, 'triangle', .08, d + .05);
+    },
   };
+  const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch(e){} };
+  document.addEventListener('pointerdown', () => { try { ctx(); if (ac.state === 'suspended') ac.resume(); loadAll(); } catch(e){} }, { capture: true });
 
-  // ---------- État de la partie ----------
-  let G = null;
-
-  const BOSS_HP = 1000, BOSS_MAXTIME = 120;
-  function newGame(playerName, onEnd, mode){
-    stopGame();
-    G = { mode: mode || 'classic', name: playerName, onEnd, score: 0, runners: 0, combo: 0, maxCombo: 0, hits: 0, gold: 0, kings: 0,
-          fails: 0, escaped: 0, royalUntil: 0, start: performance.now(), lastLeft: DURATION, running: true,
-          spawnT: null, loopT: null, nextHorde: performance.now() + 7000 };
-    $('#player-name').textContent = playerName ? '🐭 ' + playerName : '';
-    G.nextCaravan = performance.now() + 4000 + Math.random() * 4000;
-    document.body.classList.toggle('boss', G.mode === 'boss');
-    $('#lbl-combo').textContent = G.mode === 'boss' ? 'VIES' : 'COMBO';
-    show('game');
-    if (G.mode === 'boss') bossStart();
-    updateHud();
-    spawnLoop();
-    G.loopT = setInterval(tickTimer, 100);
+  // =====================================================================
+  //  ÉCRANS & EFFETS
+  // =====================================================================
+  function show(id){
+    document.querySelectorAll('.screen').forEach(e => e.classList.toggle('on', e.id === id));
+    if (id === 'board') renderBoard();
+    if (id === 'game') requestAnimationFrame(resize);
   }
-
-  function stopGame(){
-    if (!G) return;
-    G.running = false;
-    clearTimeout(G.spawnT); clearInterval(G.loopT);
-    document.querySelectorAll('body > .runner, .flyer, .proj, #boss').forEach(r => r.remove());
-    cancelAnimationFrame(G.raf); document.body.classList.remove('boss');
-    holes.forEach(h => { clearTimeout(h.timer); h.busy = false; h.el.className = 'critter'; h.el.innerHTML = ''; });
-    document.body.classList.remove('royal');
-  }
-
-  function progress(){
-    if (G.mode === 'boss') return G.boss ? Math.min(1, .35 + (1 - G.boss.hp / BOSS_HP) * .6) : .35;
-    return Math.min(1, (performance.now() - G.start) / (DURATION * 1000));
-  }
-
-  function spawnLoop(){
-    if (!G.running) return;
-    spawn();
-    if (Math.random() < .45 + progress() * .35) spawn();      // de plus en plus de monde
-    if (Math.random() < .2 + progress() * .3) spawn();
-    if (performance.now() > G.nextHorde){ horde(); G.nextHorde = performance.now() + 9000 + Math.random() * 5000; }
-    if (Math.random() < .22 + progress() * .2) spawn();
-    if (Math.random() < .3) runner(true);
-    if (performance.now() > G.nextCaravan){ caravan(); G.nextCaravan = performance.now() + 8000 + Math.random() * 6000; }
-    const delay = 820 - progress() * 420 + Math.random() * 180;
-    G.spawnT = setTimeout(spawnLoop, delay);
-  }
-
-  function horde(silent){
-    if (!silent) flash('🐭 RUÉE DES MUSARAIGNES ! 🐭');
-    sfx.horde();
-    holes.filter(h => !h.busy).forEach((h, i) => setTimeout(() => G && G.running && spawn(Math.random() < .12 ? 'gold' : 'shrew'), i * 60));
-    for (let i = 0; i < 3; i++) setTimeout(() => G && G.running && runner(true), i * 400);
-  }
-
-  // Musaraignes qui traversent l'écran
-  function caravan(){
-    flash('🍼 CARAVANE DE BÉBÉS ! 🍼'); sfx.horde();
-    const n = 6 + rnd(5), ltr = Math.random() < .5, top = 25 + Math.random() * 60, dur = 3.4 + Math.random();
-    runner(true, { ltr, top, dur });                                   // la maman devant
-    for (let i = 1; i <= n; i++) runner(true, { ltr, top: top + 1.5, dur, delay: i * .19, baby: true });
-  }
-
-  function runner(inGame, o){
-    o = o || {};
-    const d = document.createElement('div'); d.className = 'runner' + (o.baby ? ' baby' : '');
-    const ltr = o.ltr !== undefined ? o.ltr : Math.random() < .5, dur = o.dur || 2.2 + Math.random() * 2;
-    d.innerHTML = '<svg><use href="#shrew-side"/></svg>';
-    d.style.top = (o.top || (inGame ? 22 + Math.random() * 70 : 5 + Math.random() * 88)) + '%';
-    d.style.left = '-200px';
-    d.style.animation = `${ltr ? 'runR' : 'runL'} ${dur}s linear ${o.delay || 0}s both`;
-    if (!ltr) d.querySelector('svg').style.transform = 'scaleX(-1)';
-    let caught = false;
-    d.addEventListener('pointerdown', e => {
-      e.preventDefault(); e.stopPropagation(); if (caught) return; caught = true;
-      sfx.squeak(); d.classList.add('caught');
-      if (inGame && G && G.running && G.mode === 'boss'){
-        G.hits++; G.runners++; launchAt(e.clientX, e.clientY, o.baby ? 6 : 10, false);
-      } else if (inGame && G && G.running){
-        G.combo++; G.hits++; G.runners++; const pts = (o.baby ? 15 : 20) * mult();
-        G.score += pts; G.maxCombo = Math.max(G.maxCombo, G.combo);
-        floatTextAt('+' + pts, e.clientX, e.clientY, '#9ef'); updateHud();
-      } else floatTextAt('couic !', e.clientX, e.clientY, '#fff');
-      setTimeout(() => d.remove(), 250);
-    });
-    (inGame ? document.body : $('#menu')).appendChild(d);
-    if (inGame) sfx.chirp(.035);
-    setTimeout(() => d.remove(), (dur + (o.delay || 0)) * 1000 + 100);
-  }
-  setInterval(() => { if ($('#menu').classList.contains('on')) runner(false); }, 1300);
-
-  function chooseType(){
-    if (G.mode === 'boss'){
-      const kingOut = holes.some(h => h.busy && h.type === 'king');
-      const x = Math.random();
-      if (!kingOut && G.boss.phase >= 2 && x < .02) return 'king';
-      return x < .12 ? 'gold' : 'shrew';
-    }
-    const royal = performance.now() < G.royalUntil;
-    const kingOut = holes.some(h => h.busy && h.type === 'king');
-    const pool = Object.entries(TYPES).filter(([k]) => !(k === 'king' && (royal || kingOut)));
-    let r = Math.random() * pool.reduce((s, [, v]) => s + v.w, 0);
-    for (const [k, v] of pool){ if ((r -= v.w) < 0) return k; }
-    return 'shrew';
-  }
-
-  function spawn(forced){
-    const free = holes.filter(h => !h.busy);
-    if (!free.length) return;
-    const h = pick(free), type = forced || chooseType();
-    h.busy = true; h.type = type; h.hit = false;
-    h.el.className = 'critter' + (type === 'imposter' ? ' imposter' : '');
-    h.el.innerHTML = TYPES[type].html;
-    requestAnimationFrame(() => h.el.classList.add('up'));
-    if ((type === 'shrew' || type === 'gold') && Math.random() < .5) sfx.chirp();
-    let stay = 1150 - progress() * 500;
-    if (type === 'king') stay = 1100;
-    if (type === 'gold') stay *= .7;
-    h.timer = setTimeout(() => hide(h, true), stay + Math.random() * 250);
-  }
-
-  function hide(h, escaped){
-    if (!h.busy) return;
-    if (escaped && !h.hit && (h.type === 'shrew' || h.type === 'gold') && G.running && G.mode !== 'boss'){
-      G.escaped++;
-      if (G.combo >= 5) floatText('💨 combo perdu', h.el);
-      G.combo = 0; updateHud();
-    }
-    h.el.classList.remove('up');
-    h.timer = setTimeout(() => { h.busy = false; h.el.innerHTML = ''; h.el.className = 'critter'; }, 160);
-  }
-
-  function mult(){
-    const comboM = Math.min(5, 1 + Math.floor(G.combo / 5));
-    return comboM * (performance.now() < G.royalUntil ? 3 : 1);
-  }
-
-  function whack(h, x, y){
-    if (!G || !G.running || !h.busy || h.hit || !h.el.classList.contains('up')) return;
-    h.hit = true; clearTimeout(h.timer);
-    h.el.classList.add('hit');
-    if (G.mode === 'boss'){
-      if (h.type === 'king'){
-        sfx.king(); buzz(40); G.kings++;
-        if (G.hearts < 3){ G.hearts++; flash('👑 Le Roi t\'envoie son armée ! ❤️ +1'); } else flash('👑 Le Roi t\'envoie son armée !');
-        horde(true);
-      } else {
-        G.hits++; if (h.type === 'gold') G.gold++;
-        sfx.squeak(); launchAt(x, y, h.type === 'gold' ? 30 : 10, h.type === 'gold');
-      }
-      updateHud(); setTimeout(() => hide(h, false), 140); return true;
-    }
-    let pts = 0, color = '#fff';
-    switch (h.type){
-      case 'shrew':
-        G.combo++; G.hits++; pts = 10 * mult(); sfx.squeak(); break;
-      case 'gold':
-        G.combo++; G.hits++; G.gold++; pts = 50 * mult(); color = 'var(--gold)'; sfx.gold(); break;
-      case 'king':
-        G.kings++; pts = 100; color = 'var(--gold)'; sfx.king(); buzz(40);
-        G.royalUntil = performance.now() + 5000;
-        flash(pick(KING_HIT)); break;
-      case 'imposter':
-        G.fails++; G.combo = 0; pts = -50; color = 'var(--red)'; sfx.prout(); buzz([60,40,60]);
-        flash(pick(IMPOSTER)); shake(); break;
-      default: // chat, chouette
-        G.fails++; G.combo = 0; pts = -30; color = 'var(--red)'; sfx.prout(); buzz(120);
-        if (Math.random() < .5) flash(pick(PREDATOR)); shake();
-    }
-    G.score = Math.max(0, G.score + pts);
-    G.maxCombo = Math.max(G.maxCombo, G.combo);
-    floatTextAt((pts > 0 ? '+' : '') + pts, x, y, color);
-    updateHud();
-    setTimeout(() => hide(h, false), 140);
-    return true;
-  }
-
-  function tickTimer(){
-    if (!G.running) return;
-    if (G.mode === 'boss'){
-      const el = (performance.now() - G.start) / 1000;
-      $('#timer').textContent = Math.floor(el);
-      $('#timer').style.color = el > BOSS_MAXTIME - 10 ? 'var(--red)' : '';
-      if (el >= BOSS_MAXTIME){ flash('⏰ Trop lent… Ryan Grognon s\'enfuit !'); bossEnd(false); }
-      return;
-    }
-    const left = Math.max(0, DURATION - (performance.now() - G.start) / 1000);
-    const sec = Math.ceil(left);
-    if (sec !== G.lastLeft){ G.lastLeft = sec; if (sec <= 5 && sec > 0) sfx.tick(); }
-    $('#timer').textContent = sec;
-    $('#timer').style.color = sec <= 5 ? 'var(--red)' : '';
-    const royal = performance.now() < G.royalUntil;
-    document.body.classList.toggle('royal', royal);
-    $('#royal-banner').classList.toggle('on', royal);
-    $('#combo').textContent = '×' + mult();
-    if (left <= 0) endGame();
-  }
-
-  function updateHud(){
-    $('#score').textContent = G.score;
-    if (G.mode === 'boss'){
-      $('#combo').textContent = '❤️'.repeat(G.hearts) + '🖤'.repeat(3 - G.hearts);
-      $('#boss-hp').style.width = Math.max(0, G.boss.hp / BOSS_HP * 100) + '%';
-      return;
-    }
-    $('#combo').textContent = '×' + mult();
-  }
-
-  function endGame(extra){
-    const res = { mode: G.mode, ...(extra || {}), name: G.name, score: G.score, hits: G.hits, gold: G.gold, kings: G.kings,
-                  fails: G.fails, escaped: G.escaped, runners: G.runners, maxCombo: G.maxCombo };
-    const cb = G.onEnd;
-    stopGame(); G = null;
-    if (res.mode === 'boss'){ (res.win ? sfx.win : sfx.laugh)(); setTimeout(() => cb(res), 1600); return; }
-    sfx.end();
-    flash('⏰ TERMINÉ !');
-    setTimeout(() => cb(res), 900);
-  }
-
-  // Tape dans le vide = PROUT
-  $('#game').addEventListener('pointerdown', e => {
-    if (e.hitOk || !G || !G.running) return;
-    if (e.target.closest('.hud')) return;
-    prout();
-    floatTextAt(pick(['💨 PROUT', '💨 Raté !', '💨 Pfrrrt', '💨 Oups…']), e.clientX, e.clientY, '#c9a56b');
-    if (G.mode !== 'boss' && G.combo > 0){ G.combo = 0; updateHud(); }
-  });
-
-  // ---------- BOSS : Ryan Grognon ----------
-  function bossStart(){
-    const el = document.createElement('div'); el.id = 'boss';
-    el.innerHTML = '<div class="bubble"></div><img src="ryan-grimace.jpg" alt="Ryan Grognon"><span class="bcrown">👑</span>';
-    field.appendChild(el);
-    G.hearts = 3; G.projs = []; G.destroyed = 0; G.dmg = 0;
-    G.boss = { el, hp: BOSS_HP, phase: 1, x: 40, y: 30, vx: 1.6, vy: 1.1, nextAttack: performance.now() + 1800, nextTalk: performance.now() + 2500 };
-    el.addEventListener('pointerdown', e => {
-      e.preventDefault(); if (!G || !G.running) return; e.hitOk = true;
-      damage(3, e.clientX, e.clientY);
-    });
-    say('Cette couronne est à MOI !');
-    let last = performance.now();
-    const loop = now => {
-      if (!G || !G.running || G.mode !== 'boss') return;
-      bossTick(Math.min(50, now - last) / 16.7, now); last = now;
-      if (!G || !G.running) return;
-      G.raf = requestAnimationFrame(loop);
-    };
-    G.raf = requestAnimationFrame(loop);
-  }
-
-  function say(t){
-    const b = G.boss && G.boss.el.querySelector('.bubble'); if (!b) return;
-    b.textContent = t; b.classList.add('on');
-    clearTimeout(G.boss.sayT); G.boss.sayT = setTimeout(() => b.classList.remove('on'), 1500);
-  }
-
-  function bossTick(k, now){
-    const B = G.boss, W = field.clientWidth, H = field.clientHeight, size = B.el.offsetWidth;
-    const sp = [0, 1, 1.6, 2.4][B.phase];
-    B.x += B.vx * sp * k; B.y += B.vy * sp * k;
-    if (B.x < 4){ B.x = 4; B.vx = Math.abs(B.vx); }
-    if (B.x > W - size - 4){ B.x = W - size - 4; B.vx = -Math.abs(B.vx); }
-    if (B.y < size * .3){ B.y = size * .3; B.vy = Math.abs(B.vy); }
-    if (B.y > H * .55 - size){ B.y = H * .55 - size; B.vy = -Math.abs(B.vy); }
-    if (Math.random() < .005){ B.vx *= -1; }
-    B.el.style.transform = `translate(${B.x}px,${B.y}px)`;
-
-    if (now > B.nextAttack){
-      const n = B.phase === 3 ? 2 : 1;
-      for (let i = 0; i < n; i++) throwProj(B.x + size / 2 + (i ? 30 : 0), B.y + size * .9);
-      B.nextAttack = now + [0, 2100, 1400, 950][B.phase] + Math.random() * 500;
-    }
-    if (now > B.nextTalk){ say(pick(BOSS_LINES)); B.nextTalk = now + 4000 + Math.random() * 3000; }
-
-    for (const p of G.projs){
-      if (p.dead) continue;
-      p.y += p.vy * k; p.x += p.vx * k;
-      p.el.style.transform = `translate(${p.x}px,${p.y}px) rotate(${p.y * 2}deg)`;
-      if (p.y > H - 14){
-        p.dead = true; p.el.remove();
-        G.hearts--; sfx.prout(); buzz(150); shake(); flash('💩 SPLATCH ! −1 vie');
-        updateHud();
-        if (G.hearts <= 0){ bossEnd(false); return; }
-      }
-    }
-    G.projs = G.projs.filter(p => !p.dead);
-  }
-
-  function throwProj(x, y){
-    const el = document.createElement('div'); el.className = 'proj';
-    el.textContent = pick(['💩', '💩', '💩', '🧦', '🥾']);
-    const p = { el, x, y, vx: (Math.random() - .5) * 1.4, vy: [0, 1.5, 1.9, 2.4][G.boss.phase] + Math.random() * .5, dead: false };
-    el.style.transform = `translate(${x}px,${y}px)`;
-    el.addEventListener('pointerdown', e => {
-      e.preventDefault(); e.stopPropagation(); if (p.dead || !G || !G.running) return;
-      p.dead = true; el.remove(); G.destroyed++; G.score += 15; sfx.pop();
-      floatTextAt('💥 +15', e.clientX, e.clientY, '#9ef'); updateHud();
-    });
-    field.appendChild(el); G.projs.push(p); sfx.throw();
-  }
-
-  // Une musaraigne tapée fonce sur le boss
-  function launchAt(x, y, dmg, golden){
-    const f = document.createElement('div'); f.className = 'flyer';
-    f.innerHTML = '<svg' + (golden ? ' style="filter:sepia(1) saturate(4) hue-rotate(5deg)"' : '') + '><use href="#shrew-side"/></svg>';
-    f.style.left = x + 'px'; f.style.top = y + 'px';
-    document.body.appendChild(f);
-    const r = G.boss.el.getBoundingClientRect(), tx = r.left + r.width / 2 - x, ty = r.top + r.height / 2 - y;
-    const ang = Math.atan2(ty, tx) * 180 / Math.PI;
-    f.style.transform = `rotate(${ang}deg)`;
-    requestAnimationFrame(() => requestAnimationFrame(() => { f.style.transform = `translate(${tx}px,${ty}px) rotate(${ang}deg) scale(.7)`; }));
-    setTimeout(() => {
-      f.remove(); if (!G || !G.running || G.mode !== 'boss') return;
-      const r2 = G.boss.el.getBoundingClientRect();
-      damage(dmg, r2.left + r2.width / 2, r2.top + r2.height * .3);
-    }, 300);
-  }
-
-  function damage(n, x, y){
-    const B = G.boss; if (B.hp <= 0) return;
-    B.hp -= n; G.dmg += n; G.score += n * 3;
-    sfx.thud(); floatTextAt('−' + n, x, y, '#ff8a8a');
-    B.el.classList.add('ouch'); setTimeout(() => B.el && B.el.classList.remove('ouch'), 90);
-    if (Math.random() < .12) say(pick(['AÏE !', 'Ouille !', 'Mon nez !!', 'Pas les musaraignes !']));
-    if (B.phase === 1 && B.hp <= BOSS_HP * .66){
-      B.phase = 2; B.el.classList.add('p2'); flash('😤 Ryan Grognon s\'énerve !'); say('Vous allez voir !'); sfx.laugh(); caravan();
-    } else if (B.phase === 2 && B.hp <= BOSS_HP * .33){
-      B.phase = 3; B.el.classList.remove('p2'); B.el.classList.add('p3'); flash('🔥 RAGE DU GROGNON ! 🔥'); say('GRRRRRR !!!'); sfx.laugh(); shake();
-      setTimeout(() => G && G.running && spawn('king'), 1200);
-    }
-    updateHud();
-    if (B.hp <= 0){ say('Noooon… ma couronne…'); flash('🏆 RYAN GROGNON EST VAINCU ! 👑'); bossEnd(true); }
-  }
-
-  function bossEnd(win){
-    if (!G || !G.running) return;
-    const time = Math.round((performance.now() - G.start) / 1000);
-    if (win) G.score += Math.max(0, 4000 - time * 30) + G.hearts * 400;
-    G.running = false;
-    clearTimeout(G.spawnT); clearInterval(G.loopT); cancelAnimationFrame(G.raf);
-    endGame({ win, time, hearts: Math.max(0, G.hearts), dmg: G.dmg, destroyed: G.destroyed });
-  }
-
-  // ---------- Effets ----------
-  function floatTextAt(t, x, y, color){
-    const d = document.createElement('div'); d.className = 'float';
-    d.textContent = t; d.style.left = x + 'px'; d.style.top = y + 'px'; d.style.color = color || '#fff';
-    document.body.appendChild(d); setTimeout(() => d.remove(), 900);
-  }
-  function floatText(t, el){ const r = el.parentElement.getBoundingClientRect(); floatTextAt(t, r.left + r.width/2, r.top + r.height/2, '#ddd'); }
   function flash(t){ const m = $('#msg'); m.textContent = t; m.classList.remove('show'); void m.offsetWidth; m.classList.add('show'); }
   function shake(){ document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); }
+  let sayT;
+  function ryanSay(t, ms){
+    const e = $('#ryan-say'); e.textContent = t; e.classList.add('on');
+    clearTimeout(sayT); sayT = setTimeout(() => e.classList.remove('on'), ms || 2600);
+  }
 
-  // ---------- Compte à rebours ----------
-  function countdown(then, mode){
-    show('count'); $('#count-tip').textContent = '💡 ' + pick(mode === 'boss' ? BOSS_TIPS : TIPS);
+  // Musaraignes décoratives qui traversent les écrans de menu et de ville
+  function runner(screenId){
+    const host = document.getElementById(screenId); if (!host.classList.contains('on')) return;
+    const d = document.createElement('div'); d.className = 'runner';
+    const ltr = Math.random() < .5, dur = 2.2 + Math.random() * 2;
+    d.innerHTML = '<svg><use href="#shrew-side"/></svg>';
+    d.style.top = (5 + Math.random() * 88) + '%'; d.style.left = '-200px';
+    d.style.animation = `${ltr ? 'runR' : 'runL'} ${dur}s linear both`;
+    if (!ltr) d.querySelector('svg').style.transform = 'scaleX(-1)';
+    d.addEventListener('pointerdown', e => { e.preventDefault(); sfx.cri(); d.style.opacity = .2; });
+    host.appendChild(d); setTimeout(() => d.remove(), dur * 1000 + 100);
+  }
+  setInterval(() => { runner('menu'); runner('town'); }, 900);
+
+  // =====================================================================
+  //  PARTIE (une partie = les 4 maisons à la suite, 3 vies en tout)
+  // =====================================================================
+  let RUN = null;
+  let G = null;
+
+  function startRun(name, onEnd){
+    RUN = { name, onEnd, score: 0, lives: 3, house: 0, food: 0, caught: 0, scared: 0, crowns: 0, time: 0, houses: 0, kisses: 0 };
+    showTown();
+  }
+
+  function showTown(){
+    const i = RUN.house, H = HOUSES[i];
+    $('#town-sub').textContent = `${RUN.name} — ${'❤️'.repeat(RUN.lives)} — ${RUN.score} pts`;
+    $('#town-order').textContent = (i === 0 ? 'Bienvenue dans mon armée, ' + RUN.name + ' ! ' : 'Mes musaraignes ! ') + H.order;
+    $('#town-list').innerHTML = HOUSES.map((h, k) => `
+      <div class="house ${k < i ? 'done' : k === i ? 'next' : 'locked'}"><span class="em">${h.em}</span>
+      <div><b>${esc(h.name)}</b><small>${k < i ? '✅ Pillée !' : k === i ? '👉 Prochaine cible — ' + h.owners.map(o => o.face).join(' ') + ' 🪏' : '🔒 Plus tard'}</small></div></div>`).join('');
+    $('#btn-attack').textContent = `🐭 Attaquer : ${H.name}`;
+    show('town');
+  }
+  $('#btn-attack').onclick = () => countdown(() => startLevel(RUN.house));
+  $('#btn-quit-town').onclick = () => endRun(false);
+
+  function countdown(then){
+    show('count');
+    $('#count-tip').textContent = '💡 ' + pick(['Cache-toi dans les trous 🕳️ quand la pelle approche !',
+      'La couronne 👑 fait paniquer le propriétaire.', 'Glisse le doigt sur la maison pour tourner.',
+      'Sans te faire choper, tu gagnes un gros bonus.']);
     let n = 3; $('#count-n').textContent = n; sfx.tick();
     const t = setInterval(() => {
       n--;
       if (n > 0){ $('#count-n').textContent = n; sfx.tick(); }
-      else if (n === 0){ $('#count-n').textContent = 'TAPE !'; tone(1200, 1600, .2, 'square', .1); }
+      else if (n === 0){ $('#count-n').textContent = 'GO !'; tone(1200, 1600, .2, 'square', .1); }
       else { clearInterval(t); then(); }
-    }, 700);
+    }, 650);
   }
 
-  // ---------- Classement ----------
-  const STORE_BOSS = 'roi-ryan-boss';
-  const keyOf = mode => mode === 'boss' ? STORE_BOSS : STORE;
-  const loadBoard = mode => { try { return JSON.parse(LS.get(keyOf(mode))) || []; } catch(e){ return []; } };
-  function addToBoard(name, score, mode){
-    const b = loadBoard(mode); b.push({ name: name || 'Anonyme', score, date: Date.now() });
+  // ---------- Grille ----------
+  const at = (x, y) => (G && y >= 0 && y < ROWS && x >= 0 && x < COLS) ? G.grid[y][x] : '#';
+  const walkP = (x, y) => !BLOCK.has(at(x, y));
+  const walkO = (x, y) => !BLOCK.has(at(x, y)) && at(x, y) !== 'O';
+  const DIRS = [[1,0],[-1,0],[0,1],[0,-1]];
+
+  function mover(x, y, speed){ return { tx: x, ty: y, nx: x, ny: y, p: 0, dx: 0, dy: 0, speed }; }
+  const posOf = m => [m.tx + (m.nx - m.tx) * m.p, m.ty + (m.ny - m.ty) * m.p];
+  const tileOf = m => m.p < .5 ? [m.tx, m.ty] : [m.nx, m.ny];
+  function advance(m, dt, decide){
+    if (m.nx === m.tx && m.ny === m.ty){
+      decide(m);
+      if (!m.dx && !m.dy) return;
+      m.nx = m.tx + m.dx; m.ny = m.ty + m.dy; m.p = 0;
+    }
+    m.p += m.speed * dt;
+    let guard = 0;
+    while (m.p >= 1 && guard++ < 4){
+      m.tx = m.nx; m.ty = m.ny; m.p -= 1;
+      decide(m);
+      if (m.dx || m.dy){ m.nx = m.tx + m.dx; m.ny = m.ty + m.dy; }
+      else { m.p = 0; break; }
+    }
+  }
+  function bfsStep(sx, sy, gx, gy, ok){
+    if (sx === gx && sy === gy) return null;
+    const key = (x, y) => y * COLS + x, start = key(sx, sy), prev = new Map([[start, -1]]), q = [[sx, sy]];
+    while (q.length){
+      const [x, y] = q.shift();
+      if (x === gx && y === gy){
+        let k = key(x, y);
+        while (prev.get(k) !== start) k = prev.get(k);
+        return [k % COLS - sx, Math.floor(k / COLS) - sy];
+      }
+      for (const [dx, dy] of DIRS){
+        const nx = x + dx, ny = y + dy, k = key(nx, ny);
+        if (!prev.has(k) && ok(nx, ny)){ prev.set(k, key(x, y)); q.push([nx, ny]); }
+      }
+    }
+    return null;
+  }
+  function randomFloor(ok){
+    for (let i = 0; i < 200; i++){ const x = rnd(COLS), y = rnd(ROWS); if (ok(x, y)) return [x, y]; }
+    return [6, 17];
+  }
+
+  // ---------- Démarrage d'une maison ----------
+  function startLevel(i){
+    const H = HOUSES[i];
+    const grid = H.map.map(r => r.split(''));
+    G = { i, H, grid, food: 0, total: 0, owners: [], npcs: [], army: [], trail: [], babies: 0, items: new Map(), crown: null,
+          t0: performance.now(), last: performance.now(), running: true, paused: false,
+          invuln: 0, power: 0, caughtHere: 0, bg: null, raf: 0 };
+    let ownerIdx = 0;
+    grid.forEach((row, y) => row.forEach((c, x) => {
+      if (c === 'f'){ G.total++; G.items.set(y * COLS + x, pick(H.food)); row[x] = '.'; }
+      else if (c === 'K'){ G.crown = [x, y]; row[x] = '.'; }
+      else if (c === 'S'){ G.start = [x, y]; row[x] = '.'; }
+      else if (c === 'P'){
+        const o = H.owners[ownerIdx] || H.owners[0]; ownerIdx++;
+        const m = mover(x, y, o.speed);
+        Object.assign(m, { o, home: [x, y], release: performance.now() + 1600 + ownerIdx * 1800, stun: 0, talk: '', talkUntil: 0, wander: null });
+        G.owners.push(m); row[x] = '.';
+      }
+    }));
+    G.player = mover(G.start[0], G.start[1], PLAYER_SPEED); G.player.qdx = 0; G.player.qdy = -1;
+    for (let k = 0; k < 5; k++){ const [x, y] = randomFloor(walkP); G.npcs.push(Object.assign(mover(x, y, 2.5 + Math.random() * 2.5), { tint: Math.random() })); }
+    updateHud();
+    show('game');
+    ryanSay(pick(['ALLEZ mes musaraignes ! Toute la bouffe !', 'Pour le Roi ! À l\'attaque !', 'Ramenez-moi TOUT ce qui se mange !']), 3000);
+    resize();
+    G.raf = requestAnimationFrame(loop);
+  }
+
+  function updateHud(){
+    if (!G || !RUN) return;
+    $('#h-score').textContent = RUN.score;
+    $('#h-food').textContent = `${G.food}/${G.total}`;
+    $('#h-lives').textContent = '❤️'.repeat(Math.max(0, RUN.lives)) + '🖤'.repeat(Math.max(0, 3 - RUN.lives));
+  }
+
+  // ---------- Boucle ----------
+  function loop(now){
+    if (!G || !G.running) return;
+    const dt = Math.min(.05, (now - G.last) / 1000); G.last = now;
+    if (!G.paused){ update(dt, now); if (G && G.running) draw(now); }
+    if (G && G.running) G.raf = requestAnimationFrame(loop);
+  }
+
+  function playerHidden(){ const [x, y] = tileOf(G.player); return at(x, y) === 'O'; }
+
+  function update(dt, now){
+    const P = G.player;
+    // --- joueur ---
+    advance(P, dt, m => {
+      if ((m.qdx || m.qdy) && walkP(m.tx + m.qdx, m.ty + m.qdy)){ m.dx = m.qdx; m.dy = m.qdy; return; }
+      if (!walkP(m.tx + m.dx, m.ty + m.dy)){ m.dx = 0; m.dy = 0; }
+    });
+    const [px, py] = posOf(P);
+    const lastT = G.trail[0];
+    if (!lastT || Math.hypot(lastT[0] - px, lastT[1] - py) > .08){ G.trail.unshift([px, py]); if (G.trail.length > 400) G.trail.pop(); }
+
+    // --- ramassage ---
+    const [tx, ty] = tileOf(P), k = ty * COLS + tx;
+    if (G.items.has(k)){
+      G.items.delete(k); G.food++; RUN.food++; RUN.score += 100; G.babies = Math.min(14, G.babies + 1);
+      sfx.cri(); sfx.munch(); floatOnCanvas('+100', tx, ty, '#fff');
+      if (G.food === G.total - 1) ryanSay('Plus qu\'UNE ! Allez allez allez !');
+      else if (Math.random() < .35) ryanSay(pick(['Miam ! Encore !', 'Bravo ma musaraigne !', 'Au palais, cette bouffe !', 'Hé hé, il a rien vu !', 'Plus vite !']));
+      updateHud();
+      if (G.food >= G.total){ levelClear(); return; }
+    }
+    if (G.crown && tx === G.crown[0] && ty === G.crown[1]){
+      G.crown = null; RUN.crowns++; RUN.score += 50; G.power = now + 6500;
+      sfx.king(); buzz(60); flash('👑 ORDRE DU ROI ! 👑');
+      ryanSay('MES MUSARAIGNES ! CHARGEZ !!!', 3000);
+      for (let n = 0; n < 16; n++){ const [x, y] = randomFloor(walkP); G.army.push(Object.assign(mover(x, y, 4 + Math.random() * 3), { tint: Math.random() })); }
+      G.owners.forEach(o => { o.talk = pick(['AAAAH !', 'AU SECOURS !', 'Y EN A PARTOUT !']); o.talkUntil = now + 2000; });
+      sfx.scared(); updateHud();
+    }
+    if (G.power && now > G.power){ G.power = 0; G.army = []; }
+
+    // --- propriétaires ---
+    const hidden = playerHidden(), power = G.power > now, elapsed = (now - G.t0) / 1000;
+    for (let idx = 0; idx < G.owners.length; idx++){
+      const o = G.owners[idx];
+      if (now < o.release || now < o.stun) continue;
+      o.speed = o.o.speed * (1 + Math.min(.22, elapsed / 150)) * (power ? .75 : 1);
+      advance(o, dt, m => {
+        let step = null;
+        if (power){
+          let best = -1;
+          for (const [dx, dy] of DIRS){
+            if (!walkO(m.tx + dx, m.ty + dy)) continue;
+            const d = Math.abs(m.tx + dx - P.tx) + Math.abs(m.ty + dy - P.ty) + (dx === -m.dx && dy === -m.dy ? -.5 : 0) + Math.random() * .3;
+            if (d > best){ best = d; step = [dx, dy]; }
+          }
+        } else if (hidden){
+          if (!m.wander || (m.tx === m.wander[0] && m.ty === m.wander[1])) m.wander = randomFloor(walkO);
+          step = bfsStep(m.tx, m.ty, m.wander[0], m.wander[1], walkO);
+          if (!step) m.wander = null;
+        } else {
+          m.wander = null;
+          let gx = P.tx, gy = P.ty;
+          if (idx === 1){                       // le 2e propriétaire essaie de couper la route
+            const ax = P.tx + P.dx * 3, ay = P.ty + P.dy * 3;
+            if (walkO(ax, ay) && Math.abs(ax - m.tx) + Math.abs(ay - m.ty) > 2){ gx = ax; gy = ay; }
+          }
+          step = bfsStep(m.tx, m.ty, gx, gy, walkO);
+        }
+        if (!step){
+          const opts = DIRS.filter(([dx, dy]) => walkO(m.tx + dx, m.ty + dy));
+          step = opts.length ? pick(opts) : [0, 0];
+        }
+        m.dx = step[0]; m.dy = step[1];
+      });
+      if (now > o.talkUntil && Math.random() < dt * .5){
+        o.talk = power ? pick(['AAAAH !', 'Pitié !', 'Maman !']) : hidden ? pick(['Où elle est passée ?!', 'Je vais te trouver…', 'Sors de là !'])
+          : pick(['REVIENS ICI !', 'SALE BESTIOLE !', 'MA BOUFFE !!', 'Je vais t\'aplatir !', 'Tu vas goûter à ma pelle !']);
+        o.talkUntil = now + 1800;
+      }
+      const [ox, oy] = posOf(o), d = Math.hypot(ox - px, oy - py);
+      if (d < .75){
+        if (power){
+          RUN.scared++; RUN.score += 200; o.stun = now + 3500;
+          Object.assign(o, { tx: o.home[0], ty: o.home[1], nx: o.home[0], ny: o.home[1], p: 0, dx: 0, dy: 0 });
+          sfx.scared(); sfx.cri(); floatOnCanvas('+200 💨', Math.round(ox), Math.round(oy), '#9ef');
+          ryanSay(pick(['HAHA ! Il s\'enfuit !', 'Dégage de MON royaume !', 'Bien joué !']));
+          updateHud();
+        } else if (!hidden && now > G.invuln){
+          caught(o, now);
+          return;
+        }
+      }
+      if (!power && !hidden && d < 2.6 && Math.random() < dt * .6) ryanSay('ATTENTION À LA PELLE !!', 1200);
+    }
+
+    // --- musaraignes de décor et armée du Roi ---
+    const wanderDecide = m => {
+      const opts = DIRS.filter(([dx, dy]) => walkP(m.tx + dx, m.ty + dy));
+      const fwd = opts.find(([dx, dy]) => dx === m.dx && dy === m.dy);
+      const noBack = opts.filter(([dx, dy]) => !(dx === -m.dx && dy === -m.dy));
+      const ch = fwd && Math.random() < .7 ? fwd : pick(noBack.length ? noBack : opts);
+      m.dx = ch ? ch[0] : 0; m.dy = ch ? ch[1] : 0;
+    };
+    G.npcs.forEach(m => advance(m, dt, wanderDecide));
+    G.army.forEach(m => advance(m, dt, wanderDecide));
+  }
+
+  function caught(o, now){
+    RUN.lives--; RUN.caught++; G.caughtHere++;
+    sfx.clang(); setTimeout(sfx.pet, 140); buzz([80, 40, 160]); shake();
+    flash(pick(['🪏 BONK !', '🪏 CHOPÉE !', '🪏 PAF ! Dans la face !']));
+    o.talk = pick(['HAHA ! JE T\'AI EUE !', 'Et BIM !', 'Prends ça !']); o.talkUntil = now + 2000;
+    ryanSay(pick(['NOOON ma musaraigne !', 'Relève-toi, soldat !', 'Il va me le payer…']));
+    G.babies = Math.max(0, G.babies - 3);
+    updateHud();
+    if (RUN.lives <= 0){
+      G.running = false; cancelAnimationFrame(G.raf);
+      setTimeout(() => { flash('💀 TOUTES CHOPÉES…'); setTimeout(() => endRun(false), 1300); }, 500);
+      return;
+    }
+    Object.assign(G.player, { tx: G.start[0], ty: G.start[1], nx: G.start[0], ny: G.start[1], p: 0, dx: 0, dy: 0, qdx: 0, qdy: -1 });
+    G.trail = [];
+    G.owners.forEach((m, i) => Object.assign(m, { tx: m.home[0], ty: m.home[1], nx: m.home[0], ny: m.home[1], p: 0, dx: 0, dy: 0, release: now + 1500 + i * 1200 }));
+    G.invuln = now + 2200;
+  }
+
+  function levelClear(){
+    G.running = false; cancelAnimationFrame(G.raf);
+    const t = Math.round((performance.now() - G.t0) / 1000);
+    const timeBonus = Math.max(0, 90 - t) * 5, clean = G.caughtHere === 0 ? 500 : 0;
+    RUN.score += 300 + timeBonus + clean; RUN.time += t; RUN.houses++;
+    sfx.win(); flash('🏠 MAISON VIDÉE !');
+    const H = G.H, total = G.total;
+    setTimeout(() => {
+      $('#clear-title').textContent = `${H.em} ${H.name} : pillée !`;
+      $('#clear-score').textContent = RUN.score;
+      $('#clear-stats').innerHTML = `
+        <div>🧀 Bouffe : <b>${total}</b></div><div>⏱️ Temps : <b>${t} s</b></div>
+        <div>🏠 Maison vidée : <b>+300</b></div><div>⚡ Rapidité : <b>+${timeBonus}</b></div>
+        <div>🙈 Jamais chopée : <b>${clean ? '+500' : 'raté'}</b></div><div>❤️ Vies : <b>${RUN.lives}</b></div>`;
+      $('#clear-quote').textContent = 'Le Roi Ryan : ' + (clean ? '« Pas une seule égratignure ! Tu es ma préférée. »'
+        : pick(['« Bon travail, soldat. Le frigo royal se remplit. »', '« Ça sent le fromage, j\'adore. »', '« Il a pris une claque, le propriétaire. »']));
+      const last = RUN.house >= HOUSES.length - 1;
+      $('#btn-next-house').textContent = last ? '👑 Rapporter la bouffe au Roi' : '➡️ Maison suivante';
+      show('clear');
+    }, 1100);
+  }
+  $('#btn-next-house').onclick = () => {
+    RUN.house++;
+    if (RUN.house >= HOUSES.length) finale(); else showTown();
+  };
+
+  // ---------- Dessin ----------
+  const cv = $('#cv'), c2 = cv.getContext('2d');
+  let CELL = 24, DPR = 1;
+  function resize(){
+    if (!G) return;
+    const st = $('#stage'), W = st.clientWidth, Hh = st.clientHeight;
+    CELL = Math.max(10, Math.floor(Math.min(W / COLS, Hh / ROWS)));
+    DPR = Math.min(3, window.devicePixelRatio || 1);
+    cv.width = COLS * CELL * DPR; cv.height = ROWS * CELL * DPR;
+    cv.style.width = COLS * CELL + 'px'; cv.style.height = ROWS * CELL + 'px';
+    G.bg = null;
+  }
+  window.addEventListener('resize', resize);
+
+  function rrect(g, x, y, w, h, r){ g.beginPath(); if (g.roundRect) g.roundRect(x, y, w, h, r); else g.rect(x, y, w, h); }
+
+  function buildBg(){
+    const b = document.createElement('canvas'); b.width = cv.width; b.height = cv.height;
+    const g = b.getContext('2d'); g.scale(DPR, DPR);
+    const H = G.H, C = CELL;
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++){
+      const t = G.grid[y][x];
+      g.fillStyle = H.floor[(x + y) % 2]; g.fillRect(x * C, y * C, C, C);
+      if (t === '#'){
+        g.fillStyle = H.wall; g.fillRect(x * C, y * C, C, C);
+        g.fillStyle = 'rgba(255,255,255,.12)'; g.fillRect(x * C, y * C, C, C * .18);
+        g.fillStyle = 'rgba(0,0,0,.18)'; g.fillRect(x * C, y * C + C * .82, C, C * .18);
+      } else if (FURN[t]){
+        g.fillStyle = FURN[t][0]; rrect(g, x * C + 1, y * C + 1, C - 2, C - 2, C * .2); g.fill();
+        g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(x * C + 3, y * C + 3, C - 6, C * .2);
+      } else if (t === 'O'){
+        g.fillStyle = '#3b2412'; g.beginPath(); g.ellipse(x * C + C / 2, y * C + C / 2, C * .44, C * .34, 0, 0, 7); g.fill();
+        g.fillStyle = '#0b0603'; g.beginPath(); g.ellipse(x * C + C / 2, y * C + C * .55, C * .32, C * .22, 0, 0, 7); g.fill();
+      }
+    }
+    // un emoji par meuble (sur le coin haut-gauche de chaque bloc)
+    for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++){
+      const t = G.grid[y][x];
+      if (!FURN[t] || G.grid[y][x - 1] === t || (y > 0 && G.grid[y - 1][x] === t)) continue;
+      const w2 = G.grid[y][x + 1] === t ? C * .5 : 0, h2 = (G.grid[y + 1] && G.grid[y + 1][x] === t) ? C * .5 : 0;
+      g.fillStyle = '#000'; g.font = `${C * .9}px serif`; g.fillText(FURN[t][1], x * C + C * .5 + w2, y * C + C * .5 + h2);
+    }
+    g.fillStyle = '#ffcc33'; g.fillRect(G.start[0] * C + C * .2, (ROWS - 1) * C, C * .6, C * .25);
+    G.bg = b;
+  }
+
+  function drawShrew(x, y, s, ang, opt){
+    opt = opt || {};
+    const g = c2; g.save(); g.translate(x, y); g.rotate(ang); g.globalAlpha = opt.alpha == null ? 1 : opt.alpha;
+    const fur = opt.fur || '#6b5a4a', belly = opt.belly || '#8a7563', w = opt.wiggle || 0;
+    g.strokeStyle = '#4d3f33'; g.lineWidth = s * .07; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(-s * .38, 0); g.quadraticCurveTo(-s * .62, s * .18 * Math.sin(w * 2), -s * .8, s * .05 * Math.sin(w)); g.stroke();
+    g.fillStyle = '#e1b3a8';
+    [[.18, .22], [-.2, .22], [.18, -.22], [-.2, -.22]].forEach(([fx, fy], i) => {
+      g.beginPath(); g.arc(s * fx + Math.sin(w + i * 1.6) * s * .05, s * fy, s * .06, 0, 7); g.fill();
+    });
+    g.fillStyle = fur; g.beginPath(); g.ellipse(-s * .05, 0, s * .38, s * .25, 0, 0, 7); g.fill();
+    g.fillStyle = belly; g.beginPath(); g.ellipse(-s * .07, 0, s * .26, s * .14, 0, 0, 7); g.fill();
+    g.fillStyle = fur; g.beginPath(); g.moveTo(s * .18, -s * .2); g.quadraticCurveTo(s * .42, -s * .12, s * .62, 0);
+    g.quadraticCurveTo(s * .42, s * .12, s * .18, s * .2); g.closePath(); g.fill();
+    g.fillStyle = '#e78a9a'; g.beginPath(); g.arc(s * .62, 0, s * .045, 0, 7); g.fill();
+    g.fillStyle = '#d9a3a0'; g.beginPath(); g.arc(s * .2, -s * .19, s * .06, 0, 7); g.arc(s * .2, s * .19, s * .06, 0, 7); g.fill();
+    g.fillStyle = '#111'; g.beginPath(); g.arc(s * .34, -s * .09, s * .035, 0, 7); g.arc(s * .34, s * .09, s * .035, 0, 7); g.fill();
+    g.restore();
+  }
+  const angOf = m => { if (m.dx || m.dy) m.lastAng = Math.atan2(m.dy, m.dx); return m.lastAng == null ? -Math.PI / 2 : m.lastAng; };
+
+  const floaters = [];
+  function floatOnCanvas(t, x, y, col){ floaters.push({ t, x, y, col, born: performance.now() }); }
+
+  function draw(now){
+    const g = c2, C = CELL;
+    if (!G.bg) buildBg();
+    g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(G.bg, 0, 0);
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+    g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = '#000'; g.font = `${C * .78}px serif`;
+    G.items.forEach((f, k) => {
+      const x = k % COLS, y = Math.floor(k / COLS), bob = Math.sin(now / 250 + k) * C * .06;
+      g.fillText(f, x * C + C / 2, y * C + C / 2 + bob);
+    });
+    if (G.crown){
+      g.save(); g.shadowColor = '#ffcc33'; g.shadowBlur = 12 + Math.sin(now / 150) * 6;
+      g.font = `${C * .9}px serif`; g.fillText('👑', G.crown[0] * C + C / 2, G.crown[1] * C + C / 2); g.restore();
+    }
+    const W = now / 60;
+    const drawM = (m, s, opt) => { const [x, y] = posOf(m); drawShrew(x * C + C / 2, y * C + C / 2, s, angOf(m), Object.assign({ wiggle: W * 1.3 }, opt)); };
+    G.npcs.forEach(m => drawM(m, C * .7, { fur: m.tint > .5 ? '#7a6857' : '#5e4f42' }));
+    G.army.forEach(m => drawM(m, C * .75, { fur: m.tint > .85 ? '#e0ac1c' : '#6b5a4a' }));
+    for (let b = 1; b <= G.babies; b++){
+      const p = G.trail[Math.min(G.trail.length - 1, b * 6)], q = G.trail[Math.min(G.trail.length - 1, b * 6 - 2)];
+      if (!p || !q || p === q) break;
+      drawShrew(p[0] * C + C / 2, p[1] * C + C / 2, C * .5, Math.atan2(q[1] - p[1], q[0] - p[0]), { wiggle: W * 1.6 + b });
+    }
+    const P = G.player, [px, py] = posOf(P), hid = playerHidden(), blink = now < G.invuln && Math.floor(now / 100) % 2;
+    if (!blink){
+      g.save(); g.shadowColor = '#ffcc33'; g.shadowBlur = 10;
+      drawShrew(px * C + C / 2, py * C + C / 2, C * 1.05, angOf(P), { alpha: hid ? .4 : 1, wiggle: (P.dx || P.dy) ? W * 2 : 0 });
+      g.restore();
+    }
+    if (hid){ g.font = `bold ${C * .45}px system-ui`; g.fillStyle = '#fff'; g.fillText('🙈 cachée', px * C + C / 2, py * C - C * .1); }
+    const power = G.power > now;
+    G.owners.forEach(o => {
+      const [ox, oy] = posOf(o), X = ox * C + C / 2, Y = oy * C + C / 2;
+      const stunned = now < o.stun, waiting = now < o.release;
+      g.save();
+      if (stunned) g.globalAlpha = .35;
+      g.fillStyle = 'rgba(0,0,0,.25)'; g.beginPath(); g.ellipse(X, Y + C * .42, C * .45, C * .15, 0, 0, 7); g.fill();
+      g.fillStyle = o.o.shirt; g.strokeStyle = '#0008'; g.lineWidth = 2;
+      g.beginPath(); g.arc(X, Y + C * .12, C * .42, 0, 7); g.fill(); g.stroke();
+      g.font = `${C * .95}px serif`; g.fillText(power ? '😱' : o.o.face, X, Y - C * .12);
+      const swing = Math.sin(now / (power ? 60 : 110)) * .7;
+      g.translate(X + C * .42, Y); g.rotate(swing + .3); g.font = `${C * .85}px serif`; g.fillText('🪏', C * .1, -C * .2);
+      g.restore();
+      if (waiting && !stunned){ g.font = `bold ${C * .4}px system-ui`; g.fillStyle = '#fff'; g.fillText('💤', X + C * .4, Y - C * .6); }
+      if (now < o.talkUntil && o.talk) bubble(o.talk, X, Y - C * .9);
+    });
+    for (let i = floaters.length - 1; i >= 0; i--){
+      const f = floaters[i], a = (now - f.born) / 900;
+      if (a >= 1){ floaters.splice(i, 1); continue; }
+      g.globalAlpha = 1 - a; g.font = `900 ${C * .7}px system-ui`; g.fillStyle = f.col; g.strokeStyle = '#000'; g.lineWidth = 3;
+      g.strokeText(f.t, f.x * C + C / 2, f.y * C - a * C); g.fillText(f.t, f.x * C + C / 2, f.y * C - a * C); g.globalAlpha = 1;
+    }
+    if (power){ g.font = `900 ${C * .6}px system-ui`; g.fillStyle = '#ffcc33'; g.fillText('👑 ORDRE DU ROI 👑', COLS * C / 2, C * .55); }
+  }
+  function bubble(t, x, y){
+    const g = c2, C = CELL; g.font = `800 ${Math.max(10, C * .45)}px system-ui`;
+    const w = g.measureText(t).width + 12, h = C * .7;
+    const bx = Math.min(Math.max(x - w / 2, 2), COLS * C - w - 2), by = Math.max(2, y - h);
+    g.fillStyle = '#fff'; rrect(g, bx, by, w, h, 8); g.fill();
+    g.fillStyle = '#c0262b'; g.fillText(t, bx + w / 2, by + h / 2 + 1);
+  }
+
+  // ---------- Contrôles ----------
+  function setDir(dx, dy){
+    if (!G || !G.running || G.paused) return;
+    const P = G.player; P.qdx = dx; P.qdy = dy;
+    const moving = P.nx !== P.tx || P.ny !== P.ty;
+    if (moving && dx === -P.dx && dy === -P.dy){      // demi-tour immédiat
+      [P.tx, P.nx] = [P.nx, P.tx]; [P.ty, P.ny] = [P.ny, P.ty]; P.p = 1 - P.p; P.dx = dx; P.dy = dy;
+    }
+  }
+  const DIRMAP = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+  document.querySelectorAll('#dpad button').forEach(b => b.addEventListener('pointerdown', e => { e.preventDefault(); setDir(...DIRMAP[b.dataset.d]); }));
+  window.addEventListener('keydown', e => {
+    const k = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right', z: 'up', w: 'up', s: 'down', q: 'left', a: 'left', d: 'right' }[e.key];
+    if (k && G && G.running){ e.preventDefault(); setDir(...DIRMAP[k]); }
+    if (e.key === 'Escape' && G && G.running) pause(true);
+  });
+  let sw = null;
+  const stage = $('#stage');
+  stage.addEventListener('pointerdown', e => { sw = [e.clientX, e.clientY]; });
+  stage.addEventListener('pointermove', e => {
+    if (!sw) return;
+    const dx = e.clientX - sw[0], dy = e.clientY - sw[1];
+    if (Math.hypot(dx, dy) < 18) return;
+    if (Math.abs(dx) > Math.abs(dy)) setDir(Math.sign(dx), 0); else setDir(0, Math.sign(dy));
+    sw = [e.clientX, e.clientY];
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => stage.addEventListener(t, () => { sw = null; }));
+
+  function pause(on){
+    if (!G || !G.running) return;
+    G.paused = on; $('#pause').classList.toggle('on', on);
+    if (!on) G.last = performance.now();
+  }
+  $('#btn-resume').onclick = () => pause(false);
+  $('#btn-pause-quit').onclick = () => { $('#pause').classList.remove('on'); endRun(false); };
+  document.addEventListener('visibilitychange', () => { if (document.hidden) pause(true); });
+
+  // =====================================================================
+  //  FINALE : RYAN FAIT DES BISOUS À SES MUSARAIGNES
+  // =====================================================================
+  let finaleTimer = 0;
+  function finale(){
+    show('finale');
+    const court = $('#court');
+    court.querySelectorAll('.sh,.kiss,.heart').forEach(e => e.remove());
+    const n = 14, shrews = [];
+    for (let i = 0; i < n; i++){
+      const a = i / n * Math.PI * 2, r = 40 + (i % 2) * 6;
+      const d = document.createElement('div'); d.className = 'sh';
+      d.style.left = (50 + Math.cos(a) * r) + '%'; d.style.top = (50 + Math.sin(a) * r) + '%';
+      d.style.animationDelay = (i * .07) + 's';
+      d.innerHTML = '<svg><use href="#shrew"/></svg>';
+      court.appendChild(d); shrews.push(d);
+    }
+    let kisses = 0; RUN.kisses = 0;
+    $('#kiss-count').textContent = '💋 0 bisou';
+    $('#btn-finale-next').style.visibility = 'hidden';
+    sfx.win();
+    clearInterval(finaleTimer);
+    finaleTimer = setInterval(() => {
+      if (!$('#finale').classList.contains('on')){ clearInterval(finaleTimer); return; }
+      const target = pick(shrews), k = document.createElement('div'); k.className = 'kiss'; k.textContent = '💋';
+      k.style.left = '50%'; k.style.top = '50%'; court.appendChild(k);
+      requestAnimationFrame(() => requestAnimationFrame(() => { k.style.left = target.style.left; k.style.top = target.style.top; }));
+      setTimeout(() => {
+        k.remove(); sfx.mwah(); if (Math.random() < .25) sfx.cri();
+        const h = document.createElement('div'); h.className = 'heart'; h.textContent = pick(['❤️', '💕', '😍', '💖']);
+        h.style.left = target.style.left; h.style.top = target.style.top; court.appendChild(h); setTimeout(() => h.remove(), 900);
+        kisses++; if (RUN) RUN.kisses = kisses;
+        $('#kiss-count').textContent = `💋 ${kisses} bisou${kisses > 1 ? 's' : ''}`;
+      }, 470);
+    }, 230);
+    setTimeout(() => { $('#btn-finale-next').style.visibility = 'visible'; }, 4500);
+  }
+  $('#btn-finale-next').onclick = () => { clearInterval(finaleTimer); if (!RUN) return; RUN.score += RUN.kisses * 10; endRun(true); };
+
+  // =====================================================================
+  //  FIN DE PARTIE, RÉSULTATS, CLASSEMENT
+  // =====================================================================
+  const TITLES = [[0, 'Crotte de musaraigne 💩'], [1000, 'Chapardeuse débutante 🧀'], [2500, 'Pilleuse de frigos 🥶'],
+    [4000, 'Terreur des cuisines 🍳'], [5500, 'Fléau de la ville 🏘️'], [7000, 'Bras droit du Roi Ryan 👑']];
+  const titleFor = s => TITLES.filter(t => s >= t[0]).pop()[1];
+
+  function endRun(won){
+    if (G){ G.running = false; cancelAnimationFrame(G.raf); }
+    if (!RUN) return;
+    const res = { name: RUN.name, score: RUN.score, won, houses: RUN.houses, food: RUN.food, caught: RUN.caught,
+                  scared: RUN.scared, crowns: RUN.crowns, time: RUN.time, kisses: RUN.kisses, lives: RUN.lives };
+    const cb = RUN.onEnd; RUN = null; G = null;
+    cb(res);
+  }
+
+  function showResult(res, buttonsHtml){
+    $('#res-who').textContent = (res.name || 'Musaraigne') + (res.won ? ' a pillé toute la ville !' : ' s\'est fait choper…');
+    $('#res-score').textContent = res.score;
+    $('#res-title').textContent = titleFor(res.score);
+    $('#res-quote').textContent = 'Le Roi Ryan : ' + (res.won
+      ? pick(['« Le palais n\'a jamais été aussi plein. Je t\'aime, ma musaraigne. »', '« Tu es ma plus grande voleuse ! Encore un bisou ! »'])
+      : res.houses === 0 ? '« Chopée dès la première maison… On en reparlera. »'
+      : pick(['« Pas mal, mais il reste de la bouffe dehors ! »', '« Repose-toi et repars au combat, soldat. »']));
+    $('#res-stats').innerHTML = `
+      <div>🏠 Maisons pillées : <b>${res.houses}/4</b></div><div>🧀 Bouffe volée : <b>${res.food}</b></div>
+      <div>🪏 Coups de pelle : <b>${res.caught}</b></div><div>😱 Proprios terrorisés : <b>${res.scared}</b></div>
+      <div>⏱️ Temps : <b>${res.time} s</b></div><div>💋 Bisous du Roi : <b>${res.kisses}</b></div>`;
+    $('#res-buttons').innerHTML = buttonsHtml;
+    show('result');
+  }
+
+  const loadBoard = () => { try { return JSON.parse(LS.get(STORE)) || []; } catch(e){ return []; } };
+  function addToBoard(name, score){
+    const b = loadBoard(); b.push({ name: name || 'Anonyme', score, date: Date.now() });
     b.sort((a, c) => c.score - a.score);
-    const top = b.slice(0, 10); LS.set(keyOf(mode), JSON.stringify(top));
+    const top = b.slice(0, 10); LS.set(STORE, JSON.stringify(top));
     return top.findIndex(e => e.score === score && e.name === (name || 'Anonyme'));
   }
   function renderBoard(){
-    const one = (b, empty) => b.length
+    const b = loadBoard();
+    $('#board-list').innerHTML = b.length
       ? b.map((e, i) => `<li><span>${['👑','🥈','🥉'][i] || ''} ${esc(e.name)}</span><span>${e.score}</span></li>`).join('')
-      : `<p class="sub">${empty}</p>`;
-    $('#board-list').innerHTML = one(loadBoard('classic'), 'Personne n\'a encore osé défier le Roi.');
-    $('#board-boss').innerHTML = one(loadBoard('boss'), 'Ryan Grognon n\'a encore jamais été vaincu…');
+      : '<p class="sub">Aucune musaraigne n\'a encore pillé la ville.</p>';
   }
   $('#btn-board').onclick = () => show('board');
   $('#btn-reset-board').onclick = e => {
     const b = e.currentTarget;
     if (!b.dataset.sure){ b.dataset.sure = 1; b.textContent = 'Appuie encore pour confirmer'; setTimeout(() => { delete b.dataset.sure; b.textContent = 'Effacer le classement'; }, 3000); return; }
-    LS.del(STORE); LS.del(STORE_BOSS); renderBoard(); delete b.dataset.sure; b.textContent = 'Effacer le classement';
+    LS.del(STORE); renderBoard(); delete b.dataset.sure; b.textContent = 'Effacer le classement';
   };
-
-  // ---------- Écran résultat ----------
-  function bossTitle(res){
-    if (!res.win) return res.dmg >= BOSS_HP * .66 ? 'Presque ! Écuyer courageux 🛡️' : 'Couvert de crottes 💩';
-    return res.time <= 45 ? 'Légende du Royaume ⚡👑' : res.time <= 70 ? 'Sauveur de la Couronne 👑' : 'Chevalier tenace ⚔️';
-  }
-  const rankTitle = res => res.mode === 'boss' ? bossTitle(res) : titleFor(res.score);
-  function showResult(res, buttonsHtml){
-    $('#res-who').textContent = res.name ? res.name + ' a marqué' : 'Score final';
-    $('#res-score').textContent = res.score;
-    $('#res-title').textContent = rankTitle(res);
-    if (res.mode === 'boss'){
-      $('#res-quote').textContent = res.win
-        ? 'Le Roi Ryan : « Ma couronne ! Tu as sauvé le royaume des musaraignes. Je te dois une noisette. »'
-        : 'Ryan Grognon : « Hé hé hé… La couronne est à moi pour toujours ! »';
-      $('#res-stats').innerHTML = `
-        <div>${res.win ? '🏆 VICTOIRE' : '💀 DÉFAITE'}</div><div>⏱️ Temps : <b>${res.time} s</b></div>
-        <div>💥 Dégâts : <b>${Math.min(res.dmg, BOSS_HP)} / ${BOSS_HP}</b></div><div>❤️ Vies restantes : <b>${res.hearts}</b></div>
-        <div>🐭 Musaraignes lancées : <b>${res.hits}</b></div><div>💩 Crottes détruites : <b>${res.destroyed}</b></div>
-        <div>👑 Aides du Roi : <b>${res.kings}</b></div><div>🍼 Fuyardes lancées : <b>${res.runners}</b></div>`;
-      $('#res-buttons').innerHTML = buttonsHtml;
-      show('result'); return;
-    }
-    const tier = res.score >= 1600 ? 'top' : res.score >= 700 ? 'good' : res.score >= 300 ? 'mid' : 'bad';
-    $('#res-quote').textContent = 'Le Roi Ryan : ' + pick(QUOTES[tier]);
-    $('#res-stats').innerHTML = `
-      <div>🐭 Musaraignes : <b>${res.hits}</b></div><div>✨ Dorées : <b>${res.gold}</b></div>
-      <div>👑 Saluts au Roi : <b>${res.kings}</b></div><div>🔥 Meilleur combo : <b>${res.maxCombo}</b></div>
-      <div>🏃 Fuyardes attrapées : <b>${res.runners}</b></div><div>😿 Bêtises : <b>${res.fails}</b></div><div>💨 Échappées : <b>${res.escaped}</b></div>`;
-    $('#res-buttons').innerHTML = buttonsHtml;
-    show('result');
-  }
+  document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => show(b.dataset.go));
 
   // ---------- Solo ----------
   let soloName = LS.get('roi-ryan-nom') || '';
@@ -933,32 +974,26 @@
   $('#btn-solo').onclick = () => {
     soloName = $('#solo-name').value.trim().slice(0, 20) || 'Anonyme';
     LS.set('roi-ryan-nom', soloName);
-    playSolo('classic');
+    playSolo();
   };
-  $('#btn-boss').onclick = () => {
-    soloName = $('#solo-name').value.trim().slice(0, 20) || 'Anonyme';
-    LS.set('roi-ryan-nom', soloName);
-    playSolo('boss');
-  };
-  function playSolo(mode){
-    countdown(() => newGame(soloName, res => {
-      const rank = addToBoard(res.name, res.score, mode);
+  function playSolo(){
+    startRun(soloName, res => {
+      const rank = addToBoard(res.name, res.score);
       showResult(res, `<button id="b-again">🔁 Rejouer</button>
         <button id="b-share-solo">📤 Défier les potes</button>
         <button class="alt" id="b-menu">🏠 Menu</button>`);
       $('#res-record').textContent = res.score <= 0 ? '' : rank === 0 ? '🎉 NOUVEAU RECORD DE LA COUR !' : rank > 0 ? `📜 ${rank + 1}e au classement` : '';
-      $('#b-again').onclick = () => playSolo(mode);
+      $('#b-again').onclick = playSolo;
       $('#b-menu').onclick = () => show('menu');
-      $('#b-share-solo').onclick = () => share(mode === 'boss'
-        ? (res.win ? `⚔️👑 J'ai battu Ryan Grognon en ${res.time} s (${res.score} pts) et sauvé la couronne du Roi Ryan ! Qui fait mieux ?`
-                   : `💩 Ryan Grognon m'a eu… ${res.score} pts. Venez le battre à « La Cour du Roi Ryan » !`)
-        : `🐭👑 J'ai fait ${res.score} points à « La Cour du Roi Ryan » et je suis « ${titleFor(res.score)} ». Qui me bat ?`);
-    }, mode), mode);
+      $('#b-share-solo').onclick = () => share(res.won
+        ? `🐭👑 J'ai pillé TOUTE la ville pour le Roi Ryan : ${res.score} pts, ${res.caught} coup(s) de pelle, ${res.kisses} bisous royaux 😘. Qui fait mieux ?`
+        : `🪏 Je me suis fait choper après ${res.houses} maison(s)… ${res.score} pts. Venez faire mieux pour le Roi Ryan !`);
+    });
   }
 
   // ---------- Concours ----------
   let players; try { players = JSON.parse(LS.get('roi-ryan-joueurs') || '["",""]'); } catch(e){ players = ['', '']; }
-  if (players.length < 2) players = ['', ''];
+  if (!Array.isArray(players) || players.length < 2) players = ['', ''];
   function renderPlayers(){
     $('#player-list').innerHTML = players.map((p, i) => `
       <div class="row"><input maxlength="20" placeholder="Pote n°${i + 1}" value="${esc(p)}" data-i="${i}">
@@ -969,19 +1004,20 @@
   $('#btn-contest').onclick = () => { renderPlayers(); show('setup'); };
   $('#btn-add-player').onclick = () => { if (players.length < 10){ players.push(''); renderPlayers(); } };
 
-  let contestMode = LS.get('roi-ryan-mode') === 'boss' ? 'boss' : 'classic';
-  function renderMode(){
-    $('#mode-classic').classList.toggle('sel', contestMode === 'classic');
-    $('#mode-boss').classList.toggle('sel', contestMode === 'boss');
-  }
-  $('#mode-classic').onclick = () => { contestMode = 'classic'; LS.set('roi-ryan-mode', contestMode); renderMode(); };
-  $('#mode-boss').onclick = () => { contestMode = 'boss'; LS.set('roi-ryan-mode', contestMode); renderMode(); };
-  renderMode();
+  const GAGES = [
+    'imite une musaraigne affamée pendant 15 secondes 🐭',
+    'appelle Ryan « Votre Majesté » jusqu\'à demain midi 👑',
+    'doit faire un bisou sur la joue du Roi Ryan 😘',
+    'fait une révérence au Roi Ryan devant tout le monde 🙇',
+    'paye la prochaine tournée au Roi (ou des chips au minimum) 🍟',
+    'met « Musaraigne de Ryan Ier » comme statut pendant 24 h 📱',
+    'couine comme une musaraigne à chaque fois qu\'on dit ton prénom pendant 1 h 🔊',
+  ];
   let contest = null;
   $('#btn-start-contest').onclick = () => {
     const names = players.map((p, i) => p.trim() || 'Pote ' + (i + 1));
     LS.set('roi-ryan-joueurs', JSON.stringify(players));
-    contest = { names, results: [], i: 0, mode: contestMode };
+    contest = { names, results: [], i: 0 };
     nextTurn();
   };
   function nextTurn(){
@@ -990,14 +1026,14 @@
     $('#pass-info').textContent = `Joueur ${c.i + 1} / ${c.names.length}` +
       (c.results.length ? ` — score à battre : ${Math.max(...c.results.map(r => r.score))}` : '');
     show('pass');
-    $('#btn-ready').onclick = () => countdown(() => newGame(name, res => {
-      c.results.push(res); addToBoard(res.name, res.score, c.mode);
+    $('#btn-ready').onclick = () => startRun(name, res => {
+      c.results.push(res); addToBoard(res.name, res.score);
       c.i++;
       const last = c.i >= c.names.length;
       showResult(res, `<button id="b-next">${last ? '🏆 Voir le verdict du Roi' : '➡️ Joueur suivant : ' + esc(c.names[c.i])}</button>`);
       $('#res-record').textContent = '';
       $('#b-next').onclick = last ? showPodium : nextTurn;
-    }, c.mode), c.mode);
+    });
   }
   function showPodium(){
     const r = [...contest.results].sort((a, b) => b.score - a.score);
@@ -1005,37 +1041,33 @@
       <div class="sc">${p.score} pts</div><div class="bar">${medal}</div></div>` : '<div class="step"></div>';
     $('#podium-steps').innerHTML = step(r[1], 'p2', '🥈') + step(r[0], 'p1', '👑') + step(r[2], 'p3', '🥉');
     $('#podium-list').innerHTML = r.map((p, i) =>
-      `<li><span>${i + 1}. ${esc(p.name)} <small style="opacity:.7">— ${rankTitle(p)}</small></span><span>${p.score}</span></li>`).join('');
+      `<li><span>${i + 1}. ${esc(p.name)} <small style="opacity:.7">— ${titleFor(p.score)}</small></span><span>${p.score}</span></li>`).join('');
     const loser = r[r.length - 1];
     contest.gage = /ryan/i.test(loser.name)
-      ? 'est DESTITUÉ ! 😱 Le Roi des Musaraignes a perdu contre ses propres sujets. Il rend sa couronne pendant 24 h et doit couiner à chaque fois qu\'on l\'appelle 🐭'
+      ? 'est DESTITUÉ ! 😱 Le Roi des Musaraignes s\'est fait battre par ses propres musaraignes. Il rend sa couronne pendant 24 h 🐭'
       : pick(GAGES);
-    $('#gage').innerHTML = `<b>⚖️ GAGE ROYAL</b><br>Par décret de Sa Majesté Ryan I<sup>er</sup>,<br>
-      <b>${esc(loser.name)}</b> ${contest.gage}`;
+    $('#gage').innerHTML = `<b>⚖️ GAGE ROYAL</b><br>Par décret de Sa Majesté Ryan I<sup>er</sup>,<br><b>${esc(loser.name)}</b> ${contest.gage}`;
     sfx.king();
     show('podium');
   }
-  $('#btn-revanche').onclick = () => { contest = { names: contest.names, results: [], i: 0, mode: contest.mode }; nextTurn(); };
+  $('#btn-revanche').onclick = () => { contest = { names: contest.names, results: [], i: 0 }; nextTurn(); };
   $('#btn-share').onclick = () => {
     const r = [...contest.results].sort((a, b) => b.score - a.score);
-    const lines = r.map((p, i) => `${['👑','🥈','🥉'][i] || (i + 1) + '.'} ${p.name} : ${p.score}`).join('\n');
-    share(`🐭 Concours « La Cour du Roi Ryan »${contest.mode === 'boss' ? ' — Mode Boss ⚔️' : ''} 🐭\n${lines}\n\n⚖️ Gage : ${r[r.length - 1].name} ${contest.gage}`);
+    const lines = r.map((p, i) => `${['👑','🥈','🥉'][i] || (i + 1) + '.'} ${p.name} : ${p.score} (${p.houses}/4 maisons)`).join('\n');
+    share(`🐭 Concours « Le Roi Ryan et ses musaraignes » 🐭\n${lines}\n\n⚖️ Gage : ${r[r.length - 1].name} ${contest.gage}`);
   };
 
   async function share(text){
     try{ await navigator.clipboard.writeText(text); flash('📋 Copié ! Colle-le dans le groupe'); }
     catch(e){
-      const box = $('#share-box'); box.querySelector('textarea').value = text; box.style.display = 'flex';
+      const box = $('#share-box'); box.querySelector('textarea').value = text; box.classList.add('on');
       box.querySelector('textarea').select();
     }
   }
+  $('#btn-share-ok').onclick = () => $('#share-box').classList.remove('on');
 
-  document.addEventListener('pointerdown', () => {
-    try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); loadCris(); } catch(e){}
-  }, { once: true, capture: true });
-
-  // Si on quitte l'onglet en pleine partie, on arrête proprement
-  document.addEventListener('visibilitychange', () => { if (document.hidden && G){ stopGame(); G = null; show('menu'); } });
+  // pour les tests : expose de quoi piloter le jeu
+  window.__jeu = { get G(){ return G; }, get RUN(){ return RUN; }, setDir, finale, startRun };
 })();
 </script>
 </body>
