@@ -88,6 +88,36 @@
   @keyframes trot{to{translate:0 -4px}}
   @keyframes runR{from{left:-90px}to{left:calc(100% + 20px)}}
   @keyframes runL{from{left:calc(100% + 20px)}to{left:-90px}}
+  #boss{position:absolute;left:0;top:0;width:34%;aspect-ratio:1;z-index:5;touch-action:none;cursor:pointer;will-change:transform}
+  #boss img{width:100%;height:100%;border-radius:50%;object-fit:cover;border:5px solid #b31d1d;
+    box-shadow:0 0 0 4px #0006,0 12px 20px #0008;transition:filter .08s}
+  #boss .bcrown{position:absolute;top:-26%;left:50%;font-size:min(12vw,56px);transform:translateX(-50%) rotate(18deg);
+    filter:drop-shadow(0 3px 2px #0008)}
+  #boss.ouch img{filter:brightness(1.9) saturate(.2)}
+  #boss.p2 img{border-color:#ff6a00;box-shadow:0 0 26px #ff6a00}
+  #boss.p3 img{border-color:#ff0000;box-shadow:0 0 44px #ff0000;animation:rage .12s infinite alternate}
+  @keyframes rage{to{transform:rotate(4deg) scale(1.03)}}
+  #boss .bubble{position:absolute;bottom:112%;left:50%;transform:translateX(-50%);background:#fff;color:#1a1a1a;
+    font-weight:800;font-size:13px;padding:6px 9px;border-radius:12px;white-space:nowrap;display:none;z-index:2}
+  #boss .bubble.on{display:block}
+  .proj{position:absolute;left:0;top:0;width:52px;height:52px;margin:-26px 0 0 -26px;font-size:34px;z-index:6;
+    display:flex;align-items:center;justify-content:center;touch-action:none;cursor:pointer;
+    filter:drop-shadow(0 3px 2px #0009)}
+  .flyer{position:fixed;width:64px;height:38px;z-index:45;pointer-events:none;margin:-19px 0 0 -32px;
+    transition:transform .3s cubic-bezier(.5,-0.3,.8,1)}
+  .flyer svg{width:100%;height:100%}
+  #boss-bar{width:min(480px,100%);margin:4px 0 2px;display:none}
+  body.boss #boss-bar{display:block}
+  body.boss #royal-banner{display:none}
+  .bb-name{font-weight:900;font-size:14px;text-align:center;margin-bottom:3px;color:#ffb3b3}
+  .bb{height:18px;background:#0007;border-radius:10px;overflow:hidden;border:2px solid #000}
+  .bb i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#e5484d,#ff9a3c);transition:width .2s}
+  .mode-pick{display:flex;gap:8px;width:100%}
+  .mode-pick button{flex:1;margin:0;font-size:16px;padding:12px 6px;background:#e9dcc6;box-shadow:0 4px 0 #9c8a6c}
+  .mode-pick button.sel{background:var(--gold);box-shadow:0 4px 0 #a87b00;outline:3px solid #fff}
+  button.boss-btn{background:#e5484d;color:#fff;box-shadow:0 5px 0 #8f1f22}
+  .runner.baby{width:46px;height:28px}
+  .board-h{margin:4px 0 6px;font-weight:900}
   .float{position:fixed;pointer-events:none;font-weight:900;font-size:22px;z-index:50;
     text-shadow:0 2px 0 #000,0 0 6px #000;animation:floatUp .9s ease-out forwards;white-space:nowrap;
     transform:translate(-50%,-50%)}
@@ -172,6 +202,7 @@
   <p class="sub">Sa Majesté Ryan I<sup>er</sup>, Roi des Musaraignes,<br>cherche son héritier. Tape vite. Tape bien.</p>
   <div class="players" style="width:min(340px,100%);margin-top:6px"><input id="solo-name" maxlength="20" placeholder="Ton nom de sujet royal" aria-label="Ton nom"></div>
   <button id="btn-solo">🐭 Jouer solo</button>
+  <button class="boss-btn" id="btn-boss">⚔️ Mode Boss : Ryan Grognon</button>
   <button id="btn-contest">🏆 Concours entre potes</button>
   <button class="alt" id="btn-board">📜 Classement de la Cour</button>
   <div class="card rules">
@@ -183,6 +214,8 @@
     <div><span class="ic">🏃</span><span>Musaraigne qui traverse l'écran : attrape-la, <b>+20</b></span></div>
     <div><span class="ic">🐭🐭</span><span>RUÉE DES MUSARAIGNES : elles sortent de partout !</span></div>
     <div><span class="ic">💨</span><span>Une musaraigne qui s'échappe casse ton combo</span></div>
+    <div><span class="ic">🍼</span><span>CARAVANE DE BÉBÉS : une file de bébés musaraignes (chacun tient la queue de celui de devant)</span></div>
+    <div><span class="ic">⚔️</span><span><b>Mode Boss</b> : Ryan Grognon a volé la couronne ! Tape tes musaraignes pour les lancer sur lui, détruis ses crottes 💩 avant qu'elles touchent le sol. 3 vies.</span></div>
   </div>
 </section>
 
@@ -191,7 +224,8 @@
   <h1>🏆 Concours</h1>
   <p class="sub">Chacun son tour sur le même téléphone.<br>Le dernier aura un <b>gage royal</b>. 😈</p>
   <div class="card players">
-    <div id="player-list"></div>
+    <div class="mode-pick"><button id="mode-classic" class="sel">🐭 Classique</button><button id="mode-boss">⚔️ Boss</button></div>
+    <div id="player-list" style="margin-top:8px"></div>
     <button class="alt small" id="btn-add-player" style="margin-top:6px">+ Ajouter un pote</button>
   </div>
   <button id="btn-start-contest">C'est parti !</button>
@@ -216,10 +250,11 @@
 <section id="game" class="screen">
   <div class="hud">
     <div class="box"><small>SCORE</small><span id="score">0</span></div>
-    <div class="box"><small>COMBO</small><span id="combo">×1</span></div>
+    <div class="box"><small id="lbl-combo">COMBO</small><span id="combo">×1</span></div>
     <div class="box"><small>TEMPS</small><span id="timer">45</span></div>
   </div>
   <div id="player-name"></div>
+  <div id="boss-bar"><div class="bb-name">😤 RYAN GROGNON — voleur de couronne</div><div class="bb"><i id="boss-hp"></i></div></div>
   <div id="royal-banner">👑 FAVEUR ROYALE ×3 👑</div>
   <div id="field"></div>
 </section>
@@ -260,7 +295,8 @@
 <section id="board" class="screen">
   <h1>📜 Classement de la Cour</h1>
   <p class="sub">Les 10 meilleurs sujets du royaume (sur ce téléphone)</p>
-  <div class="card"><ol class="board" id="board-list"></ol></div>
+  <div class="card"><div class="board-h">🐭 Classique</div><ol class="board" id="board-list"></ol></div>
+  <div class="card"><div class="board-h">⚔️ Boss : Ryan Grognon</div><ol class="board" id="board-boss"></ol></div>
   <button class="alt" data-go="menu">← Retour</button>
   <button class="alt small" id="btn-reset-board" style="margin-top:14px;opacity:.6">Effacer le classement</button>
 </section>
@@ -313,6 +349,10 @@
     'met « Sujet de Ryan Ier » comme statut pendant 24 h 📱',
     'couine comme une musaraigne à chaque fois qu\'on dit ton prénom pendant 1 h 🔊',
   ];
+  const BOSS_LINES = ['Cette couronne est à MOI !', 'Hé hé hé…', 'Tes musaraignes me chatouillent !', 'AÏE ! Mon nez !',
+    'Je vais tout dire à ta mère !', 'Prends ça ! 💩', 'Arrête de me taper !!', 'Le vrai roi, c\'est moi !'];
+  const BOSS_TIPS = ['Tape une musaraigne : elle fonce sur Ryan Grognon !', 'Les crottes 💩 qui touchent le sol te coûtent une vie.',
+    'Si le vrai Roi Ryan 👑 sort d\'un trou, salue-le : il t\'envoie son armée.', 'Les dorées font 3 fois plus mal.'];
   const TIPS = ['Salue le Roi, il te récompensera…', 'Méfie-toi de Ryan Grognon, il mord.',
     'Les musaraignes mangent leur poids en insectes chaque jour. Toi, tape.', 'Ne touche pas au chat.'];
   const pick = a => a[Math.floor(Math.random() * a.length)];
@@ -355,6 +395,11 @@
       tone(f * 1.3, f * .9, .02, 'triangle', vol * .5, d + .022);
     }
   }
+  sfx.thud = () => { tone(170, 55, .16, 'sawtooth', .2); tone(90, 40, .2, 'square', .12); };
+  sfx.throw = () => tone(700, 180, .25, 'sine', .07);
+  sfx.pop = () => { tone(500, 1400, .07, 'triangle', .14); tone(1400, 2200, .05, 'sine', .08, .05); };
+  sfx.laugh = () => { [0,1,2,3].forEach(i => tone(260 - i * 25, 200 - i * 25, .12, 'sawtooth', .1, i * .16)); };
+  sfx.win = () => { [523,659,784,1047,784,1047,1319].forEach((f,i) => tone(f, f, .2, 'square', .09, i * .12)); };
   sfx.horde = () => { for (let k = 0; k < 6; k++) setTimeout(() => twitter(5 + rnd(4), .07, 3400 + rnd(2500)), k * 110); };
   const buzz = ms => navigator.vibrate && navigator.vibrate(ms);
 
@@ -371,7 +416,7 @@
   }
 
   const TYPES = {
-    shrew:    { w: 75, html: '<svg><use href="#shrew"/></svg>' },
+    shrew:    { w: 85, html: '<svg><use href="#shrew"/></svg>' },
     gold:     { w: 7,  html: '<svg style="--fur:#e0ac1c;--snout:#f5cc4a"><use href="#shrew"/></svg>' },
     cat:      { w: 13, html: '<span class="emo">🐈</span>' },
     owl:      { w: 7,  html: '<span class="emo">🦉</span>' },
@@ -382,14 +427,19 @@
   // ---------- État de la partie ----------
   let G = null;
 
-  function newGame(playerName, onEnd){
+  const BOSS_HP = 1000, BOSS_MAXTIME = 120;
+  function newGame(playerName, onEnd, mode){
     stopGame();
-    G = { name: playerName, onEnd, score: 0, runners: 0, combo: 0, maxCombo: 0, hits: 0, gold: 0, kings: 0,
+    G = { mode: mode || 'classic', name: playerName, onEnd, score: 0, runners: 0, combo: 0, maxCombo: 0, hits: 0, gold: 0, kings: 0,
           fails: 0, escaped: 0, royalUntil: 0, start: performance.now(), lastLeft: DURATION, running: true,
           spawnT: null, loopT: null, nextHorde: performance.now() + 7000 };
     $('#player-name').textContent = playerName ? '🐭 ' + playerName : '';
-    updateHud();
+    G.nextCaravan = performance.now() + 4000 + Math.random() * 4000;
+    document.body.classList.toggle('boss', G.mode === 'boss');
+    $('#lbl-combo').textContent = G.mode === 'boss' ? 'VIES' : 'COMBO';
     show('game');
+    if (G.mode === 'boss') bossStart();
+    updateHud();
     spawnLoop();
     G.loopT = setInterval(tickTimer, 100);
   }
@@ -398,12 +448,16 @@
     if (!G) return;
     G.running = false;
     clearTimeout(G.spawnT); clearInterval(G.loopT);
-    document.querySelectorAll('body > .runner').forEach(r => r.remove());
+    document.querySelectorAll('body > .runner, .flyer, .proj, #boss').forEach(r => r.remove());
+    cancelAnimationFrame(G.raf); document.body.classList.remove('boss');
     holes.forEach(h => { clearTimeout(h.timer); h.busy = false; h.el.className = 'critter'; h.el.innerHTML = ''; });
     document.body.classList.remove('royal');
   }
 
-  function progress(){ return Math.min(1, (performance.now() - G.start) / (DURATION * 1000)); }
+  function progress(){
+    if (G.mode === 'boss') return G.boss ? Math.min(1, .35 + (1 - G.boss.hp / BOSS_HP) * .6) : .35;
+    return Math.min(1, (performance.now() - G.start) / (DURATION * 1000));
+  }
 
   function spawnLoop(){
     if (!G.running) return;
@@ -411,31 +465,45 @@
     if (Math.random() < .45 + progress() * .35) spawn();      // de plus en plus de monde
     if (Math.random() < .2 + progress() * .3) spawn();
     if (performance.now() > G.nextHorde){ horde(); G.nextHorde = performance.now() + 9000 + Math.random() * 5000; }
-    if (Math.random() < .14) runner(true);
+    if (Math.random() < .22 + progress() * .2) spawn();
+    if (Math.random() < .3) runner(true);
+    if (performance.now() > G.nextCaravan){ caravan(); G.nextCaravan = performance.now() + 8000 + Math.random() * 6000; }
     const delay = 820 - progress() * 420 + Math.random() * 180;
     G.spawnT = setTimeout(spawnLoop, delay);
   }
 
-  function horde(){
-    flash('🐭 RUÉE DES MUSARAIGNES ! 🐭'); sfx.horde();
+  function horde(silent){
+    if (!silent) flash('🐭 RUÉE DES MUSARAIGNES ! 🐭');
+    sfx.horde();
     holes.filter(h => !h.busy).forEach((h, i) => setTimeout(() => G && G.running && spawn(Math.random() < .12 ? 'gold' : 'shrew'), i * 60));
     for (let i = 0; i < 3; i++) setTimeout(() => G && G.running && runner(true), i * 400);
   }
 
   // Musaraignes qui traversent l'écran
-  function runner(inGame){
-    const d = document.createElement('div'); d.className = 'runner';
-    const ltr = Math.random() < .5, dur = 2.2 + Math.random() * 2;
+  function caravan(){
+    flash('🍼 CARAVANE DE BÉBÉS ! 🍼'); sfx.horde();
+    const n = 6 + rnd(5), ltr = Math.random() < .5, top = 25 + Math.random() * 60, dur = 3.4 + Math.random();
+    runner(true, { ltr, top, dur });                                   // la maman devant
+    for (let i = 1; i <= n; i++) runner(true, { ltr, top: top + 1.5, dur, delay: i * .19, baby: true });
+  }
+
+  function runner(inGame, o){
+    o = o || {};
+    const d = document.createElement('div'); d.className = 'runner' + (o.baby ? ' baby' : '');
+    const ltr = o.ltr !== undefined ? o.ltr : Math.random() < .5, dur = o.dur || 2.2 + Math.random() * 2;
     d.innerHTML = '<svg><use href="#shrew-side"/></svg>';
-    d.style.top = (inGame ? 22 + Math.random() * 70 : 5 + Math.random() * 88) + '%';
-    d.style.animation = `${ltr ? 'runR' : 'runL'} ${dur}s linear forwards`;
+    d.style.top = (o.top || (inGame ? 22 + Math.random() * 70 : 5 + Math.random() * 88)) + '%';
+    d.style.left = '-200px';
+    d.style.animation = `${ltr ? 'runR' : 'runL'} ${dur}s linear ${o.delay || 0}s both`;
     if (!ltr) d.querySelector('svg').style.transform = 'scaleX(-1)';
     let caught = false;
     d.addEventListener('pointerdown', e => {
       e.preventDefault(); e.stopPropagation(); if (caught) return; caught = true;
       sfx.squeak(); d.classList.add('caught');
-      if (inGame && G && G.running){
-        G.combo++; G.hits++; G.runners++; const pts = 20 * mult();
+      if (inGame && G && G.running && G.mode === 'boss'){
+        G.hits++; G.runners++; launchAt(e.clientX, e.clientY, o.baby ? 6 : 10, false);
+      } else if (inGame && G && G.running){
+        G.combo++; G.hits++; G.runners++; const pts = (o.baby ? 15 : 20) * mult();
         G.score += pts; G.maxCombo = Math.max(G.maxCombo, G.combo);
         floatTextAt('+' + pts, e.clientX, e.clientY, '#9ef'); updateHud();
       } else floatTextAt('couic !', e.clientX, e.clientY, '#fff');
@@ -443,11 +511,17 @@
     });
     (inGame ? document.body : $('#menu')).appendChild(d);
     if (inGame) sfx.chirp(.035);
-    setTimeout(() => d.remove(), dur * 1000 + 100);
+    setTimeout(() => d.remove(), (dur + (o.delay || 0)) * 1000 + 100);
   }
   setInterval(() => { if ($('#menu').classList.contains('on')) runner(false); }, 1300);
 
   function chooseType(){
+    if (G.mode === 'boss'){
+      const kingOut = holes.some(h => h.busy && h.type === 'king');
+      const x = Math.random();
+      if (!kingOut && G.boss.phase >= 2 && x < .02) return 'king';
+      return x < .12 ? 'gold' : 'shrew';
+    }
     const royal = performance.now() < G.royalUntil;
     const kingOut = holes.some(h => h.busy && h.type === 'king');
     const pool = Object.entries(TYPES).filter(([k]) => !(k === 'king' && (royal || kingOut)));
@@ -464,7 +538,7 @@
     h.el.className = 'critter' + (type === 'imposter' ? ' imposter' : '');
     h.el.innerHTML = TYPES[type].html;
     requestAnimationFrame(() => h.el.classList.add('up'));
-    if ((type === 'shrew' || type === 'gold') && Math.random() < .6) sfx.chirp();
+    if ((type === 'shrew' || type === 'gold') && Math.random() < .5) sfx.chirp();
     let stay = 1150 - progress() * 500;
     if (type === 'king') stay = 1100;
     if (type === 'gold') stay *= .7;
@@ -473,7 +547,7 @@
 
   function hide(h, escaped){
     if (!h.busy) return;
-    if (escaped && !h.hit && (h.type === 'shrew' || h.type === 'gold') && G.running){
+    if (escaped && !h.hit && (h.type === 'shrew' || h.type === 'gold') && G.running && G.mode !== 'boss'){
       G.escaped++;
       if (G.combo >= 5) floatText('💨 combo perdu', h.el);
       G.combo = 0; updateHud();
@@ -491,6 +565,17 @@
     if (!G || !G.running || !h.busy || h.hit || !h.el.classList.contains('up')) return;
     h.hit = true; clearTimeout(h.timer);
     h.el.classList.add('hit');
+    if (G.mode === 'boss'){
+      if (h.type === 'king'){
+        sfx.king(); buzz(40); G.kings++;
+        if (G.hearts < 3){ G.hearts++; flash('👑 Le Roi t\'envoie son armée ! ❤️ +1'); } else flash('👑 Le Roi t\'envoie son armée !');
+        horde(true);
+      } else {
+        G.hits++; if (h.type === 'gold') G.gold++;
+        sfx.squeak(); launchAt(x, y, h.type === 'gold' ? 30 : 10, h.type === 'gold');
+      }
+      updateHud(); setTimeout(() => hide(h, false), 140); return;
+    }
     let pts = 0, color = '#fff';
     switch (h.type){
       case 'shrew':
@@ -517,6 +602,13 @@
 
   function tickTimer(){
     if (!G.running) return;
+    if (G.mode === 'boss'){
+      const el = (performance.now() - G.start) / 1000;
+      $('#timer').textContent = Math.floor(el);
+      $('#timer').style.color = el > BOSS_MAXTIME - 10 ? 'var(--red)' : '';
+      if (el >= BOSS_MAXTIME){ flash('⏰ Trop lent… Ryan Grognon s\'enfuit !'); bossEnd(false); }
+      return;
+    }
     const left = Math.max(0, DURATION - (performance.now() - G.start) / 1000);
     const sec = Math.ceil(left);
     if (sec !== G.lastLeft){ G.lastLeft = sec; if (sec <= 5 && sec > 0) sfx.tick(); }
@@ -531,17 +623,138 @@
 
   function updateHud(){
     $('#score').textContent = G.score;
+    if (G.mode === 'boss'){
+      $('#combo').textContent = '❤️'.repeat(G.hearts) + '🖤'.repeat(3 - G.hearts);
+      $('#boss-hp').style.width = Math.max(0, G.boss.hp / BOSS_HP * 100) + '%';
+      return;
+    }
     $('#combo').textContent = '×' + mult();
   }
 
-  function endGame(){
-    const res = { name: G.name, score: G.score, hits: G.hits, gold: G.gold, kings: G.kings,
+  function endGame(extra){
+    const res = { mode: G.mode, ...(extra || {}), name: G.name, score: G.score, hits: G.hits, gold: G.gold, kings: G.kings,
                   fails: G.fails, escaped: G.escaped, runners: G.runners, maxCombo: G.maxCombo };
     const cb = G.onEnd;
     stopGame(); G = null;
+    if (res.mode === 'boss'){ (res.win ? sfx.win : sfx.laugh)(); setTimeout(() => cb(res), 1600); return; }
     sfx.end();
     flash('⏰ TERMINÉ !');
     setTimeout(() => cb(res), 900);
+  }
+
+  // ---------- BOSS : Ryan Grognon ----------
+  function bossStart(){
+    const el = document.createElement('div'); el.id = 'boss';
+    el.innerHTML = '<div class="bubble"></div><img src="ryan-grimace.jpg" alt="Ryan Grognon"><span class="bcrown">👑</span>';
+    field.appendChild(el);
+    G.hearts = 3; G.projs = []; G.destroyed = 0; G.dmg = 0;
+    G.boss = { el, hp: BOSS_HP, phase: 1, x: 40, y: 30, vx: 1.6, vy: 1.1, nextAttack: performance.now() + 1800, nextTalk: performance.now() + 2500 };
+    el.addEventListener('pointerdown', e => {
+      e.preventDefault(); if (!G || !G.running) return;
+      damage(3, e.clientX, e.clientY);
+    });
+    say('Cette couronne est à MOI !');
+    let last = performance.now();
+    const loop = now => {
+      if (!G || !G.running || G.mode !== 'boss') return;
+      bossTick(Math.min(50, now - last) / 16.7, now); last = now;
+      if (!G || !G.running) return;
+      G.raf = requestAnimationFrame(loop);
+    };
+    G.raf = requestAnimationFrame(loop);
+  }
+
+  function say(t){
+    const b = G.boss && G.boss.el.querySelector('.bubble'); if (!b) return;
+    b.textContent = t; b.classList.add('on');
+    clearTimeout(G.boss.sayT); G.boss.sayT = setTimeout(() => b.classList.remove('on'), 1500);
+  }
+
+  function bossTick(k, now){
+    const B = G.boss, W = field.clientWidth, H = field.clientHeight, size = B.el.offsetWidth;
+    const sp = [0, 1, 1.6, 2.4][B.phase];
+    B.x += B.vx * sp * k; B.y += B.vy * sp * k;
+    if (B.x < 4){ B.x = 4; B.vx = Math.abs(B.vx); }
+    if (B.x > W - size - 4){ B.x = W - size - 4; B.vx = -Math.abs(B.vx); }
+    if (B.y < size * .3){ B.y = size * .3; B.vy = Math.abs(B.vy); }
+    if (B.y > H * .55 - size){ B.y = H * .55 - size; B.vy = -Math.abs(B.vy); }
+    if (Math.random() < .005){ B.vx *= -1; }
+    B.el.style.transform = `translate(${B.x}px,${B.y}px)`;
+
+    if (now > B.nextAttack){
+      const n = B.phase === 3 ? 2 : 1;
+      for (let i = 0; i < n; i++) throwProj(B.x + size / 2 + (i ? 30 : 0), B.y + size * .9);
+      B.nextAttack = now + [0, 2100, 1400, 950][B.phase] + Math.random() * 500;
+    }
+    if (now > B.nextTalk){ say(pick(BOSS_LINES)); B.nextTalk = now + 4000 + Math.random() * 3000; }
+
+    for (const p of G.projs){
+      if (p.dead) continue;
+      p.y += p.vy * k; p.x += p.vx * k;
+      p.el.style.transform = `translate(${p.x}px,${p.y}px) rotate(${p.y * 2}deg)`;
+      if (p.y > H - 14){
+        p.dead = true; p.el.remove();
+        G.hearts--; sfx.bad(); buzz(150); shake(); flash('💩 SPLATCH ! −1 vie');
+        updateHud();
+        if (G.hearts <= 0){ bossEnd(false); return; }
+      }
+    }
+    G.projs = G.projs.filter(p => !p.dead);
+  }
+
+  function throwProj(x, y){
+    const el = document.createElement('div'); el.className = 'proj';
+    el.textContent = pick(['💩', '💩', '💩', '🧦', '🥾']);
+    const p = { el, x, y, vx: (Math.random() - .5) * 1.4, vy: [0, 1.5, 1.9, 2.4][G.boss.phase] + Math.random() * .5, dead: false };
+    el.style.transform = `translate(${x}px,${y}px)`;
+    el.addEventListener('pointerdown', e => {
+      e.preventDefault(); e.stopPropagation(); if (p.dead || !G || !G.running) return;
+      p.dead = true; el.remove(); G.destroyed++; G.score += 15; sfx.pop();
+      floatTextAt('💥 +15', e.clientX, e.clientY, '#9ef'); updateHud();
+    });
+    field.appendChild(el); G.projs.push(p); sfx.throw();
+  }
+
+  // Une musaraigne tapée fonce sur le boss
+  function launchAt(x, y, dmg, golden){
+    const f = document.createElement('div'); f.className = 'flyer';
+    f.innerHTML = '<svg' + (golden ? ' style="filter:sepia(1) saturate(4) hue-rotate(5deg)"' : '') + '><use href="#shrew-side"/></svg>';
+    f.style.left = x + 'px'; f.style.top = y + 'px';
+    document.body.appendChild(f);
+    const r = G.boss.el.getBoundingClientRect(), tx = r.left + r.width / 2 - x, ty = r.top + r.height / 2 - y;
+    const ang = Math.atan2(ty, tx) * 180 / Math.PI;
+    f.style.transform = `rotate(${ang}deg)`;
+    requestAnimationFrame(() => requestAnimationFrame(() => { f.style.transform = `translate(${tx}px,${ty}px) rotate(${ang}deg) scale(.7)`; }));
+    setTimeout(() => {
+      f.remove(); if (!G || !G.running || G.mode !== 'boss') return;
+      const r2 = G.boss.el.getBoundingClientRect();
+      damage(dmg, r2.left + r2.width / 2, r2.top + r2.height * .3);
+    }, 300);
+  }
+
+  function damage(n, x, y){
+    const B = G.boss; if (B.hp <= 0) return;
+    B.hp -= n; G.dmg += n; G.score += n * 3;
+    sfx.thud(); floatTextAt('−' + n, x, y, '#ff8a8a');
+    B.el.classList.add('ouch'); setTimeout(() => B.el && B.el.classList.remove('ouch'), 90);
+    if (Math.random() < .12) say(pick(['AÏE !', 'Ouille !', 'Mon nez !!', 'Pas les musaraignes !']));
+    if (B.phase === 1 && B.hp <= BOSS_HP * .66){
+      B.phase = 2; B.el.classList.add('p2'); flash('😤 Ryan Grognon s\'énerve !'); say('Vous allez voir !'); sfx.laugh(); caravan();
+    } else if (B.phase === 2 && B.hp <= BOSS_HP * .33){
+      B.phase = 3; B.el.classList.remove('p2'); B.el.classList.add('p3'); flash('🔥 RAGE DU GROGNON ! 🔥'); say('GRRRRRR !!!'); sfx.laugh(); shake();
+      setTimeout(() => G && G.running && spawn('king'), 1200);
+    }
+    updateHud();
+    if (B.hp <= 0){ say('Noooon… ma couronne…'); flash('🏆 RYAN GROGNON EST VAINCU ! 👑'); bossEnd(true); }
+  }
+
+  function bossEnd(win){
+    if (!G || !G.running) return;
+    const time = Math.round((performance.now() - G.start) / 1000);
+    if (win) G.score += Math.max(0, 4000 - time * 30) + G.hearts * 400;
+    G.running = false;
+    clearTimeout(G.spawnT); clearInterval(G.loopT); cancelAnimationFrame(G.raf);
+    endGame({ win, time, hearts: Math.max(0, G.hearts), dmg: G.dmg, destroyed: G.destroyed });
   }
 
   // ---------- Effets ----------
@@ -555,8 +768,8 @@
   function shake(){ document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); }
 
   // ---------- Compte à rebours ----------
-  function countdown(then){
-    show('count'); $('#count-tip').textContent = '💡 ' + pick(TIPS);
+  function countdown(then, mode){
+    show('count'); $('#count-tip').textContent = '💡 ' + pick(mode === 'boss' ? BOSS_TIPS : TIPS);
     let n = 3; $('#count-n').textContent = n; sfx.tick();
     const t = setInterval(() => {
       n--;
@@ -567,31 +780,51 @@
   }
 
   // ---------- Classement ----------
-  const loadBoard = () => { try { return JSON.parse(LS.get(STORE)) || []; } catch(e){ return []; } };
-  function addToBoard(name, score){
-    const b = loadBoard(); b.push({ name: name || 'Anonyme', score, date: Date.now() });
+  const STORE_BOSS = 'roi-ryan-boss';
+  const keyOf = mode => mode === 'boss' ? STORE_BOSS : STORE;
+  const loadBoard = mode => { try { return JSON.parse(LS.get(keyOf(mode))) || []; } catch(e){ return []; } };
+  function addToBoard(name, score, mode){
+    const b = loadBoard(mode); b.push({ name: name || 'Anonyme', score, date: Date.now() });
     b.sort((a, c) => c.score - a.score);
-    const top = b.slice(0, 10); LS.set(STORE, JSON.stringify(top));
+    const top = b.slice(0, 10); LS.set(keyOf(mode), JSON.stringify(top));
     return top.findIndex(e => e.score === score && e.name === (name || 'Anonyme'));
   }
   function renderBoard(){
-    const b = loadBoard();
-    $('#board-list').innerHTML = b.length
+    const one = (b, empty) => b.length
       ? b.map((e, i) => `<li><span>${['👑','🥈','🥉'][i] || ''} ${esc(e.name)}</span><span>${e.score}</span></li>`).join('')
-      : '<p class="sub">Personne n\'a encore osé défier le Roi.</p>';
+      : `<p class="sub">${empty}</p>`;
+    $('#board-list').innerHTML = one(loadBoard('classic'), 'Personne n\'a encore osé défier le Roi.');
+    $('#board-boss').innerHTML = one(loadBoard('boss'), 'Ryan Grognon n\'a encore jamais été vaincu…');
   }
   $('#btn-board').onclick = () => show('board');
   $('#btn-reset-board').onclick = e => {
     const b = e.currentTarget;
     if (!b.dataset.sure){ b.dataset.sure = 1; b.textContent = 'Appuie encore pour confirmer'; setTimeout(() => { delete b.dataset.sure; b.textContent = 'Effacer le classement'; }, 3000); return; }
-    LS.del(STORE); renderBoard(); delete b.dataset.sure; b.textContent = 'Effacer le classement';
+    LS.del(STORE); LS.del(STORE_BOSS); renderBoard(); delete b.dataset.sure; b.textContent = 'Effacer le classement';
   };
 
   // ---------- Écran résultat ----------
+  function bossTitle(res){
+    if (!res.win) return res.dmg >= BOSS_HP * .66 ? 'Presque ! Écuyer courageux 🛡️' : 'Couvert de crottes 💩';
+    return res.time <= 45 ? 'Légende du Royaume ⚡👑' : res.time <= 70 ? 'Sauveur de la Couronne 👑' : 'Chevalier tenace ⚔️';
+  }
+  const rankTitle = res => res.mode === 'boss' ? bossTitle(res) : titleFor(res.score);
   function showResult(res, buttonsHtml){
     $('#res-who').textContent = res.name ? res.name + ' a marqué' : 'Score final';
     $('#res-score').textContent = res.score;
-    $('#res-title').textContent = titleFor(res.score);
+    $('#res-title').textContent = rankTitle(res);
+    if (res.mode === 'boss'){
+      $('#res-quote').textContent = res.win
+        ? 'Le Roi Ryan : « Ma couronne ! Tu as sauvé le royaume des musaraignes. Je te dois une noisette. »'
+        : 'Ryan Grognon : « Hé hé hé… La couronne est à moi pour toujours ! »';
+      $('#res-stats').innerHTML = `
+        <div>${res.win ? '🏆 VICTOIRE' : '💀 DÉFAITE'}</div><div>⏱️ Temps : <b>${res.time} s</b></div>
+        <div>💥 Dégâts : <b>${Math.min(res.dmg, BOSS_HP)} / ${BOSS_HP}</b></div><div>❤️ Vies restantes : <b>${res.hearts}</b></div>
+        <div>🐭 Musaraignes lancées : <b>${res.hits}</b></div><div>💩 Crottes détruites : <b>${res.destroyed}</b></div>
+        <div>👑 Aides du Roi : <b>${res.kings}</b></div><div>🍼 Fuyardes lancées : <b>${res.runners}</b></div>`;
+      $('#res-buttons').innerHTML = buttonsHtml;
+      show('result'); return;
+    }
     const tier = res.score >= 1600 ? 'top' : res.score >= 700 ? 'good' : res.score >= 300 ? 'mid' : 'bad';
     $('#res-quote').textContent = 'Le Roi Ryan : ' + pick(QUOTES[tier]);
     $('#res-stats').innerHTML = `
@@ -608,19 +841,27 @@
   $('#btn-solo').onclick = () => {
     soloName = $('#solo-name').value.trim().slice(0, 20) || 'Anonyme';
     LS.set('roi-ryan-nom', soloName);
-    playSolo();
+    playSolo('classic');
   };
-  function playSolo(){
+  $('#btn-boss').onclick = () => {
+    soloName = $('#solo-name').value.trim().slice(0, 20) || 'Anonyme';
+    LS.set('roi-ryan-nom', soloName);
+    playSolo('boss');
+  };
+  function playSolo(mode){
     countdown(() => newGame(soloName, res => {
-      const rank = addToBoard(res.name, res.score);
+      const rank = addToBoard(res.name, res.score, mode);
       showResult(res, `<button id="b-again">🔁 Rejouer</button>
         <button id="b-share-solo">📤 Défier les potes</button>
         <button class="alt" id="b-menu">🏠 Menu</button>`);
-      $('#res-record').textContent = rank === 0 ? '🎉 NOUVEAU RECORD DE LA COUR !' : rank > 0 ? `📜 ${rank + 1}e au classement` : '';
-      $('#b-again').onclick = playSolo;
+      $('#res-record').textContent = res.score <= 0 ? '' : rank === 0 ? '🎉 NOUVEAU RECORD DE LA COUR !' : rank > 0 ? `📜 ${rank + 1}e au classement` : '';
+      $('#b-again').onclick = () => playSolo(mode);
       $('#b-menu').onclick = () => show('menu');
-      $('#b-share-solo').onclick = () => share(`🐭👑 J'ai fait ${res.score} points à « La Cour du Roi Ryan » et je suis « ${titleFor(res.score)} ». Qui me bat ?`);
-    }));
+      $('#b-share-solo').onclick = () => share(mode === 'boss'
+        ? (res.win ? `⚔️👑 J'ai battu Ryan Grognon en ${res.time} s (${res.score} pts) et sauvé la couronne du Roi Ryan ! Qui fait mieux ?`
+                   : `💩 Ryan Grognon m'a eu… ${res.score} pts. Venez le battre à « La Cour du Roi Ryan » !`)
+        : `🐭👑 J'ai fait ${res.score} points à « La Cour du Roi Ryan » et je suis « ${titleFor(res.score)} ». Qui me bat ?`);
+    }, mode), mode);
   }
 
   // ---------- Concours ----------
@@ -636,11 +877,19 @@
   $('#btn-contest').onclick = () => { renderPlayers(); show('setup'); };
   $('#btn-add-player').onclick = () => { if (players.length < 10){ players.push(''); renderPlayers(); } };
 
+  let contestMode = LS.get('roi-ryan-mode') === 'boss' ? 'boss' : 'classic';
+  function renderMode(){
+    $('#mode-classic').classList.toggle('sel', contestMode === 'classic');
+    $('#mode-boss').classList.toggle('sel', contestMode === 'boss');
+  }
+  $('#mode-classic').onclick = () => { contestMode = 'classic'; LS.set('roi-ryan-mode', contestMode); renderMode(); };
+  $('#mode-boss').onclick = () => { contestMode = 'boss'; LS.set('roi-ryan-mode', contestMode); renderMode(); };
+  renderMode();
   let contest = null;
   $('#btn-start-contest').onclick = () => {
     const names = players.map((p, i) => p.trim() || 'Pote ' + (i + 1));
     LS.set('roi-ryan-joueurs', JSON.stringify(players));
-    contest = { names, results: [], i: 0 };
+    contest = { names, results: [], i: 0, mode: contestMode };
     nextTurn();
   };
   function nextTurn(){
@@ -650,13 +899,13 @@
       (c.results.length ? ` — score à battre : ${Math.max(...c.results.map(r => r.score))}` : '');
     show('pass');
     $('#btn-ready').onclick = () => countdown(() => newGame(name, res => {
-      c.results.push(res); addToBoard(res.name, res.score);
+      c.results.push(res); addToBoard(res.name, res.score, c.mode);
       c.i++;
       const last = c.i >= c.names.length;
       showResult(res, `<button id="b-next">${last ? '🏆 Voir le verdict du Roi' : '➡️ Joueur suivant : ' + esc(c.names[c.i])}</button>`);
       $('#res-record').textContent = '';
       $('#b-next').onclick = last ? showPodium : nextTurn;
-    }));
+    }, c.mode), c.mode);
   }
   function showPodium(){
     const r = [...contest.results].sort((a, b) => b.score - a.score);
@@ -664,7 +913,7 @@
       <div class="sc">${p.score} pts</div><div class="bar">${medal}</div></div>` : '<div class="step"></div>';
     $('#podium-steps').innerHTML = step(r[1], 'p2', '🥈') + step(r[0], 'p1', '👑') + step(r[2], 'p3', '🥉');
     $('#podium-list').innerHTML = r.map((p, i) =>
-      `<li><span>${i + 1}. ${esc(p.name)} <small style="opacity:.7">— ${titleFor(p.score)}</small></span><span>${p.score}</span></li>`).join('');
+      `<li><span>${i + 1}. ${esc(p.name)} <small style="opacity:.7">— ${rankTitle(p)}</small></span><span>${p.score}</span></li>`).join('');
     const loser = r[r.length - 1];
     contest.gage = /ryan/i.test(loser.name)
       ? 'est DESTITUÉ ! 😱 Le Roi des Musaraignes a perdu contre ses propres sujets. Il rend sa couronne pendant 24 h et doit couiner à chaque fois qu\'on l\'appelle 🐭'
@@ -674,11 +923,11 @@
     sfx.king();
     show('podium');
   }
-  $('#btn-revanche').onclick = () => { contest = { names: contest.names, results: [], i: 0 }; nextTurn(); };
+  $('#btn-revanche').onclick = () => { contest = { names: contest.names, results: [], i: 0, mode: contest.mode }; nextTurn(); };
   $('#btn-share').onclick = () => {
     const r = [...contest.results].sort((a, b) => b.score - a.score);
     const lines = r.map((p, i) => `${['👑','🥈','🥉'][i] || (i + 1) + '.'} ${p.name} : ${p.score}`).join('\n');
-    share(`🐭 Concours « La Cour du Roi Ryan » 🐭\n${lines}\n\n⚖️ Gage : ${r[r.length - 1].name} ${contest.gage}`);
+    share(`🐭 Concours « La Cour du Roi Ryan »${contest.mode === 'boss' ? ' — Mode Boss ⚔️' : ''} 🐭\n${lines}\n\n⚖️ Gage : ${r[r.length - 1].name} ${contest.gage}`);
   };
 
   async function share(text){
