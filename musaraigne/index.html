@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#2b1d12">
+<title>La Cour du Roi Ryan – Le jeu des musaraignes</title>
+<style>
+  :root{
+    --bg:#2b1d12; --dirt:#5a3c22; --dirt2:#3d2814; --grass:#6fae3f; --gold:#ffcc33;
+    --txt:#fff7e8; --red:#e5484d; --card:#3a2817;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--txt);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden;touch-action:manipulation}
+  .screen{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;
+    padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));overflow-y:auto}
+  .screen.on{display:flex}
+  .screen > *{flex-shrink:0}
+  #game > #field{flex-shrink:1}
+  h1{font-size:clamp(26px,7vw,40px);margin:8px 0 2px;text-align:center;line-height:1.1;
+    text-shadow:0 3px 0 #000a}
+  h2{margin:8px 0;text-align:center}
+  .sub{opacity:.85;text-align:center;margin:0 0 12px;font-size:15px}
+  button{font:inherit;font-weight:800;border:0;border-radius:16px;padding:14px 18px;margin:6px 0;
+    width:min(340px,100%);font-size:18px;cursor:pointer;color:#2b1d12;background:var(--gold);
+    box-shadow:0 5px 0 #a87b00;transition:transform .05s}
+  button:active{transform:translateY(4px);box-shadow:0 1px 0 #a87b00}
+  button.alt{background:#e9dcc6;box-shadow:0 5px 0 #9c8a6c}
+  button.small{width:auto;padding:8px 12px;font-size:15px;margin:0}
+  .king-portrait{position:relative;width:170px;height:190px;margin:22px auto 4px}
+  .king-portrait img{width:170px;height:170px;border-radius:50%;object-fit:cover;position:absolute;bottom:0;
+    border:6px solid var(--gold);box-shadow:0 0 30px #ffcc3399}
+  .crown{position:absolute;left:50%;transform:translateX(-50%) rotate(-8deg);top:-26px;font-size:64px;
+    filter:drop-shadow(0 3px 2px #0008);animation:bob 1.6s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateX(-50%) rotate(6deg) translateY(-4px)}}
+  .card{background:var(--card);border-radius:18px;padding:14px;width:min(380px,100%);margin:8px 0}
+  .rules{font-size:14.5px;line-height:1.45}
+  .rules div{display:flex;gap:10px;align-items:center;margin:4px 0}
+  .rules .ic{width:34px;text-align:center;font-size:24px;flex:none}
+  .rules img{width:30px;height:30px;border-radius:50%;object-fit:cover}
+  .mini-shrew{width:34px;height:34px}
+
+  /* HUD + terrain */
+  #game{padding-top:max(10px,env(safe-area-inset-top))}
+  .hud{width:min(480px,100%);display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:800}
+  .hud .box{background:var(--card);border-radius:12px;padding:6px 10px;text-align:center;min-width:80px}
+  .hud small{display:block;font-size:11px;opacity:.7;font-weight:600}
+  #score{font-size:24px}
+  #timer{font-size:22px}
+  #combo{font-size:20px;color:var(--gold)}
+  #player-name{font-weight:800;margin:6px 0 0;opacity:.9}
+  #royal-banner{height:30px;margin:4px 0;font-weight:900;color:var(--gold);font-size:18px;text-align:center;
+    opacity:0;transition:opacity .2s}
+  #royal-banner.on{opacity:1;animation:pulse .5s infinite alternate}
+  @keyframes pulse{to{transform:scale(1.08)}}
+  #field{width:min(480px,100%);flex:1;max-height:560px;display:grid;grid-template-columns:repeat(3,1fr);
+    grid-template-rows:repeat(4,1fr);gap:8px;padding:10px;border-radius:24px;
+    background:radial-gradient(circle at 30% 20%,#7fc04c,var(--grass) 60%,#4f8a2a);
+    box-shadow:inset 0 -8px 0 #0003;position:relative;transition:box-shadow .3s}
+  body.royal #field{box-shadow:0 0 0 5px var(--gold),0 0 40px var(--gold),inset 0 -8px 0 #0003}
+  body.shake #field{animation:shake .3s}
+  @keyframes shake{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+  .hole{position:relative;overflow:hidden;border-radius:0 0 50% 50%/0 0 30% 30%}
+  .hole::before{content:"";position:absolute;left:8%;right:8%;bottom:6%;height:32%;border-radius:50%;
+    background:radial-gradient(ellipse at 50% 40%,#140c05,var(--dirt2) 70%)}
+  .hole::after{content:"";position:absolute;left:2%;right:2%;bottom:0;height:20%;border-radius:50% 50% 40% 40%;
+    background:linear-gradient(var(--dirt),var(--dirt2));z-index:3}
+  .critter{position:absolute;left:50%;bottom:8%;width:78%;aspect-ratio:1;transform:translate(-50%,110%);
+    transition:transform .14s ease-out;z-index:2;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .critter.up{transform:translate(-50%,0)}
+  .critter.hit{transform:translate(-50%,0) scale(.8) rotate(12deg);filter:brightness(1.6)}
+  .critter svg{width:100%;height:100%;overflow:visible}
+  .critter .emo{font-size:min(17vw,80px);line-height:1}
+  .critter .ryan{width:84%;aspect-ratio:1;border-radius:50%;object-fit:cover;border:4px solid var(--gold);
+    box-shadow:0 0 18px var(--gold)}
+  .critter .ryan-wrap{position:relative;width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center}
+  .critter .ryan-wrap .c{position:absolute;top:-8%;left:50%;transform:translateX(-50%) rotate(-10deg);
+    font-size:min(10vw,46px)}
+  .critter.imposter .ryan{border-color:#7a7a7a;box-shadow:0 0 12px #e5484d}
+  .critter.imposter .c{font-size:min(8vw,36px);top:-4%}
+  .runner{position:fixed;width:74px;height:44px;z-index:40;cursor:pointer;touch-action:none}
+  #menu .runner{position:absolute;z-index:0;opacity:.9}
+  #menu > *:not(.runner){position:relative;z-index:1}
+  #menu .king-portrait{position:relative}
+  .runner svg{width:100%;height:100%;animation:trot .18s infinite alternate}
+  .runner.caught{animation-play-state:paused!important;transform:scale(1.4) rotate(-20deg);opacity:.4;transition:.2s}
+  @keyframes trot{to{translate:0 -4px}}
+  @keyframes runR{from{left:-90px}to{left:calc(100% + 20px)}}
+  @keyframes runL{from{left:calc(100% + 20px)}to{left:-90px}}
+  .float{position:fixed;pointer-events:none;font-weight:900;font-size:22px;z-index:50;
+    text-shadow:0 2px 0 #000,0 0 6px #000;animation:floatUp .9s ease-out forwards;white-space:nowrap;
+    transform:translate(-50%,-50%)}
+  @keyframes floatUp{to{transform:translate(-50%,-160%);opacity:0}}
+  #msg{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:60;pointer-events:none;
+    font-size:clamp(22px,6vw,34px);font-weight:900;text-align:center;width:92%;text-shadow:0 3px 0 #000,0 0 10px #000;
+    opacity:0}
+  #msg.show{animation:pop 1.3s ease-out forwards}
+  @keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.4)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}
+    80%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0}}
+
+  /* résultats */
+  .big{font-size:56px;font-weight:900;color:var(--gold);text-align:center;margin:4px 0;text-shadow:0 4px 0 #000a}
+  .title-rank{font-size:20px;font-weight:800;text-align:center}
+  .quote{font-style:italic;text-align:center;margin:10px 0 0;display:flex;gap:10px;align-items:center}
+  .quote img{width:54px;height:54px;border-radius:50%;object-fit:cover;border:3px solid var(--gold);flex:none}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:14px;margin-top:10px}
+  .stats div{background:#0003;border-radius:10px;padding:6px 8px}
+  ol.board{margin:0;padding-left:28px}
+  ol.board li{padding:5px 0;border-bottom:1px solid #fff1;display:flex;justify-content:space-between;gap:8px}
+  ol.board li span:last-child{font-weight:800;color:var(--gold)}
+  .players input{font:inherit;font-size:17px;padding:10px 12px;border-radius:12px;border:2px solid #0004;width:100%;
+    background:#fff7e8;color:#2b1d12;user-select:text;-webkit-user-select:text}
+  .players .row{display:flex;gap:8px;margin:6px 0;align-items:center}
+  .players .row button{width:46px;flex:none;padding:10px 0;margin:0;background:#e9dcc6;box-shadow:0 3px 0 #9c8a6c}
+  .podium{display:flex;align-items:flex-end;justify-content:center;gap:8px;margin:14px 0 6px;width:min(380px,100%)}
+  .podium .step{flex:1;text-align:center;font-weight:800}
+  .podium .bar{border-radius:12px 12px 0 0;display:flex;align-items:flex-start;justify-content:center;
+    padding-top:6px;font-size:26px;color:#2b1d12}
+  .podium .p1 .bar{height:120px;background:var(--gold)}
+  .podium .p2 .bar{height:85px;background:#d7d7d7}
+  .podium .p3 .bar{height:60px;background:#d08a4a}
+  .podium .nm{font-size:15px;word-break:break-word;margin-bottom:4px}
+  .podium .sc{font-size:13px;opacity:.85;margin-bottom:4px}
+  .gage{border:3px dashed var(--red);text-align:center}
+  .gage b{color:var(--red)}
+  .passer{font-size:24px;text-align:center;margin:20px 0}
+  .passer b{color:var(--gold);font-size:34px;display:block}
+  .countdown{font-size:110px;font-weight:900;color:var(--gold);text-shadow:0 6px 0 #000a}
+  .row-btns{display:flex;gap:8px;width:min(340px,100%)}
+  .row-btns button{flex:1}
+</style>
+</head>
+<body>
+
+<!-- Dessin de la musaraigne (réutilisé partout) -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="shrew" viewBox="0 0 100 100">
+      <ellipse cx="50" cy="78" rx="34" ry="26" fill="var(--fur,#6b5a4a)"/>
+      <ellipse cx="22" cy="30" rx="10" ry="9" fill="var(--fur,#6b5a4a)"/>
+      <ellipse cx="78" cy="30" rx="10" ry="9" fill="var(--fur,#6b5a4a)"/>
+      <ellipse cx="22" cy="30" rx="5" ry="4.5" fill="#d9a3a0"/>
+      <ellipse cx="78" cy="30" rx="5" ry="4.5" fill="#d9a3a0"/>
+      <path d="M18 48 Q20 22 50 22 Q80 22 82 48 Q80 62 60 70 L52 94 Q50 97 48 94 L40 70 Q20 62 18 48Z" fill="var(--fur,#6b5a4a)"/>
+      <path d="M40 66 L50 96 L60 66 Q50 72 40 66Z" fill="var(--snout,#8a7563)"/>
+      <circle cx="50" cy="95" r="4" fill="#e78a9a"/>
+      <circle cx="37" cy="46" r="4.2" fill="#111"/><circle cx="63" cy="46" r="4.2" fill="#111"/>
+      <circle cx="38.3" cy="44.6" r="1.3" fill="#fff"/><circle cx="64.3" cy="44.6" r="1.3" fill="#fff"/>
+      <g stroke="#222" stroke-width="1" stroke-linecap="round" opacity=".7">
+        <path d="M45 84 L26 80"/><path d="M45 87 L27 90"/><path d="M55 84 L74 80"/><path d="M55 87 L73 90"/>
+      </g>
+    </symbol>
+    <symbol id="shrew-side" viewBox="0 0 120 70">
+      <path d="M8 46 Q-4 40 2 30" stroke="#5c4c3e" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <ellipse cx="44" cy="42" rx="36" ry="20" fill="#6b5a4a"/>
+      <ellipse cx="46" cy="50" rx="28" ry="10" fill="#8a7563"/>
+      <path d="M70 28 Q86 26 96 36 L117 45 Q119 47 116 48 L92 52 Q78 56 70 52Z" fill="#6b5a4a"/>
+      <circle cx="117" cy="46.5" r="3" fill="#e78a9a"/>
+      <circle cx="84" cy="36" r="3" fill="#111"/><circle cx="85" cy="35" r=".9" fill="#fff"/>
+      <ellipse cx="74" cy="28" rx="6" ry="5" fill="#d9a3a0"/>
+      <g stroke="#222" stroke-width=".8" opacity=".7"><path d="M108 46 L100 38"/><path d="M108 47 L98 50"/></g>
+      <g fill="#e1b3a8"><rect x="22" y="58" width="6" height="8" rx="2"/><rect x="58" y="57" width="6" height="9" rx="2"/></g>
+    </symbol>
+  </defs>
+</svg>
+
+<!-- MENU -->
+<section id="menu" class="screen on">
+  <div class="king-portrait"><span class="crown">👑</span><img src="ryan.jpg" alt="Le Roi Ryan"></div>
+  <h1>La Cour du Roi Ryan</h1>
+  <p class="sub">Sa Majesté Ryan I<sup>er</sup>, Roi des Musaraignes,<br>cherche son héritier. Tape vite. Tape bien.</p>
+  <button id="btn-solo">🐭 Jouer solo</button>
+  <button id="btn-contest">🏆 Concours entre potes</button>
+  <button class="alt" id="btn-board">📜 Classement de la Cour</button>
+  <div class="card rules">
+    <div><span class="ic"><svg class="mini-shrew"><use href="#shrew"/></svg></span><span>Musaraigne : <b>+10</b> (les combos multiplient jusqu'à ×5)</span></div>
+    <div><span class="ic"><svg class="mini-shrew" style="--fur:#e0ac1c;--snout:#f5cc4a"><use href="#shrew"/></svg></span><span>Musaraigne dorée : <b>+50</b></span></div>
+    <div><span class="ic"><img src="ryan.jpg" alt=""></span><span><b>Le Roi Ryan 👑</b> : salue-le ! <b>+100</b> et <b>points ×3</b> pendant 5 s</span></div>
+    <div><span class="ic"><img src="ryan-grimace.jpg" alt=""></span><span><b>Ryan Grognon</b> (sans couronne 😤) : il déteste qu'on le touche, <b>−50</b></span></div>
+    <div><span class="ic">🐈</span><span>Chat / 🦉 Chouette : prédateurs, <b>−30</b> et combo perdu</span></div>
+    <div><span class="ic">🏃</span><span>Musaraigne qui traverse l'écran : attrape-la, <b>+20</b></span></div>
+    <div><span class="ic">🐭🐭</span><span>RUÉE DES MUSARAIGNES : elles sortent de partout !</span></div>
+    <div><span class="ic">💨</span><span>Une musaraigne qui s'échappe casse ton combo</span></div>
+  </div>
+</section>
+
+<!-- SAISIE DES JOUEURS -->
+<section id="setup" class="screen">
+  <h1>🏆 Concours</h1>
+  <p class="sub">Chacun son tour sur le même téléphone.<br>Le dernier aura un <b>gage royal</b>. 😈</p>
+  <div class="card players">
+    <div id="player-list"></div>
+    <button class="alt small" id="btn-add-player" style="margin-top:6px">+ Ajouter un pote</button>
+  </div>
+  <button id="btn-start-contest">C'est parti !</button>
+  <button class="alt" data-go="menu">← Retour</button>
+</section>
+
+<!-- PASSE LE TÉLÉPHONE -->
+<section id="pass" class="screen">
+  <div style="flex:1"></div>
+  <div class="passer">📱 Passe le téléphone à<b id="pass-name"></b><span id="pass-info" style="font-size:16px;opacity:.8"></span></div>
+  <button id="btn-ready">Je suis prêt(e) !</button>
+  <div style="flex:1"></div>
+</section>
+
+<!-- COMPTE À REBOURS -->
+<section id="count" class="screen" style="justify-content:center">
+  <div class="countdown" id="count-n">3</div>
+  <p class="sub" id="count-tip"></p>
+</section>
+
+<!-- JEU -->
+<section id="game" class="screen">
+  <div class="hud">
+    <div class="box"><small>SCORE</small><span id="score">0</span></div>
+    <div class="box"><small>COMBO</small><span id="combo">×1</span></div>
+    <div class="box"><small>TEMPS</small><span id="timer">45</span></div>
+  </div>
+  <div id="player-name"></div>
+  <div id="royal-banner">👑 FAVEUR ROYALE ×3 👑</div>
+  <div id="field"></div>
+</section>
+<div id="msg"></div>
+
+<!-- RÉSULTAT -->
+<section id="result" class="screen">
+  <h2 id="res-who">Score final</h2>
+  <div class="big" id="res-score">0</div>
+  <div class="title-rank" id="res-title"></div>
+  <div class="card">
+    <div class="quote"><img src="ryan.jpg" alt=""><span id="res-quote"></span></div>
+    <div class="stats" id="res-stats"></div>
+  </div>
+  <div id="res-record" class="sub" style="color:var(--gold);font-weight:800"></div>
+  <div id="res-buttons" style="width:100%;display:flex;flex-direction:column;align-items:center"></div>
+</section>
+
+<!-- PODIUM -->
+<section id="podium" class="screen">
+  <h1>👑 Verdict du Roi</h1>
+  <div class="podium" id="podium-steps"></div>
+  <div class="card"><ol class="board" id="podium-list"></ol></div>
+  <div class="card gage" id="gage"></div>
+  <button id="btn-share">📤 Partager les résultats</button>
+  <button id="btn-revanche">🔁 Revanche !</button>
+  <button class="alt" data-go="menu">🏠 Menu</button>
+</section>
+
+<!-- CLASSEMENT -->
+<section id="board" class="screen">
+  <h1>📜 Classement de la Cour</h1>
+  <p class="sub">Les 10 meilleurs sujets du royaume (sur ce téléphone)</p>
+  <div class="card"><ol class="board" id="board-list"></ol></div>
+  <button class="alt" data-go="menu">← Retour</button>
+  <button class="alt small" id="btn-reset-board" style="margin-top:14px;opacity:.6">Effacer le classement</button>
+</section>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const DURATION = 45;
+  const STORE = 'roi-ryan-classement';
+
+  // ---------- Textes ----------
+  const TITLES = [
+    [0,    'Crotte de musaraigne 💩'],
+    [150,  'Musaraigne stagiaire 🐭'],
+    [400,  'Musaraigne confirmée 🐁'],
+    [700,  'Chevalier du Museau Pointu ⚔️'],
+    [1100, 'Duc des Galeries Souterraines 🕳️'],
+    [1600, 'Grand Vizir du Roi Ryan 🧙'],
+    [2200, 'Héritier du Trône de Ryan 👑'],
+  ];
+  const QUOTES = {
+    bad:  ['« Même un chat aveugle ferait mieux. Honte sur ta galerie. »',
+           '« Je t\'exile au fond du jardin, avec les limaces. »',
+           '« Tu tapes comme une musaraigne qui dort. Et elles ne dorment jamais. »'],
+    mid:  ['« Pas mal… pour un humain. Retourne t\'entraîner. »',
+           '« Tu peux garder ton museau. Pour l\'instant. »',
+           '« Le Roi a vu pire. Le Roi a aussi vu bien mieux. »'],
+    good: ['« Voilà un sujet digne de ma couronne ! »',
+           '« Tu as droit à un ver de terre royal. Savoure-le. »',
+           '« Je te nomme gardien officiel de mes noisettes. »'],
+    top:  ['« Je verse une larme de fierté. Tu es mon héritier. »',
+           '« Agenouille-toi… Je te fais Prince des Musaraignes. »',
+           '« Personne n\'a jamais tapé aussi fort. Même pas moi. »'],
+  };
+  const KING_HIT = ['👑 VIVE LE ROI RYAN !', '👑 Sa Majesté vous bénit !', '👑 GLOIRE À RYAN Ier !'];
+  const IMPOSTER = ['😤 RYAN GROGNON ! Pas touche !', '😤 Il a pas sa couronne, il est vénère !', '😤 Lèse-majesté !'];
+  const PREDATOR = ['🐈 Aïe, griffé !', '🦉 Hou hou… raté !', '😿 Le Roi est déçu.'];
+  const GAGES = [
+    'imite une musaraigne affamée pendant 15 secondes 🐭',
+    'appelle Ryan « Votre Majesté » jusqu\'à demain midi 👑',
+    'fais la tête de Ryan sur la photo et envoie le selfie au groupe 🤪',
+    'fait une révérence au Roi Ryan devant tout le monde 🙇',
+    'déclame un poème de 4 vers à la gloire des musaraignes 📜',
+    'paye la prochaine tournée au Roi (ou des chips au minimum) 🍟',
+    'met « Sujet de Ryan Ier » comme statut pendant 24 h 📱',
+    'couine comme une musaraigne à chaque fois qu\'on dit ton prénom pendant 1 h 🔊',
+  ];
+  const TIPS = ['Salue le Roi, il te récompensera…', 'Méfie-toi de Ryan Grognon, il mord.',
+    'Les musaraignes mangent leur poids en insectes chaque jour. Toi, tape.', 'Ne touche pas au chat.'];
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const titleFor = s => TITLES.filter(t => s >= t[0]).pop()[1];
+
+  // ---------- Écrans ----------
+  function show(id){
+    document.querySelectorAll('.screen').forEach(e => e.classList.toggle('on', e.id === id));
+    if (id === 'board') renderBoard();
+  }
+  document.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { stopGame(); show(b.dataset.go); });
+
+  // ---------- Sons (WebAudio, aucun fichier) ----------
+  let ac;
+  function tone(f1, f2, dur, type='square', vol=.12, delay=0){
+    try{
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      const t = ac.currentTime + delay, o = ac.createOscillator(), g = ac.createGain();
+      o.type = type; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+      o.connect(g).connect(ac.destination); o.start(t); o.stop(t + dur);
+    }catch(e){}
+  }
+  const sfx = {
+    // vrai cri de musaraigne : rafale de petits gazouillis très aigus
+    squeak(){ twitter(4 + rnd(4), .16, 3800); tone(5200, 2600, .09, 'sine', .14, .02); },
+    chirp(vol){ twitter(2 + rnd(3), vol || .05, 4200 + rnd(1500)); },
+    gold(){ [880,1320,1760].forEach((f,i) => tone(f, f*1.01, .12, 'triangle', .12, i*.06)); },
+    bad(){ tone(220, 80, .3, 'sawtooth', .15); },
+    king(){ [523,659,784,1047].forEach((f,i) => tone(f, f, .18, 'square', .09, i*.11)); },
+    tick(){ tone(1000, 1000, .04, 'square', .06); },
+    end(){ [784,659,523,392].forEach((f,i) => tone(f, f, .2, 'triangle', .12, i*.15)); },
+  };
+  function rnd(n){ return Math.floor(Math.random() * n); }
+  function twitter(n, vol, base){
+    for (let i = 0; i < n; i++){
+      const f = base * (0.85 + Math.random() * .4), d = i * (0.035 + Math.random() * .025);
+      tone(f * .8, f * 1.35, .028, 'sine', vol, d);      // petit « tsi » montant
+      tone(f * 1.3, f * .9, .02, 'triangle', vol * .5, d + .022);
+    }
+  }
+  sfx.horde = () => { for (let k = 0; k < 6; k++) setTimeout(() => twitter(5 + rnd(4), .07, 3400 + rnd(2500)), k * 110); };
+  const buzz = ms => navigator.vibrate && navigator.vibrate(ms);
+
+  // ---------- Terrain ----------
+  const field = $('#field');
+  const holes = [];
+  for (let i = 0; i < 12; i++){
+    const h = document.createElement('div'); h.className = 'hole';
+    const c = document.createElement('div'); c.className = 'critter';
+    h.appendChild(c); field.appendChild(h);
+    const hole = { el: c, busy: false, type: null, timer: null, hit: false };
+    c.addEventListener('pointerdown', e => { e.preventDefault(); whack(hole, e.clientX, e.clientY); });
+    holes.push(hole);
+  }
+
+  const TYPES = {
+    shrew:    { w: 75, html: '<svg><use href="#shrew"/></svg>' },
+    gold:     { w: 7,  html: '<svg style="--fur:#e0ac1c;--snout:#f5cc4a"><use href="#shrew"/></svg>' },
+    cat:      { w: 13, html: '<span class="emo">🐈</span>' },
+    owl:      { w: 7,  html: '<span class="emo">🦉</span>' },
+    king:     { w: 5,  html: '<div class="ryan-wrap"><img class="ryan" src="ryan.jpg" alt=""><span class="c">👑</span></div>' },
+    imposter: { w: 7,  html: '<div class="ryan-wrap"><img class="ryan" src="ryan-grimace.jpg" alt=""><span class="c">😤</span></div>' },
+  };
+
+  // ---------- État de la partie ----------
+  let G = null;
+
+  function newGame(playerName, onEnd){
+    stopGame();
+    G = { name: playerName, onEnd, score: 0, runners: 0, combo: 0, maxCombo: 0, hits: 0, gold: 0, kings: 0,
+          fails: 0, escaped: 0, royalUntil: 0, start: performance.now(), lastLeft: DURATION, running: true,
+          spawnT: null, loopT: null, nextHorde: performance.now() + 7000 };
+    $('#player-name').textContent = playerName ? '🐭 ' + playerName : '';
+    updateHud();
+    show('game');
+    spawnLoop();
+    G.loopT = setInterval(tickTimer, 100);
+  }
+
+  function stopGame(){
+    if (!G) return;
+    G.running = false;
+    clearTimeout(G.spawnT); clearInterval(G.loopT);
+    document.querySelectorAll('body > .runner').forEach(r => r.remove());
+    holes.forEach(h => { clearTimeout(h.timer); h.busy = false; h.el.className = 'critter'; h.el.innerHTML = ''; });
+    document.body.classList.remove('royal');
+  }
+
+  function progress(){ return Math.min(1, (performance.now() - G.start) / (DURATION * 1000)); }
+
+  function spawnLoop(){
+    if (!G.running) return;
+    spawn();
+    if (Math.random() < .45 + progress() * .35) spawn();      // de plus en plus de monde
+    if (Math.random() < .2 + progress() * .3) spawn();
+    if (performance.now() > G.nextHorde){ horde(); G.nextHorde = performance.now() + 9000 + Math.random() * 5000; }
+    if (Math.random() < .14) runner(true);
+    const delay = 820 - progress() * 420 + Math.random() * 180;
+    G.spawnT = setTimeout(spawnLoop, delay);
+  }
+
+  function horde(){
+    flash('🐭 RUÉE DES MUSARAIGNES ! 🐭'); sfx.horde();
+    holes.filter(h => !h.busy).forEach((h, i) => setTimeout(() => G && G.running && spawn(Math.random() < .12 ? 'gold' : 'shrew'), i * 60));
+    for (let i = 0; i < 3; i++) setTimeout(() => G && G.running && runner(true), i * 400);
+  }
+
+  // Musaraignes qui traversent l'écran
+  function runner(inGame){
+    const d = document.createElement('div'); d.className = 'runner';
+    const ltr = Math.random() < .5, dur = 2.2 + Math.random() * 2;
+    d.innerHTML = '<svg><use href="#shrew-side"/></svg>';
+    d.style.top = (inGame ? 22 + Math.random() * 70 : 5 + Math.random() * 88) + '%';
+    d.style.animation = `${ltr ? 'runR' : 'runL'} ${dur}s linear forwards`;
+    if (!ltr) d.querySelector('svg').style.transform = 'scaleX(-1)';
+    let caught = false;
+    d.addEventListener('pointerdown', e => {
+      e.preventDefault(); e.stopPropagation(); if (caught) return; caught = true;
+      sfx.squeak(); d.classList.add('caught');
+      if (inGame && G && G.running){
+        G.combo++; G.hits++; G.runners++; const pts = 20 * mult();
+        G.score += pts; G.maxCombo = Math.max(G.maxCombo, G.combo);
+        floatTextAt('+' + pts, e.clientX, e.clientY, '#9ef'); updateHud();
+      } else floatTextAt('couic !', e.clientX, e.clientY, '#fff');
+      setTimeout(() => d.remove(), 250);
+    });
+    (inGame ? document.body : $('#menu')).appendChild(d);
+    if (inGame) sfx.chirp(.035);
+    setTimeout(() => d.remove(), dur * 1000 + 100);
+  }
+  setInterval(() => { if ($('#menu').classList.contains('on')) runner(false); }, 1300);
+
+  function chooseType(){
+    const royal = performance.now() < G.royalUntil;
+    const kingOut = holes.some(h => h.busy && h.type === 'king');
+    const pool = Object.entries(TYPES).filter(([k]) => !(k === 'king' && (royal || kingOut)));
+    let r = Math.random() * pool.reduce((s, [, v]) => s + v.w, 0);
+    for (const [k, v] of pool){ if ((r -= v.w) < 0) return k; }
+    return 'shrew';
+  }
+
+  function spawn(forced){
+    const free = holes.filter(h => !h.busy);
+    if (!free.length) return;
+    const h = pick(free), type = forced || chooseType();
+    h.busy = true; h.type = type; h.hit = false;
+    h.el.className = 'critter' + (type === 'imposter' ? ' imposter' : '');
+    h.el.innerHTML = TYPES[type].html;
+    requestAnimationFrame(() => h.el.classList.add('up'));
+    if ((type === 'shrew' || type === 'gold') && Math.random() < .6) sfx.chirp();
+    let stay = 1150 - progress() * 500;
+    if (type === 'king') stay = 1100;
+    if (type === 'gold') stay *= .7;
+    h.timer = setTimeout(() => hide(h, true), stay + Math.random() * 250);
+  }
+
+  function hide(h, escaped){
+    if (!h.busy) return;
+    if (escaped && !h.hit && (h.type === 'shrew' || h.type === 'gold') && G.running){
+      G.escaped++;
+      if (G.combo >= 5) floatText('💨 combo perdu', h.el);
+      G.combo = 0; updateHud();
+    }
+    h.el.classList.remove('up');
+    h.timer = setTimeout(() => { h.busy = false; h.el.innerHTML = ''; h.el.className = 'critter'; }, 160);
+  }
+
+  function mult(){
+    const comboM = Math.min(5, 1 + Math.floor(G.combo / 5));
+    return comboM * (performance.now() < G.royalUntil ? 3 : 1);
+  }
+
+  function whack(h, x, y){
+    if (!G || !G.running || !h.busy || h.hit || !h.el.classList.contains('up')) return;
+    h.hit = true; clearTimeout(h.timer);
+    h.el.classList.add('hit');
+    let pts = 0, color = '#fff';
+    switch (h.type){
+      case 'shrew':
+        G.combo++; G.hits++; pts = 10 * mult(); sfx.squeak(); break;
+      case 'gold':
+        G.combo++; G.hits++; G.gold++; pts = 50 * mult(); color = 'var(--gold)'; sfx.gold(); break;
+      case 'king':
+        G.kings++; pts = 100; color = 'var(--gold)'; sfx.king(); buzz(40);
+        G.royalUntil = performance.now() + 5000;
+        flash(pick(KING_HIT)); break;
+      case 'imposter':
+        G.fails++; G.combo = 0; pts = -50; color = 'var(--red)'; sfx.bad(); buzz([60,40,60]);
+        flash(pick(IMPOSTER)); shake(); break;
+      default: // chat, chouette
+        G.fails++; G.combo = 0; pts = -30; color = 'var(--red)'; sfx.bad(); buzz(120);
+        if (Math.random() < .5) flash(pick(PREDATOR)); shake();
+    }
+    G.score = Math.max(0, G.score + pts);
+    G.maxCombo = Math.max(G.maxCombo, G.combo);
+    floatTextAt((pts > 0 ? '+' : '') + pts, x, y, color);
+    updateHud();
+    setTimeout(() => hide(h, false), 140);
+  }
+
+  function tickTimer(){
+    if (!G.running) return;
+    const left = Math.max(0, DURATION - (performance.now() - G.start) / 1000);
+    const sec = Math.ceil(left);
+    if (sec !== G.lastLeft){ G.lastLeft = sec; if (sec <= 5 && sec > 0) sfx.tick(); }
+    $('#timer').textContent = sec;
+    $('#timer').style.color = sec <= 5 ? 'var(--red)' : '';
+    const royal = performance.now() < G.royalUntil;
+    document.body.classList.toggle('royal', royal);
+    $('#royal-banner').classList.toggle('on', royal);
+    $('#combo').textContent = '×' + mult();
+    if (left <= 0) endGame();
+  }
+
+  function updateHud(){
+    $('#score').textContent = G.score;
+    $('#combo').textContent = '×' + mult();
+  }
+
+  function endGame(){
+    const res = { name: G.name, score: G.score, hits: G.hits, gold: G.gold, kings: G.kings,
+                  fails: G.fails, escaped: G.escaped, runners: G.runners, maxCombo: G.maxCombo };
+    const cb = G.onEnd;
+    stopGame(); G = null;
+    sfx.end();
+    flash('⏰ TERMINÉ !');
+    setTimeout(() => cb(res), 900);
+  }
+
+  // ---------- Effets ----------
+  function floatTextAt(t, x, y, color){
+    const d = document.createElement('div'); d.className = 'float';
+    d.textContent = t; d.style.left = x + 'px'; d.style.top = y + 'px'; d.style.color = color || '#fff';
+    document.body.appendChild(d); setTimeout(() => d.remove(), 900);
+  }
+  function floatText(t, el){ const r = el.parentElement.getBoundingClientRect(); floatTextAt(t, r.left + r.width/2, r.top + r.height/2, '#ddd'); }
+  function flash(t){ const m = $('#msg'); m.textContent = t; m.classList.remove('show'); void m.offsetWidth; m.classList.add('show'); }
+  function shake(){ document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); }
+
+  // ---------- Compte à rebours ----------
+  function countdown(then){
+    show('count'); $('#count-tip').textContent = '💡 ' + pick(TIPS);
+    let n = 3; $('#count-n').textContent = n; sfx.tick();
+    const t = setInterval(() => {
+      n--;
+      if (n > 0){ $('#count-n').textContent = n; sfx.tick(); }
+      else if (n === 0){ $('#count-n').textContent = 'TAPE !'; tone(1200, 1600, .2, 'square', .1); }
+      else { clearInterval(t); then(); }
+    }, 700);
+  }
+
+  // ---------- Classement ----------
+  const loadBoard = () => { try { return JSON.parse(localStorage.getItem(STORE)) || []; } catch(e){ return []; } };
+  function addToBoard(name, score){
+    const b = loadBoard(); b.push({ name: name || 'Anonyme', score, date: Date.now() });
+    b.sort((a, c) => c.score - a.score);
+    const top = b.slice(0, 10); localStorage.setItem(STORE, JSON.stringify(top));
+    return top.findIndex(e => e.score === score && e.name === (name || 'Anonyme'));
+  }
+  function renderBoard(){
+    const b = loadBoard();
+    $('#board-list').innerHTML = b.length
+      ? b.map((e, i) => `<li><span>${['👑','🥈','🥉'][i] || ''} ${esc(e.name)}</span><span>${e.score}</span></li>`).join('')
+      : '<p class="sub">Personne n\'a encore osé défier le Roi.</p>';
+  }
+  $('#btn-board').onclick = () => show('board');
+  $('#btn-reset-board').onclick = () => { if (confirm('Effacer tout le classement ?')){ localStorage.removeItem(STORE); renderBoard(); } };
+
+  // ---------- Écran résultat ----------
+  function showResult(res, buttonsHtml){
+    $('#res-who').textContent = res.name ? res.name + ' a marqué' : 'Score final';
+    $('#res-score').textContent = res.score;
+    $('#res-title').textContent = titleFor(res.score);
+    const tier = res.score >= 1600 ? 'top' : res.score >= 700 ? 'good' : res.score >= 300 ? 'mid' : 'bad';
+    $('#res-quote').textContent = 'Le Roi Ryan : ' + pick(QUOTES[tier]);
+    $('#res-stats').innerHTML = `
+      <div>🐭 Musaraignes : <b>${res.hits}</b></div><div>✨ Dorées : <b>${res.gold}</b></div>
+      <div>👑 Saluts au Roi : <b>${res.kings}</b></div><div>🔥 Meilleur combo : <b>${res.maxCombo}</b></div>
+      <div>🏃 Fuyardes attrapées : <b>${res.runners}</b></div><div>😿 Bêtises : <b>${res.fails}</b></div><div>💨 Échappées : <b>${res.escaped}</b></div>`;
+    $('#res-buttons').innerHTML = buttonsHtml;
+    show('result');
+  }
+
+  // ---------- Solo ----------
+  let soloName = localStorage.getItem('roi-ryan-nom') || '';
+  $('#btn-solo').onclick = () => {
+    const n = prompt('Ton nom de sujet royal ?', soloName);
+    if (n === null) return;
+    soloName = n.trim().slice(0, 20) || 'Anonyme';
+    localStorage.setItem('roi-ryan-nom', soloName);
+    playSolo();
+  };
+  function playSolo(){
+    countdown(() => newGame(soloName, res => {
+      const rank = addToBoard(res.name, res.score);
+      showResult(res, `<button id="b-again">🔁 Rejouer</button>
+        <button id="b-share-solo">📤 Défier les potes</button>
+        <button class="alt" id="b-menu">🏠 Menu</button>`);
+      $('#res-record').textContent = rank === 0 ? '🎉 NOUVEAU RECORD DE LA COUR !' : rank > 0 ? `📜 ${rank + 1}e au classement` : '';
+      $('#b-again').onclick = playSolo;
+      $('#b-menu').onclick = () => show('menu');
+      $('#b-share-solo').onclick = () => share(`🐭👑 J'ai fait ${res.score} points à « La Cour du Roi Ryan » et je suis « ${titleFor(res.score)} ». Qui me bat ?`);
+    }));
+  }
+
+  // ---------- Concours ----------
+  let players = JSON.parse(localStorage.getItem('roi-ryan-joueurs') || '["",""]');
+  if (players.length < 2) players = ['', ''];
+  function renderPlayers(){
+    $('#player-list').innerHTML = players.map((p, i) => `
+      <div class="row"><input maxlength="20" placeholder="Pote n°${i + 1}" value="${esc(p)}" data-i="${i}">
+      ${players.length > 2 ? `<button data-del="${i}">✕</button>` : ''}</div>`).join('');
+    $('#player-list').querySelectorAll('input').forEach(inp => inp.oninput = () => players[inp.dataset.i] = inp.value);
+    $('#player-list').querySelectorAll('[data-del]').forEach(b => b.onclick = () => { players.splice(+b.dataset.del, 1); renderPlayers(); });
+  }
+  $('#btn-contest').onclick = () => { renderPlayers(); show('setup'); };
+  $('#btn-add-player').onclick = () => { if (players.length < 10){ players.push(''); renderPlayers(); } };
+
+  let contest = null;
+  $('#btn-start-contest').onclick = () => {
+    const names = players.map((p, i) => p.trim() || 'Pote ' + (i + 1));
+    localStorage.setItem('roi-ryan-joueurs', JSON.stringify(players));
+    contest = { names, results: [], i: 0 };
+    nextTurn();
+  };
+  function nextTurn(){
+    const c = contest, name = c.names[c.i];
+    $('#pass-name').textContent = name;
+    $('#pass-info').textContent = `Joueur ${c.i + 1} / ${c.names.length}` +
+      (c.results.length ? ` — score à battre : ${Math.max(...c.results.map(r => r.score))}` : '');
+    show('pass');
+    $('#btn-ready').onclick = () => countdown(() => newGame(name, res => {
+      c.results.push(res); addToBoard(res.name, res.score);
+      c.i++;
+      const last = c.i >= c.names.length;
+      showResult(res, `<button id="b-next">${last ? '🏆 Voir le verdict du Roi' : '➡️ Joueur suivant : ' + esc(c.names[c.i])}</button>`);
+      $('#res-record').textContent = '';
+      $('#b-next').onclick = last ? showPodium : nextTurn;
+    }));
+  }
+  function showPodium(){
+    const r = [...contest.results].sort((a, b) => b.score - a.score);
+    const step = (p, cls, medal) => p ? `<div class="step ${cls}"><div class="nm">${esc(p.name)}</div>
+      <div class="sc">${p.score} pts</div><div class="bar">${medal}</div></div>` : '<div class="step"></div>';
+    $('#podium-steps').innerHTML = step(r[1], 'p2', '🥈') + step(r[0], 'p1', '👑') + step(r[2], 'p3', '🥉');
+    $('#podium-list').innerHTML = r.map((p, i) =>
+      `<li><span>${i + 1}. ${esc(p.name)} <small style="opacity:.7">— ${titleFor(p.score)}</small></span><span>${p.score}</span></li>`).join('');
+    const loser = r[r.length - 1];
+    contest.gage = /ryan/i.test(loser.name)
+      ? 'est DESTITUÉ ! 😱 Le Roi des Musaraignes a perdu contre ses propres sujets. Il rend sa couronne pendant 24 h et doit couiner à chaque fois qu\'on l\'appelle 🐭'
+      : pick(GAGES);
+    $('#gage').innerHTML = `<b>⚖️ GAGE ROYAL</b><br>Par décret de Sa Majesté Ryan I<sup>er</sup>,<br>
+      <b>${esc(loser.name)}</b> ${contest.gage}`;
+    sfx.king();
+    show('podium');
+  }
+  $('#btn-revanche').onclick = () => { contest = { names: contest.names, results: [], i: 0 }; nextTurn(); };
+  $('#btn-share').onclick = () => {
+    const r = [...contest.results].sort((a, b) => b.score - a.score);
+    const lines = r.map((p, i) => `${['👑','🥈','🥉'][i] || (i + 1) + '.'} ${p.name} : ${p.score}`).join('\n');
+    share(`🐭 Concours « La Cour du Roi Ryan » 🐭\n${lines}\n\n⚖️ Gage : ${r[r.length - 1].name} ${contest.gage}`);
+  };
+
+  async function share(text){
+    const url = location.href.split('#')[0];
+    try{
+      if (navigator.share){ await navigator.share({ text, url }); return; }
+      await navigator.clipboard.writeText(text + '\n' + url); flash('📋 Copié !');
+    }catch(e){ if (e.name !== 'AbortError') prompt('Copie ce texte :', text + '\n' + url); }
+  }
+
+  // Si on quitte l'onglet en pleine partie, on arrête proprement
+  document.addEventListener('visibilitychange', () => { if (document.hidden && G){ stopGame(); G = null; show('menu'); } });
+})();
+</script>
+</body>
+</html>
