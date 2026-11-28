@@ -537,12 +537,23 @@
       }
     }));
     G.player = mover(G.start[0], G.start[1], PLAYER_SPEED); G.player.qdx = 0; G.player.qdy = -1;
-    for (let k = 0; k < 5; k++){ const [x, y] = randomFloor(walkP); G.npcs.push(Object.assign(mover(x, y, 2.5 + Math.random() * 2.5), { tint: Math.random() })); }
+    // plein de musaraignes dans la maison, certaines avec leurs bébés en file
+    const holesXY = [];
+    grid.forEach((row, y) => row.forEach((c, x) => { if (c === 'O') holesXY.push([x, y]); }));
+    G.holes = holesXY;
+    for (let k = 0; k < 12 + i * 3; k++) addNpc(k < holesXY.length ? holesXY[k] : randomFloor(walkP), 0);
+    G.nextPeek = performance.now() + 2000;
     updateHud();
     show('game');
     ryanSay(pick(['ALLEZ mes musaraignes ! Toute la bouffe !', 'Pour le Roi ! À l\'attaque !', 'Ramenez-moi TOUT ce qui se mange !']), 3000);
     resize();
     G.raf = requestAnimationFrame(loop);
+  }
+
+  function addNpc(xy, ttl){
+    const m = Object.assign(mover(xy[0], xy[1], 2.3 + Math.random() * 2.7),
+      { tint: Math.random(), kids: Math.random() < .45 ? 2 + rnd(4) : 0, trail: [], ttl });
+    G.npcs.push(m); return m;
   }
 
   function updateHud(){
@@ -576,7 +587,7 @@
     // --- ramassage ---
     const [tx, ty] = tileOf(P), k = ty * COLS + tx;
     if (G.items.has(k)){
-      G.items.delete(k); G.food++; RUN.food++; RUN.score += 100; G.babies = Math.min(14, G.babies + 1);
+      G.items.delete(k); G.food++; RUN.food++; RUN.score += 100; G.babies = Math.min(24, G.babies + 1);
       sfx.cri(); sfx.munch(); floatOnCanvas('+100', tx, ty, '#fff');
       if (G.food === G.total - 1) ryanSay('Plus qu\'UNE ! Allez allez allez !');
       else if (Math.random() < .35) ryanSay(pick(['Miam ! Encore !', 'Bravo ma musaraigne !', 'Au palais, cette bouffe !', 'Hé hé, il a rien vu !', 'Plus vite !']));
@@ -587,7 +598,7 @@
       G.crown = null; RUN.crowns++; RUN.score += 50; G.power = now + 6500;
       sfx.king(); buzz(60); flash('👑 ORDRE DU ROI ! 👑');
       ryanSay('MES MUSARAIGNES ! CHARGEZ !!!', 3000);
-      for (let n = 0; n < 16; n++){ const [x, y] = randomFloor(walkP); G.army.push(Object.assign(mover(x, y, 4 + Math.random() * 3), { tint: Math.random() })); }
+      for (let n = 0; n < 30; n++){ const [x, y] = randomFloor(walkP); G.army.push(Object.assign(mover(x, y, 4 + Math.random() * 3), { tint: Math.random() })); }
       G.owners.forEach(o => { o.talk = pick(['AAAAH !', 'AU SECOURS !', 'Y EN A PARTOUT !']); o.talkUntil = now + 2000; });
       sfx.scared(); updateHud();
     }
@@ -656,7 +667,19 @@
       const ch = fwd && Math.random() < .7 ? fwd : pick(noBack.length ? noBack : opts);
       m.dx = ch ? ch[0] : 0; m.dy = ch ? ch[1] : 0;
     };
-    G.npcs.forEach(m => advance(m, dt, wanderDecide));
+    G.npcs.forEach(m => {
+      advance(m, dt, wanderDecide);
+      if (m.kids){
+        const [x, y] = posOf(m), l = m.trail[0];
+        if (!l || Math.hypot(l[0] - x, l[1] - y) > .08){ m.trail.unshift([x, y]); if (m.trail.length > 40) m.trail.pop(); }
+      }
+    });
+    // des musaraignes sortent des trous de temps en temps (et repartent)
+    if (now > G.nextPeek && G.holes.length){
+      G.nextPeek = now + 1800 + Math.random() * 2200;
+      if (G.npcs.length < 34){ addNpc(pick(G.holes), now + 7000 + Math.random() * 5000); if (Math.random() < .3) sfx.cri(); }
+    }
+    G.npcs = G.npcs.filter(m => !m.ttl || now < m.ttl);
     G.army.forEach(m => advance(m, dt, wanderDecide));
   }
 
@@ -793,7 +816,15 @@
     }
     const W = now / 60;
     const drawM = (m, s, opt) => { const [x, y] = posOf(m); drawShrew(x * C + C / 2, y * C + C / 2, s, angOf(m), Object.assign({ wiggle: W * 1.3 }, opt)); };
-    G.npcs.forEach(m => drawM(m, C * .7, { fur: m.tint > .5 ? '#7a6857' : '#5e4f42' }));
+    G.npcs.forEach(m => {
+      for (let b = 1; b <= m.kids; b++){
+        const p = m.trail[Math.min(m.trail.length - 1, b * 5)], q = m.trail[Math.min(m.trail.length - 1, b * 5 - 2)];
+        if (!p || !q || p === q) break;
+        drawShrew(p[0] * C + C / 2, p[1] * C + C / 2, C * .42, Math.atan2(q[1] - p[1], q[0] - p[0]), { wiggle: W * 1.8 + b, fur: '#7d6a59' });
+      }
+      const left = m.ttl ? (m.ttl - now) / 600 : 1;
+      drawM(m, C * .7, { fur: m.tint > .5 ? '#7a6857' : '#5e4f42', alpha: Math.max(0, Math.min(1, left)) });
+    });
     G.army.forEach(m => drawM(m, C * .75, { fur: m.tint > .85 ? '#e0ac1c' : '#6b5a4a' }));
     for (let b = 1; b <= G.babies; b++){
       const p = G.trail[Math.min(G.trail.length - 1, b * 6)], q = G.trail[Math.min(G.trail.length - 1, b * 6 - 2)];
