@@ -452,7 +452,7 @@
       if (petBuf){                                  // le vrai pet enregistré
         const src = ac.createBufferSource(), g = ac.createGain();
         src.buffer = petBuf; src.playbackRate.value = .88 + Math.random() * .24;
-        g.gain.value = 1.5; src.connect(g).connect(out()); src.start();
+        g.gain.value = 2.2; src.connect(g).connect(ac.destination); src.start();   // en direct, sans compresseur = plus fort
         return;
       }
       // (secours si le fichier n'est pas encore chargé : pet synthétisé)
